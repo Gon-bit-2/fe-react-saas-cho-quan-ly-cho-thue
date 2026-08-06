@@ -77,9 +77,11 @@ apiClient.interceptors.request.use((config) => {
   // Gắn x-request-id để đối soát log với backend
   config.headers['x-request-id'] = generateRequestId()
 
-  // KHÔNG tự gắn x-tenant-id ở đây.
-  // OpenAPI chỉ yêu cầu header này trên đúng operation tenant-scoped.
-  // Orval/caller tự truyền theo operation cụ thể.
+  // Gắn x-tenant-id nếu caller truyền config.tenantId (chúng ta tự quy ước khi viết thủ công)
+  const extendedConfig = config as InternalAxiosRequestConfig & { tenantId?: string | number }
+  if (extendedConfig.tenantId) {
+    config.headers['x-tenant-id'] = extendedConfig.tenantId
+  }
 
   return config
 })
@@ -164,7 +166,6 @@ apiClient.interceptors.response.use(
 )
 
 /**
- * Export AXIOS_INSTANCE cho Orval mutator.
- * Orval cần tham chiếu đến instance để inject vào generated hooks.
+ * Export AXIOS_INSTANCE cho các hook thủ công.
  */
 export const AXIOS_INSTANCE = apiClient

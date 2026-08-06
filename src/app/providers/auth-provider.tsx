@@ -31,6 +31,7 @@ import type {
 
 // ─── Context ────────────────────────────────────────────────────
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<SessionContextValue | null>(null)
 
 // ─── Provider ───────────────────────────────────────────────────

@@ -19,7 +19,10 @@ export function GoogleCallbackPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { establishSession } = useAuth()
-  const [error, setError] = useState<string | null>(null)
+  const sessionToken = searchParams.get('sessionToken')
+  const [error, setError] = useState<string | null>(
+    sessionToken ? null : 'Không tìm thấy session token từ Google.',
+  )
   const processedRef = useRef(false)
 
   useEffect(() => {
@@ -27,11 +30,7 @@ export function GoogleCallbackPage() {
     if (processedRef.current) return
     processedRef.current = true
 
-    const sessionToken = searchParams.get('sessionToken')
-    if (!sessionToken) {
-      setError('Không tìm thấy session token từ Google.')
-      return
-    }
+    if (!sessionToken) return
 
     void handleGoogleSession(sessionToken)
 
@@ -62,7 +61,7 @@ export function GoogleCallbackPage() {
         setError('Xác thực Google thất bại. Vui lòng thử lại.')
       }
     }
-  }, [searchParams, navigate, establishSession])
+  }, [sessionToken, searchParams, navigate, establishSession])
 
   if (error) {
     return (

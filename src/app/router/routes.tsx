@@ -41,20 +41,29 @@ export const router = createBrowserRouter([
     element: <RequireGuest />,
     children: [
       {
-        path: '/login',
-        lazy: () => import('@/features/auth/pages/login'),
-      },
-      {
-        path: '/login/otp',
-        lazy: () => import('@/features/auth/pages/login-otp'),
-      },
-      {
-        path: '/register',
-        lazy: () => import('@/features/auth/pages/register'),
-      },
-      {
-        path: '/forgot-password',
-        lazy: () => import('@/features/auth/pages/forgot-password'),
+        lazy: () => import('@/app/layouts/auth-layout'),
+        children: [
+          {
+            path: '/login',
+            lazy: () => import('@/features/auth/pages/login'),
+          },
+          {
+            path: '/login/otp',
+            lazy: () => import('@/features/auth/pages/login-otp'),
+          },
+          {
+            path: '/register',
+            lazy: () => import('@/features/auth/pages/register'),
+          },
+          {
+            path: '/forgot-password',
+            lazy: () => import('@/features/auth/pages/forgot-password'),
+          },
+          {
+            path: '/reset-password',
+            lazy: () => import('@/features/auth/pages/reset-password'),
+          },
+        ],
       },
     ],
   },
