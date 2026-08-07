@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/shared/api/axios-client'
-import type { TokenPair, UserProfile } from '@/shared/types/auth'
+import type { UserProfile } from '@/shared/types/auth'
 import type { AxiosError } from 'axios'
 import type { ApiErrorResponse } from '@/shared/types/errors'
 
@@ -17,6 +17,29 @@ export interface LoginBody {
   code?: string
 }
 
+export interface RegisterBody {
+  email: string
+  passwordHash: string
+  fullName: string
+  phone: string
+  confirmPassword: string
+  code: string
+  roleCode: 'LANDLORD' | 'TENANT'
+}
+
+export interface ForgotPasswordBody {
+  email: string
+  code: string
+  newPassword: string
+  confirmNewPassword: string
+}
+
+export interface LoginRes {
+  accessToken?: string
+  refreshToken?: string
+  message?: string
+}
+
 // ─── API Calls ───────────────────────────────────────────────────
 
 export const authApi = {
@@ -26,7 +49,17 @@ export const authApi = {
   },
 
   login: async (data: LoginBody) => {
-    const response = await apiClient.post<TokenPair>('/auth/login', data)
+    const response = await apiClient.post<LoginRes>('/auth/login', data)
+    return response.data
+  },
+
+  register: async (data: RegisterBody) => {
+    const response = await apiClient.post('/auth/register', data)
+    return response.data
+  },
+
+  forgotPassword: async (data: ForgotPasswordBody) => {
+    const response = await apiClient.post('/auth/forgot-password', data)
     return response.data
   },
 
@@ -51,8 +84,26 @@ export const useSendOTP = () => {
  * Hook đăng nhập
  */
 export const useLogin = () => {
-  return useMutation<TokenPair, AxiosError<ApiErrorResponse>, LoginBody>({
+  return useMutation<LoginRes, AxiosError<ApiErrorResponse>, LoginBody>({
     mutationFn: authApi.login,
+  })
+}
+
+/**
+ * Hook đăng ký
+ */
+export const useRegister = () => {
+  return useMutation<unknown, AxiosError<ApiErrorResponse>, RegisterBody>({
+    mutationFn: authApi.register,
+  })
+}
+
+/**
+ * Hook lấy lại mật khẩu
+ */
+export const useForgotPassword = () => {
+  return useMutation<unknown, AxiosError<ApiErrorResponse>, ForgotPasswordBody>({
+    mutationFn: authApi.forgotPassword,
   })
 }
 
@@ -68,3 +119,4 @@ export const useProfile = () => {
     enabled: false,
   })
 }
+

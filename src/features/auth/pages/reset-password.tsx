@@ -3,8 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
-import { apiClient } from '@/shared/api/axios-client'
+import { useForgotPassword } from '@/shared/api/auth'
 import { toAppError } from '@/shared/lib/errors'
 
 const resetSchema = z
@@ -32,13 +31,7 @@ export function Component() {
   const [apiError, setApiError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  // Demo: Mutation đổi mật khẩu (cần sửa theo API backend)
-  const resetMutation = useMutation({
-    mutationFn: async (password: string) => {
-      const res = await apiClient.post('/auth/reset-password', { email, code, newPassword: password })
-      return res.data
-    }
-  })
+  const resetMutation = useForgotPassword()
 
   const {
     register,
@@ -85,7 +78,14 @@ export function Component() {
   const onSubmit = async (data: ResetFormValues) => {
     setApiError(null)
     try {
-      await resetMutation.mutateAsync(data.password)
+      if (!email || !code) throw new Error('Yêu cầu không hợp lệ')
+      
+      await resetMutation.mutateAsync({
+        email,
+        code,
+        newPassword: data.password,
+        confirmNewPassword: data.confirmPassword,
+      })
       setSuccess(true)
       setTimeout(() => {
         navigate('/login')
