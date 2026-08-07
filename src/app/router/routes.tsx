@@ -33,6 +33,14 @@ export const router = createBrowserRouter([
         index: true,
         lazy: () => import('@/features/marketplace/pages/home'),
       },
+      {
+        path: 'rooms',
+        lazy: () => import('@/features/marketplace/pages/room-list'),
+      },
+      {
+        path: 'rooms/:roomId',
+        lazy: () => import('@/features/marketplace/pages/room-detail'),
+      },
     ],
   },
 
