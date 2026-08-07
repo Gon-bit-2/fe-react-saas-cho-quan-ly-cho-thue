@@ -1,32 +1,32 @@
 import { useState, useRef } from 'react'
 import type { KeyboardEvent, ClipboardEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
-import { useMutation } from '@tanstack/react-query'
 import { apiClient } from '@/shared/api/axios-client'
+import { authApi } from '@/shared/api/auth'
 import { useAuth } from '@/shared/hooks/use-auth'
 import { toAppError } from '@/shared/lib/errors'
+import type { UserProfile } from '@/shared/types/auth'
 
 export function Component() {
   const navigate = useNavigate()
   const location = useLocation()
   const { establishSession } = useAuth()
   
-  // Lấy email từ state truyền vào khi redirect
-  const email = (location.state as { email?: string })?.email || 'test@example.com'
-  const actionType = (location.state as { action?: string })?.action || 'LOGIN'
+  // Lấy dữ liệu từ state truyền vào khi redirect
+  const state = location.state as { 
+    email?: string; 
+    action?: string;
+    passwordHash?: string;
+    registerData?: { email: string; password: string; fullname: string; phone: string; confirm_password: string };
+  }
+  
+  const email = state?.email || ''
+  const actionType = state?.action || 'LOGIN'
 
   const [otp, setOtp] = useState<string[]>(Array(6).fill(''))
   const [apiError, setApiError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
-
-  // Demo: Một mutation verify OTP (Thực tế tuỳ backend)
-  const verifyMutation = useMutation({
-    mutationFn: async (code: string) => {
-      // Giả sử gọi endpoint chung để verify hoặc truyền thẳng code vào register/login
-      const res = await apiClient.post('/auth/verify-otp', { email, code, type: actionType })
-      return res.data
-    }
-  })
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return
@@ -72,6 +72,8 @@ export function Component() {
     }
 
     setApiError(null)
+    setIsSubmitting(true)
+    
     try {
       if (actionType === 'FORGOT_PASSWORD') {
         // Chuyển sang đặt lại mật khẩu kèm code
@@ -79,17 +81,45 @@ export function Component() {
         return
       }
 
-      const res = await verifyMutation.mutateAsync(code)
-      // Nếu API trả về TokenPair + UserProfile
-      if (res.accessToken && res.user) {
-        establishSession(res, res.user)
-        navigate('/account')
-      } else {
-        navigate('/login')
+      if (actionType === 'LOGIN') {
+        if (!state?.passwordHash) throw new Error('Thiếu thông tin đăng nhập')
+        
+        const loginRes = await authApi.login({ 
+          email, 
+          passwordHash: state.passwordHash, 
+          code 
+        })
+        
+        if (loginRes.accessToken) {
+          const profileResponse = await apiClient.get<UserProfile>('/auth/profile', {
+            headers: { Authorization: `Bearer ${loginRes.accessToken}` },
+          })
+          establishSession(
+            { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! }, 
+            profileResponse.data
+          )
+          navigate('/account')
+        }
+      } else if (actionType === 'REGISTER') {
+        if (!state?.registerData) throw new Error('Thiếu thông tin đăng ký')
+        
+        await authApi.register({
+          email: state.registerData.email,
+          passwordHash: state.registerData.password,
+          fullName: state.registerData.fullname,
+          phone: state.registerData.phone,
+          confirmPassword: state.registerData.confirm_password,
+          code,
+          roleCode: 'LANDLORD',
+        })
+        
+        navigate('/login', { state: { message: 'Đăng ký thành công, vui lòng đăng nhập!' } })
       }
     } catch (err) {
       const appErr = toAppError(err)
       setApiError(appErr.message)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -136,9 +166,9 @@ export function Component() {
       <button
         className="w-full h-12 bg-primary text-on-primary font-label-md text-label-md rounded-lg shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 mb-6 disabled:opacity-50"
         onClick={onSubmit}
-        disabled={verifyMutation.isPending}
+        disabled={isSubmitting}
       >
-        {verifyMutation.isPending ? (
+        {isSubmitting ? (
           <span>Đang xử lý...</span>
         ) : (
           <>

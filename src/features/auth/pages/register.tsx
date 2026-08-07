@@ -57,7 +57,13 @@ export function Component() {
       })
       
       // Chuyển sang màn hình nhập OTP
-      navigate('/login/otp', { state: { email: data.email, action: 'REGISTER' } })
+      navigate('/login/otp', { 
+        state: { 
+          email: data.email, 
+          action: 'REGISTER',
+          registerData: data
+        } 
+      })
     } catch (err) {
       const appErr = toAppError(err)
       setApiError(appErr.message)

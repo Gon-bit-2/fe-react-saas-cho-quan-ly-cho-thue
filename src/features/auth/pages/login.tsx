@@ -21,7 +21,7 @@ export function Component() {
   const navigate = useNavigate()
   const { establishSession } = useAuth()
   const loginMutation = useLogin()
-  
+
   const [showPassword, setShowPassword] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
 
@@ -41,101 +41,114 @@ export function Component() {
   const onSubmit = async (data: LoginFormValues) => {
     setApiError(null)
     try {
-      const tokenPair = await loginMutation.mutateAsync({
+      const loginRes = await loginMutation.mutateAsync({
         email: data.email,
-        passwordHash: data.password, // Frontend gửi password thô (hoặc hash nếu cần thiết theo design API)
+        passwordHash: data.password,
       })
 
-      // Lấy thông tin user
-      const profileResponse = await apiClient.get<UserProfile>('/auth/profile', {
-        headers: {
-          Authorization: `Bearer ${tokenPair.accessToken}`,
-        },
-      })
+      if (loginRes.message) {
+        // Yêu cầu nhập OTP (2FA)
+        navigate('/login/otp', {
+          state: {
+            email: data.email,
+            passwordHash: data.password,
+            action: 'LOGIN',
+          },
+        })
+        return
+      }
 
-      establishSession(tokenPair, profileResponse.data)
-      navigate('/account')
+      if (loginRes.accessToken) {
+        // Lấy thông tin user
+        const profileResponse = await apiClient.get<UserProfile>('/auth/profile', {
+          headers: {
+            Authorization: `Bearer ${loginRes.accessToken}`,
+          },
+        })
+
+        establishSession(
+          { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! },
+          profileResponse.data
+        )
+        navigate('/account')
+      }
     } catch (err) {
       const appErr = toAppError(err)
       setApiError(appErr.message)
     }
   }
 
-  // Google OAuth URL (example)
-  const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/google`
+  // Fetch Google OAuth URL from backend
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await apiClient.get<{ url: string }>('/auth/google/url')
+      if (response.data?.url) {
+        window.location.href = response.data.url
+      }
+    } catch (err) {
+      console.error('Google OAuth error:', err)
+      setApiError('Không thể kết nối đến Google, vui lòng thử lại sau.')
+    }
   }
 
   return (
-    <div className="relative w-full max-w-auth-card-width bg-surface-container-lowest rounded-xl shadow-lg p-page-padding-desktop">
-      <div className="flex flex-col items-center mb-8">
+    <div className="max-w-auth-card-width bg-surface-container-lowest p-page-padding-desktop relative w-full rounded-xl shadow-lg">
+      <div className="mb-8 flex flex-col items-center">
         <img
           alt="Rental SaaS Logo"
-          className="w-16 h-16 object-contain mb-4"
+          className="mb-4 h-16 w-16 object-contain"
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyLm5J0odnQpMPSA8arxrkeH3VjvXLfd6a6sFsQFPf5cxc40RwPweR2G6Ub1bIOGjsU0YMPJWbwncbedAmWgKXqONnlOAq9jbn0kRxfHzHscNn_acn8bJQMy9W6aR2vp2A-_-kpdG1hgFpg_UE4SM5qOqK2r4UCz0FiSRhbMUvn1q4QIZnkpdhXkm3uAOuvv-fbxOScm7uM6w05QYypwqu848BS4DgfmJ-KT4gDntWJwfCBFW_4prB"
         />
-        <h2 className="font-headline-lg text-headline-lg text-on-surface">
-          Rental SaaS
-        </h2>
+        <h2 className="font-headline-lg text-headline-lg text-on-surface">Rental SaaS</h2>
         <p className="font-body-md text-body-md text-on-surface-variant mt-2 text-center">
           Đăng nhập vào tài khoản của bạn để quản lý bất động sản
         </p>
       </div>
 
       {apiError && (
-        <div className="mb-6 p-4 bg-error-container text-on-error-container rounded-lg flex items-start gap-3">
-          <span className="material-symbols-outlined shrink-0 text-error">
-            error
-          </span>
+        <div className="bg-error-container text-on-error-container mb-6 flex items-start gap-3 rounded-lg p-4">
+          <span className="material-symbols-outlined text-error shrink-0">error</span>
           <span className="font-body-md text-body-md">{apiError}</span>
         </div>
       )}
 
-      <form className="flex flex-col gap-gap-fields" onSubmit={handleSubmit(onSubmit)}>
+      <form className="gap-gap-fields flex flex-col" onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-1">
-          <label
-            className="font-label-md text-label-md text-on-surface"
-            htmlFor="email"
-          >
+          <label className="font-label-md text-label-md text-on-surface" htmlFor="email">
             Email
           </label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">
+            <span className="material-symbols-outlined text-on-surface-variant absolute top-1/2 left-3 -translate-y-1/2">
               mail
             </span>
             <input
               {...register('email')}
-              className="w-full h-10 bg-surface pl-10 pr-4 rounded-lg text-on-surface font-body-md text-body-md outline-none focus:ring-2 focus:ring-primary-container transition-all"
+              className="bg-surface text-on-surface font-body-md text-body-md focus:ring-primary-container h-10 w-full rounded-lg pr-4 pl-10 transition-all outline-none focus:ring-2"
               id="email"
               type="email"
               placeholder="admin@example.com"
             />
           </div>
-          {errors.email && (
-            <span className="text-error text-xs">{errors.email.message}</span>
-          )}
+          {errors.email && <span className="text-error text-xs">{errors.email.message}</span>}
         </div>
 
         <div className="flex flex-col gap-1">
-          <label
-            className="font-label-md text-label-md text-on-surface"
-            htmlFor="password"
-          >
+          <label className="font-label-md text-label-md text-on-surface" htmlFor="password">
             Mật khẩu
           </label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">
+            <span className="material-symbols-outlined text-on-surface-variant absolute top-1/2 left-3 -translate-y-1/2">
               lock
             </span>
             <input
               {...register('password')}
-              className="w-full h-10 bg-surface pl-10 pr-10 rounded-lg text-on-surface font-body-md text-body-md outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-all"
+              className="bg-surface text-on-surface font-body-md text-body-md focus:ring-primary-container h-10 w-full rounded-lg pr-10 pl-10 transition-all outline-none focus:border-transparent focus:ring-2"
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
             />
             <button
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors"
+              className="text-on-surface-variant hover:text-on-surface absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
               type="button"
               onClick={() => setShowPassword(!showPassword)}
             >
@@ -144,22 +157,18 @@ export function Component() {
               </span>
             </button>
           </div>
-          {errors.password && (
-            <span className="text-error text-xs">{errors.password.message}</span>
-          )}
+          {errors.password && <span className="text-error text-xs">{errors.password.message}</span>}
         </div>
 
         <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <div className="relative flex items-center justify-center w-4 h-4 rounded bg-surface ring-1 ring-inset ring-outline-variant group-hover:ring-outline transition-all">
+          <label className="group flex cursor-pointer items-center gap-2">
+            <div className="bg-surface ring-outline-variant group-hover:ring-outline relative flex h-4 w-4 items-center justify-center rounded ring-1 transition-all ring-inset">
               <input {...register('remember')} className="peer sr-only" type="checkbox" />
-              <span className="material-symbols-outlined text-[14px] text-primary-container opacity-0 peer-checked:opacity-100 transition-opacity absolute">
+              <span className="material-symbols-outlined text-primary-container absolute text-[14px] opacity-0 transition-opacity peer-checked:opacity-100">
                 check
               </span>
             </div>
-            <span className="font-body-md text-body-md text-on-surface-variant select-none">
-              Ghi nhớ đăng nhập
-            </span>
+            <span className="font-body-md text-body-md text-on-surface-variant select-none">Ghi nhớ đăng nhập</span>
           </label>
           <Link
             className="font-label-md text-label-md text-primary-container hover:text-primary transition-colors"
@@ -170,7 +179,7 @@ export function Component() {
         </div>
 
         <button
-          className="w-full h-10 bg-primary-container text-on-primary font-label-md text-label-md rounded-lg hover:bg-primary transition-colors mt-2 shadow-sm flex items-center justify-center gap-2 group disabled:opacity-50"
+          className="bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary group mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg shadow-sm transition-colors disabled:opacity-50"
           type="submit"
           disabled={isSubmitting || loginMutation.isPending}
         >
@@ -179,7 +188,7 @@ export function Component() {
           ) : (
             <>
               Đăng nhập
-              <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">
+              <span className="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1">
                 arrow_forward
               </span>
             </>
@@ -187,23 +196,18 @@ export function Component() {
         </button>
       </form>
 
-      <div className="flex items-center gap-4 my-6">
-        <div className="h-px bg-surface-variant flex-1"></div>
-        <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
-          Hoặc
-        </span>
-        <div className="h-px bg-surface-variant flex-1"></div>
+      <div className="my-6 flex items-center gap-4">
+        <div className="bg-surface-variant h-px flex-1"></div>
+        <span className="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">Hoặc</span>
+        <div className="bg-surface-variant h-px flex-1"></div>
       </div>
 
       <button
-        className="w-full h-10 bg-surface-container-lowest text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface transition-colors flex items-center justify-center gap-3 ring-1 ring-inset ring-outline-variant shadow-sm group"
+        className="bg-surface-container-lowest text-on-surface font-label-md text-label-md hover:bg-surface ring-outline-variant group flex h-10 w-full items-center justify-center gap-3 rounded-lg shadow-sm ring-1 transition-colors ring-inset"
         type="button"
         onClick={handleGoogleLogin}
       >
-        <svg
-          className="w-5 h-5 group-hover:scale-110 transition-transform"
-          viewBox="0 0 24 24"
-        >
+        <svg className="h-5 w-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
             fill="#4285F4"
@@ -228,7 +232,7 @@ export function Component() {
         <p className="font-body-md text-body-md text-on-surface-variant">
           Chưa có tài khoản?
           <Link
-            className="font-label-md text-label-md text-primary-container hover:text-primary transition-colors ml-1"
+            className="font-label-md text-label-md text-primary-container hover:text-primary ml-1 transition-colors"
             to="/register"
           >
             Đăng ký ngay
