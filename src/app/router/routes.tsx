@@ -166,6 +166,42 @@ export const router = createBrowserRouter([
                 path: 'quan-ly-nha-tro/lich-xem-phong/:id',
                 lazy: () => import('@/features/tenant-app/pages/viewing-schedules/schedule-detail'),
               },
+              {
+                path: 'nguoi-thue',
+                lazy: () => import('@/features/tenant-app/pages/renters/renter-list'),
+              },
+              {
+                path: 'nguoi-thue/:id',
+                lazy: () => import('@/features/tenant-app/pages/renters/renter-detail'),
+              },
+              {
+                path: 'nguoi-thue/loi-moi/tao',
+                lazy: () => import('@/features/tenant-app/pages/renters/invite-form'),
+              },
+              {
+                path: 'nguoi-thue/loi-moi/:id',
+                lazy: () => import('@/features/tenant-app/pages/renters/invite-detail'),
+              },
+              {
+                path: 'hop-dong',
+                lazy: () => import('@/features/tenant-app/pages/contracts/contract-list'),
+              },
+              {
+                path: 'hop-dong/tao',
+                lazy: () => import('@/features/tenant-app/pages/contracts/contract-form'),
+              },
+              {
+                path: 'hop-dong/:id/sua',
+                lazy: () => import('@/features/tenant-app/pages/contracts/contract-form'),
+              },
+              {
+                path: 'hop-dong/:id',
+                lazy: () => import('@/features/tenant-app/pages/contracts/contract-detail'),
+              },
+              {
+                path: 'hop-dong/:id/thanh-vien',
+                lazy: () => import('@/features/tenant-app/pages/contracts/contract-members'),
+              },
             ],
           },
         ],
