@@ -66,7 +66,12 @@ export const useDashboardSummary = (from?: string, to?: string) => {
   return useQuery({
     queryKey: DASHBOARD_KEYS.summary(tenantId),
     queryFn: async () => {
-      const { data } = await apiClient.get<any>('/dashboard/summary', {
+      const { data } = await apiClient.get<{
+        rooms?: { totalRooms?: number; availableRooms?: number };
+        contracts?: { activeContracts?: number; endingSoonContracts?: number };
+        finance?: { paidAmount?: number };
+        tickets?: { open?: number };
+      }>('/dashboard/summary', {
         params: { from, to },
         tenantId,
       })
@@ -98,12 +103,12 @@ export const useRevenueTrend = (from?: string, to?: string, groupBy?: 'day' | 'm
   return useQuery({
     queryKey: DASHBOARD_KEYS.revenueTrend(tenantId, { from, to, groupBy }),
     queryFn: async () => {
-      const { data } = await apiClient.get<any>('/dashboard/revenue-trend', {
+      const { data } = await apiClient.get<{ items?: Array<{ bucket: string; amount: number }> }>('/dashboard/revenue-trend', {
         params: { from, to, groupBy },
         tenantId,
       })
 
-      const items = (data.items || []).map((item: any) => ({
+      const items = (data.items || []).map((item) => ({
         date: item.bucket.split('T')[0],
         revenue: item.amount,
       })) as RevenueTrend[]
@@ -125,12 +130,12 @@ export const useRecentActivity = (limit = 10) => {
   return useQuery({
     queryKey: DASHBOARD_KEYS.recentActivity(tenantId, limit),
     queryFn: async () => {
-      const { data } = await apiClient.get<any>('/dashboard/recent-activity', {
+      const { data } = await apiClient.get<{ items?: Array<{ id: string | number; type: string; title: string; description: string; occurredAt: string; status: string }> }>('/dashboard/recent-activity', {
         params: { limit },
         tenantId,
       })
 
-      const items = (data.items || []).map((item: any) => ({
+      const items = (data.items || []).map((item) => ({
         id: String(item.id),
         type: item.type,
         title: item.title,

@@ -1,0 +1,215 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Search, FileText, CalendarClock, User, CheckCircle2, Clock, XCircle, ArrowRight } from 'lucide-react'
+import type { RentalRequest, RentalRequestStatus } from '@/types/rental-request'
+
+// Mock API hook since this feature might not have the API client setup completely
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const useRentalRequests = (_filters: unknown) => {
+  // Trả về mock data cho UI design testing
+  return {
+    data: {
+      data: [
+        {
+          id: 1,
+          tenantId: 1,
+          renterId: 101,
+          roomId: 201,
+          propertyId: 10,
+          status: 'PENDING',
+          expectedStartDate: '2026-09-01T00:00:00Z',
+          message: 'Tôi muốn thuê dài hạn 1 năm.',
+          createdAt: '2026-08-05T10:00:00Z',
+          updatedAt: '2026-08-05T10:00:00Z',
+        },
+        {
+          id: 2,
+          tenantId: 1,
+          renterId: 102,
+          roomId: 205,
+          propertyId: 10,
+          status: 'APPROVED',
+          expectedStartDate: '2026-08-15T00:00:00Z',
+          message: '',
+          createdAt: '2026-08-06T14:30:00Z',
+          updatedAt: '2026-08-07T09:00:00Z',
+        },
+        {
+          id: 3,
+          tenantId: 1,
+          renterId: 103,
+          roomId: 302,
+          propertyId: 11,
+          status: 'REJECTED',
+          expectedStartDate: '2026-08-10T00:00:00Z',
+          message: 'Có thể thương lượng giá không ạ?',
+          createdAt: '2026-08-02T08:15:00Z',
+          updatedAt: '2026-08-03T11:00:00Z',
+        }
+      ] as RentalRequest[]
+    },
+    isLoading: false
+  }
+}
+
+export function Component() {
+  const navigate = useNavigate()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  const { data, isLoading } = useRentalRequests({
+    search: searchTerm,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+  })
+
+  const getStatusBadge = (status: RentalRequestStatus) => {
+    switch (status) {
+      case 'PENDING':
+        return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none shadow-sm"><Clock className="w-3 h-3 mr-1" /> Chờ duyệt</Badge>
+      case 'APPROVED':
+        return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none shadow-sm"><CheckCircle2 className="w-3 h-3 mr-1" /> Đã duyệt</Badge>
+      case 'REJECTED':
+        return <Badge className="bg-red-100 text-red-700 hover:bg-red-200 border-none shadow-sm"><XCircle className="w-3 h-3 mr-1" /> Từ chối</Badge>
+      case 'NEED_MORE_INFO':
+        return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">Cần bổ sung</Badge>
+      case 'CANCELED':
+        return <Badge variant="secondary" className="text-slate-500">Đã hủy</Badge>
+      case 'CONVERTED_TO_CONTRACT':
+        return <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-none shadow-sm">Đã chuyển HĐ</Badge>
+      default:
+        return <Badge variant="outline">{status}</Badge>
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    })
+  }
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Header Section */}
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900">Yêu cầu thuê phòng</h2>
+          <p className="text-slate-500 mt-1">Quản lý và xét duyệt các đăng ký thuê từ khách hàng</p>
+        </div>
+      </div>
+
+      {/* Filters Section */}
+      <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div className="relative flex-1 min-w-[280px]">
+          <Search className="absolute top-1/2 -translate-y-1/2 left-3 h-4 w-4 text-slate-400" />
+          <Input
+            type="search"
+            placeholder="Tìm theo tên khách hoặc mã phòng..."
+            className="pl-9 bg-slate-50/50 border-slate-200"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[200px] bg-slate-50/50 border-slate-200">
+            <SelectValue placeholder="Trạng thái" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả trạng thái</SelectItem>
+            <SelectItem value="PENDING">Chờ duyệt</SelectItem>
+            <SelectItem value="APPROVED">Đã duyệt</SelectItem>
+            <SelectItem value="NEED_MORE_INFO">Cần thông tin thêm</SelectItem>
+            <SelectItem value="REJECTED">Từ chối</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Table Section */}
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <Table>
+          <TableHeader className="bg-slate-50 border-b border-slate-200">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-[100px] py-4 text-slate-600 font-semibold text-center">ID</TableHead>
+              <TableHead className="py-4 text-slate-600 font-semibold">Khách hàng</TableHead>
+              <TableHead className="py-4 text-slate-600 font-semibold">Phòng quan tâm</TableHead>
+              <TableHead className="py-4 text-slate-600 font-semibold">Ngày mong muốn</TableHead>
+              <TableHead className="py-4 text-slate-600 font-semibold text-center">Trạng thái</TableHead>
+              <TableHead className="text-right py-4 text-slate-600 font-semibold">Thao tác</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-48 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <div className="border-slate-200 border-t-slate-900 h-8 w-8 animate-spin rounded-full border-4" />
+                    <p className="text-sm text-slate-500">Đang tải dữ liệu...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : data?.data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-48 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    <FileText className="h-12 w-12 text-slate-300" />
+                    <p className="text-slate-500 font-medium">Không có yêu cầu thuê nào</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              data?.data.map((req: RentalRequest) => (
+                <TableRow key={req.id} className="group transition-colors hover:bg-slate-50/80 cursor-default">
+                  <TableCell className="text-center font-medium text-slate-500 py-4">
+                    #{req.id}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-900">Renter {req.renterId}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">Ngày gửi: {formatDate(req.createdAt)}</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium text-indigo-600 bg-indigo-50 px-2 py-1 inline-flex rounded-md border border-indigo-100">
+                      Phòng #{req.roomId}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center text-slate-700">
+                      <CalendarClock className="w-4 h-4 mr-2 text-slate-400" />
+                      {req.expectedStartDate ? formatDate(req.expectedStartDate) : 'Chưa xác định'}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {getStatusBadge(req.status)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="opacity-0 group-hover:opacity-100 transition-opacity font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                      onClick={() => navigate(`/app/quan-ly-nha-tro/yeu-cau-thue/${req.id}`)}
+                    >
+                      Xử lý <ArrowRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  )
+}
