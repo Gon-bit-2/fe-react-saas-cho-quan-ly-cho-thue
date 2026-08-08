@@ -119,6 +119,10 @@ export const router = createBrowserRouter([
                 lazy: () => import('@/features/tenant-app/pages/dashboard/dashboard'),
               },
               {
+                path: 'action-center',
+                lazy: () => import('@/features/tenant-app/pages/dashboard/action-center'),
+              },
+              {
                 path: 'properties',
                 lazy: () => import('@/features/tenant-app/pages/properties/property-list'),
               },

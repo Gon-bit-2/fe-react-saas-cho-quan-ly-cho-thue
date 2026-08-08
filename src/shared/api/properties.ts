@@ -95,19 +95,19 @@ export const useProperties = (params: PropertyListParams = {}) => {
   return useQuery({
     queryKey: PROPERTY_KEYS.list(tenantId, params),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<PaginatedResponse<Property>>('/properties', {
-          params,
-          tenantId,
-        })
-        return data
-      } catch (error) {
-        console.warn('Fallback to mock properties', error)
+      const { data } = await apiClient.get<PaginatedResponse<Property>>('/properties', {
+        params,
+        tenantId,
+      })
+
+      if (!data.data || data.data.length === 0) {
         return {
           data: MOCK_PROPERTIES,
           meta: { page: 1, limit: 10, total: MOCK_PROPERTIES.length, totalPages: 1 },
         }
       }
+
+      return data
     },
     enabled: !!tenantId,
   })
@@ -123,9 +123,12 @@ export const useProperty = (id: number) => {
       try {
         const { data } = await apiClient.get<Property>(`/properties/${id}`, { tenantId })
         return data
-      } catch (error) {
-        console.warn('Fallback to mock property detail', error)
-        return MOCK_PROPERTIES.find((p) => p.id === id) || MOCK_PROPERTIES[0]
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          const mockProp = MOCK_PROPERTIES.find((p) => p.id === id)
+          if (mockProp) return mockProp
+        }
+        throw error
       }
     },
     enabled: !!tenantId && !!id,
@@ -139,19 +142,19 @@ export const useRooms = (params: RoomListParams = {}) => {
   return useQuery({
     queryKey: ROOM_KEYS.list(tenantId, params),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<PaginatedResponse<Room>>('/rooms', {
-          params,
-          tenantId,
-        })
-        return data
-      } catch (error) {
-        console.warn('Fallback to mock rooms', error)
+      const { data } = await apiClient.get<PaginatedResponse<Room>>('/rooms', {
+        params,
+        tenantId,
+      })
+
+      if (!data.data || data.data.length === 0) {
         return {
           data: MOCK_ROOMS,
           meta: { page: 1, limit: 10, total: MOCK_ROOMS.length, totalPages: 1 },
         }
       }
+
+      return data
     },
     enabled: !!tenantId,
   })
@@ -167,9 +170,12 @@ export const useRoom = (id: number) => {
       try {
         const { data } = await apiClient.get<Room>(`/rooms/${id}`, { tenantId })
         return data
-      } catch (error) {
-        console.warn('Fallback to mock room detail', error)
-        return MOCK_ROOMS.find((r) => r.id === id) || MOCK_ROOMS[0]
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          const mockRoom = MOCK_ROOMS.find((r) => r.id === id)
+          if (mockRoom) return mockRoom
+        }
+        throw error
       }
     },
     enabled: !!tenantId && !!id,

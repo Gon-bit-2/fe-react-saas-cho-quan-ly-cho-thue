@@ -66,25 +66,26 @@ export const useDashboardSummary = (from?: string, to?: string) => {
   return useQuery({
     queryKey: DASHBOARD_KEYS.summary(tenantId),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<any>('/dashboard/summary', {
-          params: { from, to },
-          tenantId,
-        })
+      const { data } = await apiClient.get<any>('/dashboard/summary', {
+        params: { from, to },
+        tenantId,
+      })
 
-        return {
-          totalRooms: data.rooms?.totalRooms || 0,
-          availableRooms: data.rooms?.availableRooms || 0,
-          totalContracts: (data.contracts?.activeContracts || 0) + (data.contracts?.endingSoonContracts || 0),
-          activeContracts: data.contracts?.activeContracts || 0,
-          totalRevenue: data.finance?.paidAmount || 0,
-          unpaidInvoices: 0,
-          openTickets: data.tickets?.open || 0,
-        } as DashboardSummary
-      } catch (error) {
-        console.warn('Fallback to mock dashboard summary', error)
+      const summary = {
+        totalRooms: data.rooms?.totalRooms || 0,
+        availableRooms: data.rooms?.availableRooms || 0,
+        totalContracts: (data.contracts?.activeContracts || 0) + (data.contracts?.endingSoonContracts || 0),
+        activeContracts: data.contracts?.activeContracts || 0,
+        totalRevenue: data.finance?.paidAmount || 0,
+        unpaidInvoices: 0,
+        openTickets: data.tickets?.open || 0,
+      } as DashboardSummary
+
+      if (summary.totalRooms === 0) {
         return MOCK_SUMMARY
       }
+
+      return summary
     },
     enabled: !!tenantId,
   })
@@ -97,20 +98,21 @@ export const useRevenueTrend = (from?: string, to?: string, groupBy?: 'day' | 'm
   return useQuery({
     queryKey: DASHBOARD_KEYS.revenueTrend(tenantId, { from, to, groupBy }),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<any>('/dashboard/revenue-trend', {
-          params: { from, to, groupBy },
-          tenantId,
-        })
+      const { data } = await apiClient.get<any>('/dashboard/revenue-trend', {
+        params: { from, to, groupBy },
+        tenantId,
+      })
 
-        return (data.items || []).map((item: any) => ({
-          date: item.bucket.split('T')[0],
-          revenue: item.amount,
-        })) as RevenueTrend[]
-      } catch (error) {
-        console.warn('Fallback to mock revenue trend', error)
+      const items = (data.items || []).map((item: any) => ({
+        date: item.bucket.split('T')[0],
+        revenue: item.amount,
+      })) as RevenueTrend[]
+
+      if (items.length === 0) {
         return MOCK_REVENUE_TREND
       }
+
+      return items
     },
     enabled: !!tenantId,
   })
@@ -123,24 +125,25 @@ export const useRecentActivity = (limit = 10) => {
   return useQuery({
     queryKey: DASHBOARD_KEYS.recentActivity(tenantId, limit),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<any>('/dashboard/recent-activity', {
-          params: { limit },
-          tenantId,
-        })
+      const { data } = await apiClient.get<any>('/dashboard/recent-activity', {
+        params: { limit },
+        tenantId,
+      })
 
-        return (data.items || []).map((item: any) => ({
-          id: String(item.id),
-          type: item.type,
-          title: item.title,
-          description: item.description,
-          createdAt: item.occurredAt,
-          status: item.status,
-        })) as RecentActivity[]
-      } catch (error) {
-        console.warn('Fallback to mock recent activity', error)
+      const items = (data.items || []).map((item: any) => ({
+        id: String(item.id),
+        type: item.type,
+        title: item.title,
+        description: item.description,
+        createdAt: item.occurredAt,
+        status: item.status,
+      })) as RecentActivity[]
+
+      if (items.length === 0) {
         return MOCK_RECENT_ACTIVITY
       }
+
+      return items
     },
     enabled: !!tenantId,
   })
