@@ -1,5 +1,11 @@
 import axios from 'axios'
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios'
+
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    tenantId?: string | number
+  }
+}
 import { env } from '@/app/config/env.config'
 import {
   getAccessToken,

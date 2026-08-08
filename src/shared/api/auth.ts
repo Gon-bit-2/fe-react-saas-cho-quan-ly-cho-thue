@@ -119,4 +119,3 @@ export const useProfile = () => {
     enabled: false,
   })
 }
-

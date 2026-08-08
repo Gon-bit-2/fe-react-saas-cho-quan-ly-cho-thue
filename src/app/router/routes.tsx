@@ -115,10 +115,37 @@ export const router = createBrowserRouter([
             lazy: () => import('@/app/layouts/tenant-layout'),
             children: [
               {
-                index: true,
-                lazy: () => import('@/features/dashboard/pages/dashboard'),
+                path: 'dashboard',
+                lazy: () => import('@/features/tenant-app/pages/dashboard/dashboard'),
               },
-              // Feature routes sẽ được thêm khi xây form/page
+              {
+                path: 'properties',
+                lazy: () => import('@/features/tenant-app/pages/properties/property-list'),
+              },
+              {
+                path: 'properties/new',
+                lazy: () => import('@/features/tenant-app/pages/properties/property-form'),
+              },
+              {
+                path: 'properties/:id',
+                lazy: () => import('@/features/tenant-app/pages/properties/property-detail'),
+              },
+              {
+                path: 'properties/:id/edit',
+                lazy: () => import('@/features/tenant-app/pages/properties/property-form'),
+              },
+              {
+                path: 'rooms',
+                lazy: () => import('@/features/tenant-app/pages/rooms/room-list'),
+              },
+              {
+                path: 'rooms/new',
+                lazy: () => import('@/features/tenant-app/pages/rooms/room-form'),
+              },
+              {
+                path: 'rooms/:id/edit',
+                lazy: () => import('@/features/tenant-app/pages/rooms/room-form'),
+              },
             ],
           },
         ],
