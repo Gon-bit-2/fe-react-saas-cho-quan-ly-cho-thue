@@ -123,8 +123,9 @@ export const useProperty = (id: number) => {
       try {
         const { data } = await apiClient.get<Property>(`/properties/${id}`, { tenantId })
         return data
-      } catch (error: any) {
-        if (error.response?.status === 404) {
+      } catch (error: unknown) {
+        const err = error as { response?: { status?: number } }
+        if (err.response?.status === 404) {
           const mockProp = MOCK_PROPERTIES.find((p) => p.id === id)
           if (mockProp) return mockProp
         }
@@ -170,8 +171,9 @@ export const useRoom = (id: number) => {
       try {
         const { data } = await apiClient.get<Room>(`/rooms/${id}`, { tenantId })
         return data
-      } catch (error: any) {
-        if (error.response?.status === 404) {
+      } catch (error: unknown) {
+        const err = error as { response?: { status?: number } }
+        if (err.response?.status === 404) {
           const mockRoom = MOCK_ROOMS.find((r) => r.id === id)
           if (mockRoom) return mockRoom
         }

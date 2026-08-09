@@ -139,16 +139,110 @@ export const router = createBrowserRouter([
                 lazy: () => import('@/features/tenant-app/pages/properties/property-form'),
               },
               {
-                path: 'rooms',
+                path: 'quan-ly-phong/danh-sach',
                 lazy: () => import('@/features/tenant-app/pages/rooms/room-list'),
               },
               {
-                path: 'rooms/new',
+                path: 'quan-ly-phong/tao-moi',
                 lazy: () => import('@/features/tenant-app/pages/rooms/room-form'),
               },
               {
-                path: 'rooms/:id/edit',
-                lazy: () => import('@/features/tenant-app/pages/rooms/room-form'),
+                path: 'quan-ly-phong/:id/chi-tiet',
+                lazy: () => import('@/features/tenant-app/pages/rooms/room-detail'),
+              },
+              {
+                path: 'quan-ly-nha-tro/yeu-cau-thue',
+                lazy: () => import('@/features/tenant-app/pages/rental-requests/request-list'),
+              },
+              {
+                path: 'quan-ly-nha-tro/yeu-cau-thue/:id',
+                lazy: () => import('@/features/tenant-app/pages/rental-requests/request-detail'),
+              },
+              {
+                path: 'quan-ly-nha-tro/lich-xem-phong',
+                lazy: () => import('@/features/tenant-app/pages/viewing-schedules/schedule-list'),
+              },
+              {
+                path: 'quan-ly-nha-tro/lich-xem-phong/:id',
+                lazy: () => import('@/features/tenant-app/pages/viewing-schedules/schedule-detail'),
+              },
+              {
+                path: 'nguoi-thue',
+                lazy: () => import('@/features/tenant-app/pages/renters/renter-list'),
+              },
+              {
+                path: 'nguoi-thue/:id',
+                lazy: () => import('@/features/tenant-app/pages/renters/renter-detail'),
+              },
+              {
+                path: 'nguoi-thue/loi-moi/tao',
+                lazy: () => import('@/features/tenant-app/pages/renters/invite-form'),
+              },
+              {
+                path: 'nguoi-thue/loi-moi/:id',
+                lazy: () => import('@/features/tenant-app/pages/renters/invite-detail'),
+              },
+              {
+                path: 'hop-dong',
+                lazy: () => import('@/features/tenant-app/pages/contracts/contract-list'),
+              },
+              {
+                path: 'hop-dong/tao',
+                lazy: () => import('@/features/tenant-app/pages/contracts/contract-form'),
+              },
+              {
+                path: 'hop-dong/:id/sua',
+                lazy: () => import('@/features/tenant-app/pages/contracts/contract-form'),
+              },
+              {
+                path: 'hop-dong/:id',
+                lazy: () => import('@/features/tenant-app/pages/contracts/contract-detail'),
+              },
+              {
+                path: 'hop-dong/:id/thanh-vien',
+                lazy: () => import('@/features/tenant-app/pages/contracts/contract-members'),
+              },
+              // Quản lý tài sản (W09)
+              {
+                path: 'quan-ly-tai-san',
+                lazy: () => import('@/features/tenant-app/pages/assets/asset-list'),
+              },
+              {
+                path: 'quan-ly-tai-san/phong/:roomId',
+                lazy: () => import('@/features/tenant-app/pages/assets/room-assets'),
+              },
+              {
+                path: 'ban-giao/:id',
+                lazy: () => import('@/features/tenant-app/pages/handovers/handover-detail'),
+              },
+              {
+                path: 'ban-giao/:id/tranh-chap',
+                lazy: () => import('@/features/tenant-app/pages/handovers/handover-dispute'),
+              },
+              {
+                path: 'yeu-cau-ket-thuc-hop-dong',
+                lazy: () => import('@/features/tenant-app/pages/terminations/termination-list'),
+              },
+              // Quản lý dịch vụ (W11)
+              {
+                path: 'dich-vu',
+                lazy: () => import('@/features/tenant-app/pages/services/service-list'),
+              },
+              {
+                path: 'dich-vu/tao-moi',
+                lazy: () => import('@/features/tenant-app/pages/services/service-create'),
+              },
+              {
+                path: 'dich-vu/:id/chinh-sua',
+                lazy: () => import('@/features/tenant-app/pages/services/service-edit'),
+              },
+              {
+                path: 'dich-vu-da-gan',
+                lazy: () => import('@/features/tenant-app/pages/service-assignments/assignment-list'),
+              },
+              {
+                path: 'dich-vu-da-gan/tao-moi',
+                lazy: () => import('@/features/tenant-app/pages/service-assignments/assignment-form'),
               },
             ],
           },

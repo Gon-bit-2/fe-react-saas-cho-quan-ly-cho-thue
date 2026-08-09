@@ -38,7 +38,7 @@ export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
         <div className="w-full md:w-1/2 p-6 flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-start mb-2">
-              <span className="font-label-sm text-primary uppercase tracking-wider">{room.property.propertyType.replace('_', ' ')}</span>
+              <span className="font-label-sm text-primary uppercase tracking-wider">{room.property.propertyType?.replace('_', ' ') || ''}</span>
               <span className="font-headline-sm text-primary">{formattedPrice}<span className="text-sm font-normal text-on-surface-variant">/tháng</span></span>
             </div>
             
@@ -100,7 +100,7 @@ export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
           style={{ backgroundImage: `url('${thumbnail?.url || 'https://placehold.co/400x300/png'}')` }}
         />
         <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur text-text-main px-2 py-1 rounded font-label-sm shadow-sm">
-          {room.property.propertyType.replace('_', ' ')}
+          {room.property.propertyType?.replace('_', ' ') || ''}
         </div>
         <div className="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-text-main px-2 py-1 rounded font-label-sm flex items-center gap-1">
           <span className="material-symbols-outlined text-[14px]">photo_camera</span>
