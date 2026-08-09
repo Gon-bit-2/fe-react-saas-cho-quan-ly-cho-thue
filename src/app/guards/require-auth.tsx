@@ -4,7 +4,7 @@ import { useAuth } from '@/shared/hooks/use-auth'
 /**
  * Guard cho protected routes: yêu cầu user đã authenticated.
  * - Bootstrap → hiện loading (không redirect sớm)
- * - Anonymous/Expired → redirect /login với returnUrl
+ * - Anonymous/Expired → redirect /dang-nhap với returnUrl
  * - Authenticated → render children
  *
  * returnUrl được sanitize: chỉ chấp nhận internal path,
@@ -24,7 +24,7 @@ export function RequireAuth() {
     )
     return (
       <Navigate
-        to={`/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
+        to={`/dang-nhap${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
         state={{ from: location.pathname }}
         replace
       />

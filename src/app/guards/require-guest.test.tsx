@@ -11,13 +11,13 @@ vi.mock('@/shared/hooks/use-auth', () => ({
 
 describe('RequireGuest Guard', () => {
   it('shows loading when bootstrapping', () => {
-    vi.mocked(useAuth).mockReturnValue({ state: 'bootstrapping' } as any)
+    vi.mocked(useAuth).mockReturnValue({ state: 'bootstrapping' } as unknown as ReturnType<typeof useAuth>)
     renderWithProviders(<RequireGuest />)
     expect(screen.getByText('Đang kiểm tra phiên đăng nhập...')).toBeInTheDocument()
   })
 
   it('renders outlet when anonymous', () => {
-    vi.mocked(useAuth).mockReturnValue({ state: 'anonymous' } as any)
+    vi.mocked(useAuth).mockReturnValue({ state: 'anonymous' } as unknown as ReturnType<typeof useAuth>)
     renderWithProviders(
       <Routes>
         <Route element={<RequireGuest />}>
@@ -29,7 +29,7 @@ describe('RequireGuest Guard', () => {
   })
 
   it('redirects to /account when authenticated', () => {
-    vi.mocked(useAuth).mockReturnValue({ state: 'authenticated' } as any)
+    vi.mocked(useAuth).mockReturnValue({ state: 'authenticated' } as unknown as ReturnType<typeof useAuth>)
     renderWithProviders(
       <Routes>
         <Route path="/login" element={<RequireGuest />}>

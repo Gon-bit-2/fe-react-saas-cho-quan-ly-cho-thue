@@ -71,7 +71,7 @@ export function Component() {
   // Nếu truy cập không qua luồng forgot-password
   useEffect(() => {
     if (!email || !code) {
-      navigate('/login')
+      navigate('/dang-nhap')
     }
   }, [email, code, navigate])
 
@@ -88,7 +88,7 @@ export function Component() {
       })
       setSuccess(true)
       setTimeout(() => {
-        navigate('/login')
+        navigate('/dang-nhap')
       }, 3000)
     } catch (err) {
       const appErr = toAppError(err)
@@ -236,7 +236,7 @@ export function Component() {
           <div className="text-center mt-2">
             <Link
               className="font-body-md text-body-md text-primary hover:text-primary-container transition-colors inline-flex items-center gap-1"
-              to="/login"
+              to="/dang-nhap"
             >
               <span className="material-symbols-outlined text-[16px]">arrow_back</span>
               Quay lại đăng nhập

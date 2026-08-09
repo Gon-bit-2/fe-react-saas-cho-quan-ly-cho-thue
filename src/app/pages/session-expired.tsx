@@ -14,7 +14,7 @@ export function SessionExpiredPage() {
         Vui lòng đăng nhập lại để tiếp tục sử dụng.
       </p>
       <Link
-        to="/login"
+        to="/dang-nhap"
         className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
       >
         Đăng nhập lại

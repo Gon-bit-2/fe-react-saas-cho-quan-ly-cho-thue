@@ -57,7 +57,7 @@ export function Component() {
       })
       
       // Chuyển sang màn hình nhập OTP
-      navigate('/login/otp', { 
+      navigate('/dang-nhap/otp', { 
         state: { 
           email: data.email, 
           action: 'REGISTER',
@@ -261,7 +261,7 @@ export function Component() {
       <div className="text-center relative z-10 pt-4">
         <p className="font-body-md text-body-md text-on-surface-variant">
           Đã có tài khoản?
-          <Link className="text-primary font-label-md text-label-md hover:underline ml-1" to="/login">
+          <Link className="text-primary font-label-md text-label-md hover:underline ml-1" to="/dang-nhap">
             Đăng nhập
           </Link>
         </p>

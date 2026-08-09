@@ -56,7 +56,7 @@ export function GoogleCallbackPage() {
         establishSession(tokenResponse.data, profileResponse.data)
 
         // Xóa sessionToken khỏi URL và redirect
-        navigate('/account', { replace: true })
+        navigate('/tai-khoan', { replace: true })
       } catch {
         setError('Xác thực Google thất bại. Vui lòng thử lại.')
       }
@@ -68,7 +68,7 @@ export function GoogleCallbackPage() {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <p className="text-destructive">{error}</p>
         <button
-          onClick={() => navigate('/login', { replace: true })}
+          onClick={() => navigate('/dang-nhap', { replace: true })}
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
         >
           Quay lại đăng nhập

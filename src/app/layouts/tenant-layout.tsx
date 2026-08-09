@@ -6,28 +6,28 @@ import {
   Building,
   Users,
   FileText,
-  Zap,
   Receipt,
   CreditCard,
-  Ticket,
   Bell,
   Package,
   LogOut,
   ChevronRight,
-  Inbox
+  Inbox,
+  DoorOpen,
+  FileClock
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const NAV_ITEMS = [
-  { name: 'Tổng quan', href: '/app/dashboard', icon: LayoutDashboard },
-  { name: 'Trung tâm xử lý', href: '/app/action-center', icon: Inbox },
-  { name: 'Nhà trọ', href: '/app/properties', icon: Building },
-  { name: 'Khách thuê', href: '/app/renters', icon: Users },
+  { name: 'Tổng quan', href: '/app/tong-quan', icon: LayoutDashboard },
+  { name: 'Trung tâm xử lý', href: '/app/trung-tam-xu-ly', icon: Inbox },
+  { name: 'Nhà trọ', href: '/app/khu-tro', icon: Building },
+  { name: 'Phòng', href: '/app/quan-ly-phong/danh-sach', icon: DoorOpen },
   { name: 'Hợp đồng', href: '/app/contracts', icon: FileText },
-  { name: 'Điện nước và dịch vụ', href: '/app/services', icon: Zap },
-  { name: 'Hóa đơn và công nợ', href: '/app/invoices', icon: Receipt },
-  { name: 'Thanh toán', href: '/app/payments', icon: CreditCard },
-  { name: 'Ticket', href: '/app/tickets', icon: Ticket },
+  { name: 'Yêu cầu kết thúc HĐ', href: '/app/yeu-cau-ket-thuc-hop-dong', icon: FileClock },
+  { name: 'Hóa đơn và công nợ', href: '/app/hoa-don', icon: Receipt },
+  { name: 'Thanh toán', href: '/app/thanh-toan', icon: CreditCard },
+  { name: 'Khách hàng / Người thuê', href: '/app/nguoi-thue', icon: Users },
   { name: 'Thông báo', href: '/app/notifications', icon: Bell },
   { name: 'Gói dịch vụ', href: '/app/packages', icon: Package },
 ]
@@ -39,13 +39,15 @@ export function Component() {
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/dang-nhap')
   }
 
   // Redirect to dashboard if on /app
-  if (location.pathname === '/app' || location.pathname === '/app/') {
-    navigate('/app/dashboard', { replace: true })
-  }
+  useEffect(() => {
+    if (location.pathname === '/app' || location.pathname === '/app/') {
+      navigate('/app/tong-quan', { replace: true })
+    }
+  }, [location.pathname, navigate])
 
   return (
     <div className="flex min-h-screen bg-surface font-body-md text-on-surface">

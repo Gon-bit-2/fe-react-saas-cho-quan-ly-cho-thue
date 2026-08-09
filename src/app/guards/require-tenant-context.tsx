@@ -15,7 +15,7 @@ export function RequireTenantContext() {
 
   if (!selectedMembership) {
     // Chưa chọn tenant → redirect đến trang chọn tenant
-    return <Navigate to="/account/select-tenant" replace />
+    return <Navigate to="/tai-khoan/chon-nha-tro" replace />
   }
 
   if (
@@ -23,7 +23,7 @@ export function RequireTenantContext() {
     selectedMembership.tenant.status !== 'ACTIVE'
   ) {
     // Tenant hoặc membership không active → redirect chọn lại
-    return <Navigate to="/account/select-tenant" replace />
+    return <Navigate to="/tai-khoan/chon-nha-tro" replace />
   }
 
   return <Outlet />

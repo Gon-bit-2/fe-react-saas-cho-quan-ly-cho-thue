@@ -29,13 +29,13 @@ export function MarketplaceHeader() {
           {!isAuthenticated ? (
             <div className="flex items-center gap-2">
               <Link
-                to="/login"
+                to="/dang-nhap"
                 className="px-4 py-2 text-on-surface font-label-md hover:bg-surface-container-low rounded-lg transition-colors"
               >
                 Đăng nhập
               </Link>
               <Link
-                to="/register"
+                to="/dang-ky"
                 className="px-4 py-2 bg-primary text-on-primary font-label-md rounded-lg hover:opacity-90 transition-opacity"
               >
                 Đăng ký
@@ -46,7 +46,7 @@ export function MarketplaceHeader() {
               <button className="text-on-surface-variant hover:text-primary flex items-center justify-center">
                 <span className="material-symbols-outlined">notifications</span>
               </button>
-              <Link to="/account" className="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-primary font-label-md cursor-pointer">
+              <Link to="/tai-khoan" className="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-primary font-label-md cursor-pointer">
                 {profile?.email?.charAt(0).toUpperCase() || 'U'}
               </Link>
             </div>

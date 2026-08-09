@@ -14,7 +14,7 @@ describe('Select Tenant Page', () => {
       profile: { tenantMembers: [] },
       selectTenant: vi.fn(),
       logout: vi.fn(),
-    } as any)
+    } as unknown as ReturnType<typeof useAuth>)
     
     renderWithProviders(<SelectTenant />)
     
@@ -45,7 +45,7 @@ describe('Select Tenant Page', () => {
       },
       selectTenant: mockSelectTenant,
       logout: vi.fn(),
-    } as any)
+    } as unknown as ReturnType<typeof useAuth>)
     
     const { user } = renderWithProviders(<SelectTenant />)
     
@@ -64,7 +64,7 @@ describe('Select Tenant Page', () => {
       profile: { tenantMembers: [] },
       selectTenant: vi.fn(),
       logout: mockLogout,
-    } as any)
+    } as unknown as ReturnType<typeof useAuth>)
     
     const { user } = renderWithProviders(<SelectTenant />)
     

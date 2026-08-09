@@ -138,7 +138,7 @@ export function Component() {
 
             <div className="space-y-4">
               {!isAuthenticated ? (
-                <Link to={`/login?returnUrl=/rooms/${id}`} className="flex w-full">
+                <Link to={`/dang-nhap?returnUrl=/phong/${id}`} className="flex w-full">
                   <button className="bg-primary text-on-primary font-label-md w-full rounded-lg py-3 shadow-sm transition-opacity hover:opacity-90">
                     Đăng nhập để liên hệ
                   </button>

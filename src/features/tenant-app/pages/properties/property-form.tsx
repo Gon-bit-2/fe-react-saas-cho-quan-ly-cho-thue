@@ -35,7 +35,7 @@ export function Component() {
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false)
-      navigate('/app/properties')
+      navigate('/app/khu-tro')
     }, 1000)
   }
 

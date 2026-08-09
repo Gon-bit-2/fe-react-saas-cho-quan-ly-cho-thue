@@ -24,7 +24,7 @@ export function Component() {
       
       // Sau 2s chuyển sang trang OTP
       setTimeout(() => {
-        navigate('/login/otp', { state: { email, action: 'FORGOT_PASSWORD' } })
+        navigate('/dang-nhap/otp', { state: { email, action: 'FORGOT_PASSWORD' } })
       }, 2000)
     } catch (err) {
       const appErr = toAppError(err)
@@ -126,7 +126,7 @@ export function Component() {
         <div className="flex justify-center mt-2">
           <Link
             className="font-label-md text-label-md text-primary hover:text-on-primary-fixed-variant transition-colors duration-200 flex items-center gap-1 group"
-            to="/login"
+            to="/dang-nhap"
           >
             <span className="material-symbols-outlined text-[16px] transition-transform duration-200 group-hover:-translate-x-1">
               arrow_back

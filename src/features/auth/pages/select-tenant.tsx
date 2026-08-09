@@ -13,8 +13,14 @@ export function Component() {
   ) || []
 
   const handleSelect = (tenantId: number) => {
+    // TODO: Xử lý thực tế (call API, lưu store)
     selectTenant(tenantId)
-    navigate('/app/dashboard')
+    navigate('/app/tong-quan')
+  }
+
+  const handleLogout = () => {
+    logout()
+    navigate('/dang-nhap')
   }
 
   return (
@@ -49,10 +55,32 @@ export function Component() {
                   </div>
                 </Button>
               ))}
+              
+              <Button
+                className="w-full mt-6 bg-primary text-white hover:opacity-90 font-label-md"
+                onClick={() => selectedTenant && handleSelect(selectedTenant)}
+                disabled={!selectedTenant}
+              >
+                Tiếp tục
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full mt-2 text-muted-foreground font-label-md"
+                onClick={handleLogout}
+              >
+                Đăng xuất
+              </Button>
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
               Tài khoản của bạn hiện chưa được phân quyền vào bất kỳ tổ chức nào.
+              <div className="pt-4 mt-4 flex justify-center">
+                <Button variant="ghost" className="text-muted-foreground" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" /> Quay lại trang đăng nhập
+                </Button>
+              </div>
             </div>
           )}
 

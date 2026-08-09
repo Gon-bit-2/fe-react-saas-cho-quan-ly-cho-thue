@@ -1,6 +1,5 @@
 import { http, HttpResponse } from 'msw'
 import type { LoginRes } from '@/shared/api/auth'
-import type { UserProfile } from '@/shared/types/auth'
 
 // API BASE URL, adjust if needed (e.g. from env)
 const API_URL = import.meta.env?.VITE_API_URL || '/api'
@@ -8,7 +7,7 @@ const API_URL = import.meta.env?.VITE_API_URL || '/api'
 export const handlers = [
   // Authentication Handlers
   http.post(`${API_URL}/auth/login`, async ({ request }) => {
-    const body = await request.json() as any
+    const body = await request.json() as Record<string, unknown>
     if (body.email === 'test@example.com' && body.passwordHash) {
       return HttpResponse.json<LoginRes>({
         accessToken: 'mock-access-token',
@@ -22,7 +21,7 @@ export const handlers = [
   }),
 
   http.post(`${API_URL}/auth/send-otp`, async ({ request }) => {
-    const body = await request.json() as any
+    const body = await request.json() as Record<string, unknown>
     if (body.email === 'test@example.com') {
       return HttpResponse.json({ message: 'OTP sent' })
     }

@@ -7,7 +7,7 @@ import { AuthProvider } from '@/app/providers/auth-provider'
 
 interface CustomRenderOptions extends RenderOptions {
   route?: string
-  routeState?: any
+  routeState?: unknown
 }
 
 export function createTestQueryClient() {

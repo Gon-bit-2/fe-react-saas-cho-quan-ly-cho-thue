@@ -34,11 +34,11 @@ export const router = createBrowserRouter([
         lazy: () => import('@/features/marketplace/pages/home'),
       },
       {
-        path: 'rooms',
+        path: 'phong',
         lazy: () => import('@/features/marketplace/pages/room-list'),
       },
       {
-        path: 'rooms/:roomId',
+        path: 'phong/:roomId',
         lazy: () => import('@/features/marketplace/pages/room-detail'),
       },
     ],
@@ -52,23 +52,23 @@ export const router = createBrowserRouter([
         lazy: () => import('@/app/layouts/auth-layout'),
         children: [
           {
-            path: '/login',
+            path: '/dang-nhap',
             lazy: () => import('@/features/auth/pages/login'),
           },
           {
-            path: '/login/otp',
+            path: '/dang-nhap/otp',
             lazy: () => import('@/features/auth/pages/login-otp'),
           },
           {
-            path: '/register',
+            path: '/dang-ky',
             lazy: () => import('@/features/auth/pages/register'),
           },
           {
-            path: '/forgot-password',
+            path: '/quen-mat-khau',
             lazy: () => import('@/features/auth/pages/forgot-password'),
           },
           {
-            path: '/reset-password',
+            path: '/dat-lai-mat-khau',
             lazy: () => import('@/features/auth/pages/reset-password'),
           },
         ],
@@ -87,7 +87,7 @@ export const router = createBrowserRouter([
     element: <RequireAuth />,
     children: [
       {
-        path: '/account',
+        path: '/tai-khoan',
         lazy: () => import('@/app/layouts/account-layout'),
         children: [
           {
@@ -95,7 +95,7 @@ export const router = createBrowserRouter([
             lazy: () => import('@/features/auth/pages/profile'),
           },
           {
-            path: 'select-tenant',
+            path: 'chon-nha-tro',
             lazy: () => import('@/features/auth/pages/select-tenant'),
           },
         ],
@@ -115,27 +115,27 @@ export const router = createBrowserRouter([
             lazy: () => import('@/app/layouts/tenant-layout'),
             children: [
               {
-                path: 'dashboard',
+                path: 'tong-quan',
                 lazy: () => import('@/features/tenant-app/pages/dashboard/dashboard'),
               },
               {
-                path: 'action-center',
+                path: 'trung-tam-xu-ly',
                 lazy: () => import('@/features/tenant-app/pages/dashboard/action-center'),
               },
               {
-                path: 'properties',
+                path: 'khu-tro',
                 lazy: () => import('@/features/tenant-app/pages/properties/property-list'),
               },
               {
-                path: 'properties/new',
+                path: 'khu-tro/tao-moi',
                 lazy: () => import('@/features/tenant-app/pages/properties/property-form'),
               },
               {
-                path: 'properties/:id',
+                path: 'khu-tro/:id',
                 lazy: () => import('@/features/tenant-app/pages/properties/property-detail'),
               },
               {
-                path: 'properties/:id/edit',
+                path: 'khu-tro/:id/chinh-sua',
                 lazy: () => import('@/features/tenant-app/pages/properties/property-form'),
               },
               {
@@ -243,6 +243,46 @@ export const router = createBrowserRouter([
               {
                 path: 'dich-vu-da-gan/tao-moi',
                 lazy: () => import('@/features/tenant-app/pages/service-assignments/assignment-form'),
+              },
+              // Quản lý hóa đơn & thanh toán (W12, W13)
+              {
+                path: 'hoa-don',
+                lazy: () =>
+                  import('@/features/invoices/pages/invoice-list').then((m) => ({ Component: m.InvoiceListPage })),
+              },
+              {
+                path: 'hoa-don/tao-moi',
+                lazy: () =>
+                  import('@/features/invoices/pages/invoice-create').then((m) => ({ Component: m.InvoiceCreatePage })),
+              },
+              {
+                path: 'hoa-don/cong-no',
+                lazy: () => import('@/features/invoices/pages/debt-list').then((m) => ({ Component: m.DebtListPage })),
+              },
+              {
+                path: 'hoa-don/:id',
+                lazy: () =>
+                  import('@/features/invoices/pages/invoice-detail').then((m) => ({ Component: m.InvoiceDetailPage })),
+              },
+              {
+                path: 'hoa-don/:id/chinh-sua',
+                lazy: () =>
+                  import('@/features/invoices/pages/invoice-edit').then((m) => ({ Component: m.InvoiceEditPage })),
+              },
+              {
+                path: 'thanh-toan',
+                lazy: () =>
+                  import('@/features/payments/pages/payment-list').then((m) => ({ Component: m.PaymentListPage })),
+              },
+              {
+                path: 'thanh-toan/:id',
+                lazy: () =>
+                  import('@/features/payments/pages/payment-detail').then((m) => ({ Component: m.PaymentDetailPage })),
+              },
+              {
+                path: 'thanh-toan/:id/duyet',
+                lazy: () =>
+                  import('@/features/payments/pages/payment-review').then((m) => ({ Component: m.PaymentReviewPage })),
               },
             ],
           },
