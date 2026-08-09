@@ -202,6 +202,48 @@ export const router = createBrowserRouter([
                 path: 'hop-dong/:id/thanh-vien',
                 lazy: () => import('@/features/tenant-app/pages/contracts/contract-members'),
               },
+              // Quản lý tài sản (W09)
+              {
+                path: 'quan-ly-tai-san',
+                lazy: () => import('@/features/tenant-app/pages/assets/asset-list'),
+              },
+              {
+                path: 'quan-ly-tai-san/phong/:roomId',
+                lazy: () => import('@/features/tenant-app/pages/assets/room-assets'),
+              },
+              {
+                path: 'ban-giao/:id',
+                lazy: () => import('@/features/tenant-app/pages/handovers/handover-detail'),
+              },
+              {
+                path: 'ban-giao/:id/tranh-chap',
+                lazy: () => import('@/features/tenant-app/pages/handovers/handover-dispute'),
+              },
+              {
+                path: 'yeu-cau-ket-thuc-hop-dong',
+                lazy: () => import('@/features/tenant-app/pages/terminations/termination-list'),
+              },
+              // Quản lý dịch vụ (W11)
+              {
+                path: 'dich-vu',
+                lazy: () => import('@/features/tenant-app/pages/services/service-list'),
+              },
+              {
+                path: 'dich-vu/tao-moi',
+                lazy: () => import('@/features/tenant-app/pages/services/service-create'),
+              },
+              {
+                path: 'dich-vu/:id/chinh-sua',
+                lazy: () => import('@/features/tenant-app/pages/services/service-edit'),
+              },
+              {
+                path: 'dich-vu-da-gan',
+                lazy: () => import('@/features/tenant-app/pages/service-assignments/assignment-list'),
+              },
+              {
+                path: 'dich-vu-da-gan/tao-moi',
+                lazy: () => import('@/features/tenant-app/pages/service-assignments/assignment-form'),
+              },
             ],
           },
         ],
