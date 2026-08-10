@@ -1,86 +1,86 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ticketApi, GetTicketsParams } from '../api/ticket.api';
-import { TicketSummary, TicketStatus, TicketPriority } from '../api/types';
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { ticketApi, type GetTicketsParams } from '../api/ticket.api'
+import type { TicketSummary, TicketStatus, TicketPriority } from '../api/types'
 
 export function TicketListPage() {
-  const [tickets, setTickets] = useState<TicketSummary[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [tickets, setTickets] = useState<TicketSummary[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [filters, setFilters] = useState<{
-    page: number;
-    limit: number;
-    status?: TicketStatus | 'all';
-    priority?: TicketPriority | 'all';
+    page: number
+    limit: number
+    status?: TicketStatus | 'all'
+    priority?: TicketPriority | 'all'
   }>({
     page: 1,
-    limit: 10
-  });
-  const [total, setTotal] = useState(0);
+    limit: 10,
+  })
+  const [total, setTotal] = useState(0)
 
   useEffect(() => {
     const loadTickets = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        const queryParams = { ...filters };
-        if (queryParams.status === 'all') delete queryParams.status;
-        if (queryParams.priority === 'all') delete queryParams.priority;
-        
-        const response = await ticketApi.getTickets(queryParams as GetTicketsParams);
-        setTickets(response.data);
-        setTotal(response.meta.total);
+        const queryParams = { ...filters }
+        if (queryParams.status === 'all') delete queryParams.status
+        if (queryParams.priority === 'all') delete queryParams.priority
+
+        const response = await ticketApi.getTickets(queryParams as GetTicketsParams)
+        setTickets(response.data)
+        setTotal(response.meta.total)
       } catch (error) {
-        console.error('Failed to load tickets', error);
+        console.error('Failed to load tickets', error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-    loadTickets();
-  }, [filters]);
+    }
+    loadTickets()
+  }, [filters])
 
   const getPriorityBadge = (priority: TicketPriority) => {
     switch (priority) {
       case 'URGENT':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Khẩn cấp</Badge>;
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Khẩn cấp</Badge>
       case 'HIGH':
-        return <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">Cao</Badge>;
+        return <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">Cao</Badge>
       case 'MEDIUM':
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Trung bình</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Trung bình</Badge>
       case 'LOW':
       default:
-        return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100">Thấp</Badge>;
+        return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100">Thấp</Badge>
     }
-  };
+  }
 
   const getStatusBadge = (status: TicketStatus) => {
     switch (status) {
       case 'OPEN':
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 border border-blue-200">Mới tạo</Badge>;
+        return <Badge className="border border-blue-200 bg-blue-100 text-blue-800 hover:bg-blue-100">Mới tạo</Badge>
       case 'IN_PROGRESS':
-        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Đang xử lý</Badge>;
+        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Đang xử lý</Badge>
       case 'WAITING_RENTER':
-        return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">Chờ phản hồi</Badge>;
+        return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">Chờ phản hồi</Badge>
       case 'RESOLVED':
-        return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Đã giải quyết</Badge>;
+        return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Đã giải quyết</Badge>
       case 'CLOSED':
-        return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100">Đã đóng</Badge>;
+        return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100">Đã đóng</Badge>
       case 'CANCELED':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Đã hủy</Badge>;
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Đã hủy</Badge>
       default:
-        return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100">{status}</Badge>;
+        return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100">{status}</Badge>
     }
-  };
+  }
 
   return (
-    <div className="flex flex-col w-full h-full p-8 bg-background min-h-[calc(100vh-64px)]">
-      <div className="flex justify-between items-center mb-6">
+    <div className="bg-background flex h-full min-h-[calc(100vh-64px)] w-full flex-col p-8">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-1">Danh Sách Hỗ Trợ (Tickets)</h1>
+          <h1 className="mb-1 text-3xl font-bold text-slate-900">Danh Sách Hỗ Trợ (Tickets)</h1>
           <p className="text-sm text-slate-500">Quản lý và xử lý các yêu cầu hỗ trợ từ người thuê.</p>
         </div>
         <Link to="/app/ho-tro/tao-moi">
@@ -91,9 +91,9 @@ export function TicketListPage() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl p-4 mb-6 shadow-sm border border-slate-200 flex flex-wrap gap-4 items-end">
-        <div className="flex-1 min-w-[200px] flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tài sản</label>
+      <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex min-w-[200px] flex-1 flex-col gap-1.5">
+          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Tài sản</label>
           <Select>
             <SelectTrigger>
               <SelectValue placeholder="Tất cả tài sản" />
@@ -103,10 +103,10 @@ export function TicketListPage() {
             </SelectContent>
           </Select>
         </div>
-        
-        <div className="flex-1 min-w-[150px] flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Trạng thái</label>
-          <Select onValueChange={(val) => setFilters(prev => ({ ...prev, status: val as TicketStatus | 'all' }))}>
+
+        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
+          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Trạng thái</label>
+          <Select onValueChange={(val) => setFilters((prev) => ({ ...prev, status: val as TicketStatus | 'all' }))}>
             <SelectTrigger>
               <SelectValue placeholder="Tất cả trạng thái" />
             </SelectTrigger>
@@ -121,9 +121,9 @@ export function TicketListPage() {
           </Select>
         </div>
 
-        <div className="flex-1 min-w-[150px] flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Mức độ</label>
-          <Select onValueChange={(val) => setFilters(prev => ({ ...prev, priority: val as TicketPriority | 'all' }))}>
+        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
+          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Mức độ</label>
+          <Select onValueChange={(val) => setFilters((prev) => ({ ...prev, priority: val as TicketPriority | 'all' }))}>
             <SelectTrigger>
               <SelectValue placeholder="Tất cả mức độ" />
             </SelectTrigger>
@@ -136,71 +136,70 @@ export function TicketListPage() {
             </SelectContent>
           </Select>
         </div>
-        
-        <div className="flex-1 min-w-[250px] relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">search</span>
-          <Input 
-            className="pl-10" 
-            placeholder="Tìm kiếm mã ticket, tiêu đề..." 
-          />
+
+        <div className="relative min-w-[250px] flex-1">
+          <span className="material-symbols-outlined pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400">
+            search
+          </span>
+          <Input className="pl-10" placeholder="Tìm kiếm mã ticket, tiêu đề..." />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-1">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-slate-50">
               <TableRow>
-                <TableHead className="font-semibold text-slate-500 uppercase w-24">Mã</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase w-[30%]">Vấn đề</TableHead>
+                <TableHead className="w-24 font-semibold text-slate-500 uppercase">Mã</TableHead>
+                <TableHead className="w-[30%] font-semibold text-slate-500 uppercase">Vấn đề</TableHead>
                 <TableHead className="font-semibold text-slate-500 uppercase">Phòng / Khu</TableHead>
                 <TableHead className="font-semibold text-slate-500 uppercase">Người thuê</TableHead>
                 <TableHead className="font-semibold text-slate-500 uppercase">Mức độ</TableHead>
                 <TableHead className="font-semibold text-slate-500 uppercase">Trạng thái</TableHead>
                 <TableHead className="font-semibold text-slate-500 uppercase">Người xử lý</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase text-right">Cập nhật</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase text-right"></TableHead>
+                <TableHead className="text-right font-semibold text-slate-500 uppercase">Cập nhật</TableHead>
+                <TableHead className="text-right font-semibold text-slate-500 uppercase"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-slate-500">Đang tải dữ liệu...</TableCell>
+                  <TableCell colSpan={9} className="py-8 text-center text-slate-500">
+                    Đang tải dữ liệu...
+                  </TableCell>
                 </TableRow>
               ) : tickets.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-slate-500">Không tìm thấy ticket nào</TableCell>
+                  <TableCell colSpan={9} className="py-8 text-center text-slate-500">
+                    Không tìm thấy ticket nào
+                  </TableCell>
                 </TableRow>
               ) : (
                 tickets.map((ticket) => (
-                  <TableRow key={ticket.id} className="group hover:bg-slate-50 cursor-pointer">
+                  <TableRow key={ticket.id} className="group cursor-pointer hover:bg-slate-50">
                     <TableCell className="font-medium text-slate-500">
                       <Link to={`/app/ho-tro/${ticket.id}`}>#TK-{ticket.id}</Link>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium text-slate-900 mb-1">{ticket.title}</div>
+                      <div className="mb-1 font-medium text-slate-900">{ticket.title}</div>
                     </TableCell>
                     <TableCell>
                       <div className="font-medium text-slate-900">{ticket.room?.name || `Phòng ${ticket.roomId}`}</div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-semibold">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-600">
                           {ticket.createdBy?.fullName?.substring(0, 2).toUpperCase() || 'NA'}
                         </div>
                         <span>{ticket.createdBy?.fullName}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {getPriorityBadge(ticket.priority)}
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(ticket.status)}
-                    </TableCell>
+                    <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
+                    <TableCell>{getStatusBadge(ticket.status)}</TableCell>
                     <TableCell>
                       {ticket.assignedToUser ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
                             {ticket.assignedToUser.fullName.substring(0, 2).toUpperCase()}
                           </div>
                           <span>{ticket.assignedToUser.fullName}</span>
@@ -215,7 +214,10 @@ export function TicketListPage() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="w-8 h-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                          >
                             <span className="material-symbols-outlined">more_vert</span>
                           </Button>
                         </DropdownMenuTrigger>
@@ -239,29 +241,32 @@ export function TicketListPage() {
             </TableBody>
           </Table>
         </div>
-        
+
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50 mt-auto">
+        <div className="mt-auto flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
           <div className="text-sm text-slate-500">
-            Hiển thị {tickets.length > 0 ? (filters.page - 1) * filters.limit + 1 : 0} đến {Math.min(filters.page * filters.limit, total)} trong số {total} mục
+            Hiển thị {tickets.length > 0 ? (filters.page - 1) * filters.limit + 1 : 0} đến{' '}
+            {Math.min(filters.page * filters.limit, total)} trong số {total} mục
           </div>
           <div className="flex gap-1">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="w-8 h-8"
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
               disabled={filters.page === 1}
-              onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+              onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))}
             >
               <span className="material-symbols-outlined text-[18px]">chevron_left</span>
             </Button>
-            <Button variant="default" size="sm" className="w-8 h-8 p-0">{filters.page}</Button>
+            <Button variant="default" size="sm" className="h-8 w-8 p-0">
+              {filters.page}
+            </Button>
             {total > filters.page * filters.limit && (
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="w-8 h-8"
-                onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 }))}
               >
                 <span className="material-symbols-outlined text-[18px]">chevron_right</span>
               </Button>
@@ -270,5 +275,5 @@ export function TicketListPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -1,71 +1,78 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { notificationApi } from '../api/notification.api';
-import { Notification, NotificationType } from '../api/types';
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { notificationApi } from '../api/notification.api'
+import type { Notification, NotificationType } from '../api/types'
 
 export function NotificationCenterPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'ALL' | 'UNREAD'>('ALL');
-
-  const loadNotifications = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await notificationApi.getNotifications({
-        limit: 20,
-        isRead: filter === 'UNREAD' ? false : undefined
-      });
-      setNotifications(response.data);
-    } catch (error) {
-      console.error('Failed to load notifications', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filter]);
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [filter, setFilter] = useState<'ALL' | 'UNREAD'>('ALL')
 
   useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
+    let ignore = false
+    const loadNotifications = async () => {
+      setIsLoading(true)
+      try {
+        const response = await notificationApi.getNotifications({
+          limit: 20,
+          isRead: filter === 'UNREAD' ? false : undefined,
+        })
+        if (!ignore) {
+          setNotifications(response.data)
+        }
+      } catch (error) {
+        console.error('Failed to load notifications', error)
+      } finally {
+        if (!ignore) {
+          setIsLoading(false)
+        }
+      }
+    }
+    loadNotifications()
+    return () => {
+      ignore = true
+    }
+  }, [filter])
 
   const handleMarkAsRead = async (id: number) => {
     try {
-      await notificationApi.markAsRead(id);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      await notificationApi.markAsRead(id)
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)))
     } catch (error) {
-      console.error('Failed to mark as read', error);
+      console.error('Failed to mark as read', error)
     }
-  };
+  }
 
   const handleMarkAllAsRead = async () => {
     try {
-      await notificationApi.markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      await notificationApi.markAllAsRead()
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
     } catch (error) {
-      console.error('Failed to mark all as read', error);
+      console.error('Failed to mark all as read', error)
     }
-  };
+  }
 
   const getIconForType = (type: NotificationType) => {
     switch (type) {
       case 'INVOICE':
       case 'PAYMENT':
-        return { icon: 'payments', color: 'text-emerald-600 bg-emerald-100' };
+        return { icon: 'payments', color: 'text-emerald-600 bg-emerald-100' }
       case 'TICKET':
-        return { icon: 'engineering', color: 'text-amber-600 bg-amber-100' };
+        return { icon: 'engineering', color: 'text-amber-600 bg-amber-100' }
       case 'CONTRACT':
-        return { icon: 'description', color: 'text-blue-600 bg-blue-100' };
+        return { icon: 'description', color: 'text-blue-600 bg-blue-100' }
       case 'SYSTEM':
       default:
-        return { icon: 'notifications', color: 'text-slate-600 bg-slate-100' };
+        return { icon: 'notifications', color: 'text-slate-600 bg-slate-100' }
     }
-  };
+  }
 
   return (
-    <div className="flex flex-col w-full h-full p-8 bg-background min-h-[calc(100vh-64px)] max-w-[800px] mx-auto">
-      <div className="flex justify-between items-center mb-6">
+    <div className="bg-background mx-auto flex h-full min-h-[calc(100vh-64px)] w-full max-w-[800px] flex-col p-8">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-1">Trung tâm thông báo</h1>
+          <h1 className="mb-1 text-3xl font-bold text-slate-900">Trung tâm thông báo</h1>
           <p className="text-sm text-slate-500">Xem và quản lý tất cả các thông báo của bạn.</p>
         </div>
         <Button variant="outline" onClick={handleMarkAllAsRead} className="flex items-center gap-2">
@@ -74,30 +81,32 @@ export function NotificationCenterPage() {
         </Button>
       </div>
 
-      <div className="flex gap-4 mb-6 border-b border-slate-200">
-        <button 
+      <div className="mb-6 flex gap-4 border-b border-slate-200">
+        <button
           onClick={() => setFilter('ALL')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${filter === 'ALL' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+          className={`border-b-2 pb-3 text-sm font-medium transition-colors ${filter === 'ALL' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
         >
           Tất cả
         </button>
-        <button 
+        <button
           onClick={() => setFilter('UNREAD')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${filter === 'UNREAD' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+          className={`flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition-colors ${filter === 'UNREAD' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
         >
           Chưa đọc
-          {notifications.filter(n => !n.isRead).length > 0 && (
-            <Badge className="bg-primary text-white ml-1 px-1.5 py-0 min-w-4 text-center">{notifications.filter(n => !n.isRead).length}</Badge>
+          {notifications.filter((n) => !n.isRead).length > 0 && (
+            <Badge className="bg-primary ml-1 min-w-4 px-1.5 py-0 text-center text-white">
+              {notifications.filter((n) => !n.isRead).length}
+            </Badge>
           )}
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+      <div className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         {isLoading ? (
           <div className="p-8 text-center text-slate-500">Đang tải thông báo...</div>
         ) : notifications.length === 0 ? (
-          <div className="p-12 flex flex-col items-center justify-center text-slate-500">
-            <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center p-12 text-slate-500">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50">
               <span className="material-symbols-outlined text-[32px] text-slate-300">notifications_off</span>
             </div>
             <p>Không có thông báo nào.</p>
@@ -105,27 +114,27 @@ export function NotificationCenterPage() {
         ) : (
           <div className="flex flex-col divide-y divide-slate-100">
             {notifications.map((notification) => {
-              const { icon, color } = getIconForType(notification.type);
+              const { icon, color } = getIconForType(notification.type)
               return (
-                <div 
-                  key={notification.id} 
-                  className={`p-4 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer relative group ${!notification.isRead ? 'bg-blue-50/30' : ''}`}
+                <div
+                  key={notification.id}
+                  className={`group relative flex cursor-pointer gap-4 p-4 transition-colors hover:bg-slate-50 ${!notification.isRead ? 'bg-blue-50/30' : ''}`}
                   onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
                 >
-                  {!notification.isRead && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
-                  )}
-                  
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-1 ${color}`}>
+                  {!notification.isRead && <div className="bg-primary absolute top-0 bottom-0 left-0 w-1"></div>}
+
+                  <div className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${color}`}>
                     <span className="material-symbols-outlined text-[20px]">{icon}</span>
                   </div>
-                  
-                  <div className="flex-1 flex flex-col gap-1 pr-8">
-                    <div className="flex justify-between items-start gap-4">
-                      <h4 className={`text-sm ${!notification.isRead ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
+
+                  <div className="flex flex-1 flex-col gap-1 pr-8">
+                    <div className="flex items-start justify-between gap-4">
+                      <h4
+                        className={`text-sm ${!notification.isRead ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}
+                      >
                         {notification.title}
                       </h4>
-                      <span className="text-xs text-slate-400 whitespace-nowrap">
+                      <span className="text-xs whitespace-nowrap text-slate-400">
                         {new Date(notification.createdAt).toLocaleDateString('vi-VN')}
                       </span>
                     </div>
@@ -135,18 +144,26 @@ export function NotificationCenterPage() {
                   </div>
 
                   {!notification.isRead && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleMarkAsRead(notification.id); }} title="Đánh dấu đã đọc">
+                    <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleMarkAsRead(notification.id)
+                        }}
+                        title="Đánh dấu đã đọc"
+                      >
                         <span className="material-symbols-outlined text-[18px]">check</span>
                       </Button>
                     </div>
                   )}
                 </div>
-              );
+              )
             })}
           </div>
         )}
       </div>
     </div>
-  );
+  )
 }

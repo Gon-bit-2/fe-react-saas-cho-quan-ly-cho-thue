@@ -301,6 +301,27 @@ export const router = createBrowserRouter([
                 lazy: () =>
                   import('@/features/notifications/pages/notification-center').then((m) => ({ Component: m.NotificationCenterPage })),
               },
+              // Gói dịch vụ (W16)
+              {
+                path: 'goi-dich-vu',
+                lazy: () =>
+                  import('@/features/subscriptions/pages/current-plan').then((m) => ({ Component: m.CurrentPlanPage })),
+              },
+              {
+                path: 'goi-dich-vu/so-sanh',
+                lazy: () =>
+                  import('@/features/subscriptions/pages/compare-plans').then((m) => ({ Component: m.ComparePlansPage })),
+              },
+              {
+                path: 'goi-dich-vu/thanh-toan',
+                lazy: () =>
+                  import('@/features/subscriptions/pages/checkout').then((m) => ({ Component: m.CheckoutPage })),
+              },
+              {
+                path: 'goi-dich-vu/lich-su-thanh-toan',
+                lazy: () =>
+                  import('@/features/subscriptions/pages/billing-history').then((m) => ({ Component: m.BillingHistoryPage })),
+              },
             ],
           },
         ],
@@ -321,7 +342,23 @@ export const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                lazy: () => import('@/features/dashboard/pages/admin-dashboard'),
+                lazy: () => import('@/features/dashboard/pages/admin-dashboard').then((m) => ({ Component: m.AdminDashboardPage })),
+              },
+              {
+                path: 'chu-tro',
+                lazy: () => import('@/features/admin/pages/landlords').then((m) => ({ Component: m.LandlordsPage })),
+              },
+              {
+                path: 'chu-tro/:id',
+                lazy: () => import('@/features/admin/pages/landlord-detail').then((m) => ({ Component: m.LandlordDetailPage })),
+              },
+              {
+                path: 'nguoi-thue',
+                lazy: () => import('@/features/admin/pages/renters').then((m) => ({ Component: m.RentersPage })),
+              },
+              {
+                path: 'nguoi-thue/:id',
+                lazy: () => import('@/features/admin/pages/renter-detail').then((m) => ({ Component: m.RenterDetailPage })),
               },
               // Admin feature routes sẽ được thêm khi xây page
             ],
