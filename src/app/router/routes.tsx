@@ -360,6 +360,49 @@ export const router = createBrowserRouter([
                 path: 'nguoi-thue/:id',
                 lazy: () => import('@/features/admin/pages/renter-detail').then((m) => ({ Component: m.RenterDetailPage })),
               },
+              // Quản trị Gói dịch vụ (W18)
+              {
+                path: 'goi-dich-vu',
+                lazy: () => import('@/features/saas/pages/plans/plan-list').then((m) => ({ Component: m.PlanListPage })),
+              },
+              {
+                path: 'goi-dich-vu/tao-moi',
+                lazy: () => import('@/features/saas/pages/plans/plan-form').then((m) => ({ Component: m.PlanFormPage })),
+              },
+              {
+                path: 'goi-dich-vu/:id/chinh-sua',
+                lazy: () => import('@/features/saas/pages/plans/plan-form').then((m) => ({ Component: m.PlanFormPage })),
+              },
+              {
+                path: 'thanh-toan-goi',
+                lazy: () => import('@/features/saas/pages/subscription-payments/payment-list').then((m) => ({ Component: m.PaymentListPage })),
+              },
+              // Quản trị Tiện ích (W18)
+              {
+                path: 'tien-ich',
+                lazy: () => import('@/features/saas/pages/amenities/amenity-list').then((m) => ({ Component: m.AmenityListPage })),
+              },
+              {
+                path: 'tien-ich/tao-moi',
+                lazy: () => import('@/features/saas/pages/amenities/amenity-form').then((m) => ({ Component: m.AmenityFormPage })),
+              },
+              {
+                path: 'tien-ich/:id/chinh-sua',
+                lazy: () => import('@/features/saas/pages/amenities/amenity-form').then((m) => ({ Component: m.AmenityFormPage })),
+              },
+              // Quản trị Kiểm duyệt (W19)
+              {
+                path: 'kiem-duyet/hang-cho',
+                lazy: () => import('@/features/moderation/pages/moderation-queue').then((m) => ({ Component: m.ModerationQueuePage })),
+              },
+              {
+                path: 'kiem-duyet/chi-tiet/:id',
+                lazy: () => import('@/features/moderation/pages/moderation-detail').then((m) => ({ Component: m.ModerationDetailPage })),
+              },
+              {
+                path: 'kiem-duyet/lich-su',
+                lazy: () => import('@/features/moderation/pages/moderation-history').then((m) => ({ Component: m.ModerationHistoryPage })),
+              },
               // Admin feature routes sẽ được thêm khi xây page
             ],
           },
