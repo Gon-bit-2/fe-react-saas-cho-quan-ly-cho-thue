@@ -1,0 +1,12 @@
+import { apiClient } from '@/lib/api/api-client'
+import { UserProfile } from './types'
+
+export const profileApi = {
+  /** Lấy thông tin profile hiện tại */
+  getProfile: () =>
+    apiClient.get<UserProfile>('/auth/profile'),
+
+  /** Cập nhật thông tin profile */
+  updateProfile: (data: Partial<UserProfile>) =>
+    apiClient.put<UserProfile>('/auth/profile', data),
+}

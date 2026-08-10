@@ -284,6 +284,23 @@ export const router = createBrowserRouter([
                 lazy: () =>
                   import('@/features/payments/pages/payment-review').then((m) => ({ Component: m.PaymentReviewPage })),
               },
+              // Hỗ trợ & Ticket (W14)
+              {
+                path: 'ho-tro',
+                lazy: () =>
+                  import('@/features/tickets/pages/ticket-list').then((m) => ({ Component: m.TicketListPage })),
+              },
+              {
+                path: 'ho-tro/:id',
+                lazy: () =>
+                  import('@/features/tickets/pages/ticket-detail').then((m) => ({ Component: m.TicketDetailPage })),
+              },
+              // Thông báo (W15)
+              {
+                path: 'thong-bao',
+                lazy: () =>
+                  import('@/features/notifications/pages/notification-center').then((m) => ({ Component: m.NotificationCenterPage })),
+              },
             ],
           },
         ],
@@ -316,11 +333,11 @@ export const router = createBrowserRouter([
 
   // ─── Error Pages ────────────────────────────────────────
   {
-    path: '/403',
+    path: '/loi-truy-cap',
     element: <ForbiddenPage />,
   },
   {
-    path: '/session-expired',
+    path: '/phien-het-han',
     element: <SessionExpiredPage />,
   },
 
