@@ -145,7 +145,7 @@ export function Component() {
           <p className="font-body-lg text-on-surface-variant max-w-2xl mx-auto mb-8">
             Trải nghiệm nền tảng quản lý phòng trọ chuyên nghiệp, tự động hóa quy trình thuê và thu tiền.
           </p>
-          <button onClick={() => navigate('/register')} className="px-8 py-3 bg-primary text-on-primary font-label-md rounded-lg shadow-md hover:opacity-90 transition-opacity">
+          <button onClick={() => navigate('/dang-ky')} className="px-8 py-3 bg-primary text-on-primary font-label-md rounded-lg shadow-md hover:opacity-90 transition-opacity">
             Bắt đầu quản lý ngay
           </button>
         </div>

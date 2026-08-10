@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import { Component as Login } from './login'
 import { renderWithProviders } from '@/tests/utils'

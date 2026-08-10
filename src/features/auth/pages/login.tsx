@@ -48,7 +48,7 @@ export function Component() {
 
       if (loginRes.message) {
         // Yêu cầu nhập OTP (2FA)
-        navigate('/login/otp', {
+        navigate('/dang-nhap/otp', {
           state: {
             email: data.email,
             passwordHash: data.password,
@@ -70,7 +70,7 @@ export function Component() {
           { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! },
           profileResponse.data
         )
-        navigate('/account')
+        navigate('/tai-khoan')
       }
     } catch (err) {
       const appErr = toAppError(err)
@@ -172,7 +172,7 @@ export function Component() {
           </label>
           <Link
             className="font-label-md text-label-md text-primary-container hover:text-primary transition-colors"
-            to="/forgot-password"
+            to="/quen-mat-khau"
           >
             Quên mật khẩu?
           </Link>
@@ -233,7 +233,7 @@ export function Component() {
           Chưa có tài khoản?
           <Link
             className="font-label-md text-label-md text-primary-container hover:text-primary ml-1 transition-colors"
-            to="/register"
+            to="/dang-ky"
           >
             Đăng ký ngay
           </Link>

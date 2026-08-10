@@ -45,7 +45,7 @@ export function Component() {
           <h1 className="font-headline-lg text-headline-lg text-on-surface">Quản lý nhà trọ</h1>
           <p className="font-body-md text-on-surface-variant">Danh sách tất cả các cơ sở, tòa nhà và khu trọ của bạn</p>
         </div>
-        <Button onClick={() => navigate('/app/properties/new')} className="bg-primary text-on-primary hover:bg-primary/90 font-label-md rounded-full px-6 h-10 shadow-md">
+        <Button onClick={() => navigate('/app/khu-tro/tao-moi')} className="bg-primary text-on-primary hover:bg-primary/90 font-label-md rounded-full px-6 h-10 shadow-md">
           <Plus className="mr-2 h-4 w-4" /> Thêm nhà trọ mới
         </Button>
       </div>
@@ -111,7 +111,7 @@ export function Component() {
                         <Building2 className="h-6 w-6" />
                       </div>
                       <p className="font-body-md text-on-surface-variant">Không tìm thấy nhà trọ nào.</p>
-                      <Button variant="link" className="text-primary font-label-md" onClick={() => navigate('/app/properties/new')}>
+                      <Button variant="link" className="text-primary font-label-md" onClick={() => navigate('/app/khu-tro/tao-moi')}>
                         Thêm nhà trọ mới
                       </Button>
                     </div>
@@ -129,7 +129,7 @@ export function Component() {
                         <div className="flex flex-col gap-1">
                           <div 
                             className="font-headline-sm text-on-surface group-hover:text-primary transition-colors cursor-pointer" 
-                            onClick={() => navigate(`/app/properties/${property.id}`)}
+                            onClick={() => navigate(`/app/khu-tro/${property.id}`)}
                           >
                             {property.name}
                           </div>
@@ -163,7 +163,7 @@ export function Component() {
                         variant="ghost" 
                         size="sm" 
                         className="font-label-md text-primary hover:bg-primary/10 hover:text-primary rounded-lg"
-                        onClick={() => navigate(`/app/properties/${property.id}`)}
+                        onClick={() => navigate(`/app/khu-tro/${property.id}`)}
                       >
                         Quản lý
                       </Button>

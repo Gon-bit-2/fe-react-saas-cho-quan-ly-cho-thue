@@ -29,7 +29,7 @@ export function Component() {
           <Building2 className="h-8 w-8" />
         </div>
         <p className="font-body-md text-on-surface-variant">Không tìm thấy nhà trọ.</p>
-        <Button variant="outline" onClick={() => navigate('/app/properties')} className="rounded-full">
+        <Button variant="outline" onClick={() => navigate('/app/khu-tro')} className="rounded-full">
           Quay lại danh sách
         </Button>
       </div>
@@ -91,14 +91,14 @@ export function Component() {
             <Button
               variant="outline"
               size="icon"
-              onClick={() => navigate('/app/properties')}
+              onClick={() => navigate('/app/khu-tro')}
               className="bg-surface border-surface-border hover:bg-surface-container rounded-full"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Button
               variant="outline"
-              onClick={() => navigate(`/app/properties/${property.id}/edit`)}
+              onClick={() => navigate(`/app/khu-tro/${property.id}/chinh-sua`)}
               className="bg-surface border-surface-border hover:bg-surface-container font-label-md rounded-full shadow-sm"
             >
               <Edit className="text-on-surface-variant mr-2 h-4 w-4" /> Cập nhật

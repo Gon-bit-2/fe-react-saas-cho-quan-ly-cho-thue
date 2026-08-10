@@ -28,8 +28,8 @@ export function MarketplaceFooter() {
           <div>
             <h3 className="font-headline-sm text-text-main mb-4">Dành cho Chủ nhà</h3>
             <ul className="space-y-2">
-              <li><Link to="/login" className="text-on-surface-variant hover:text-primary font-body-md transition-colors">Đăng nhập quản lý</Link></li>
-              <li><Link to="/register" className="text-on-surface-variant hover:text-primary font-body-md transition-colors">Đăng ký chủ nhà</Link></li>
+              <li><Link to="/dang-nhap" className="text-on-surface-variant hover:text-primary font-body-md transition-colors">Đăng nhập quản lý</Link></li>
+              <li><Link to="/dang-ky" className="text-on-surface-variant hover:text-primary font-body-md transition-colors">Đăng ký chủ nhà</Link></li>
               <li><Link to="/pricing" className="text-on-surface-variant hover:text-primary font-body-md transition-colors">Bảng giá dịch vụ</Link></li>
             </ul>
           </div>

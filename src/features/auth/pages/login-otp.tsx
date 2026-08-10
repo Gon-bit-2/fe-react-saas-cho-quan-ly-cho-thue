@@ -77,7 +77,7 @@ export function Component() {
     try {
       if (actionType === 'FORGOT_PASSWORD') {
         // Chuyển sang đặt lại mật khẩu kèm code
-        navigate('/reset-password', { state: { email, code } })
+        navigate('/dat-lai-mat-khau', { state: { email, code } })
         return
       }
 
@@ -98,7 +98,7 @@ export function Component() {
             { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! }, 
             profileResponse.data
           )
-          navigate('/account')
+          navigate('/tai-khoan')
         }
       } else if (actionType === 'REGISTER') {
         if (!state?.registerData) throw new Error('Thiếu thông tin đăng ký')
@@ -113,7 +113,7 @@ export function Component() {
           roleCode: 'LANDLORD',
         })
         
-        navigate('/login', { state: { message: 'Đăng ký thành công, vui lòng đăng nhập!' } })
+        navigate('/dang-nhap', { state: { message: 'Đăng ký thành công, vui lòng đăng nhập!' } })
       }
     } catch (err) {
       const appErr = toAppError(err)
@@ -182,7 +182,7 @@ export function Component() {
 
       <div className="mt-4 text-center flex flex-col gap-2 items-center justify-center">
         <Link 
-          to="/login"
+          to="/dang-nhap"
           className="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors underline decoration-transparent hover:decoration-primary underline-offset-4"
         >
           Quay lại Đăng nhập
