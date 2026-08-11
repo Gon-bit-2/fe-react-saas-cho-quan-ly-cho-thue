@@ -20,7 +20,7 @@ export function Component() {
       if (priceRange === '5m-10m') { params.set('minPrice', '5000000'); params.set('maxPrice', '10000000') }
       if (priceRange === 'over-10m') params.set('minPrice', '10000000')
     }
-    navigate(`/rooms?${params.toString()}`)
+    navigate(`/phong?${params.toString()}`)
   }
 
   // Fallback to mock data if API is loading or returns empty
@@ -119,7 +119,7 @@ export function Component() {
             <h2 className="font-headline-lg text-text-main">Phòng nổi bật gần đây</h2>
             <p className="font-body-md text-on-surface-variant mt-2">Danh sách các phòng trọ, căn hộ được đánh giá cao và mới cập nhật.</p>
           </div>
-          <button onClick={() => navigate('/rooms')} className="inline-flex items-center gap-1 font-label-md text-primary hover:text-primary-container transition-colors group">
+          <button onClick={() => navigate('/phong')} className="inline-flex items-center gap-1 font-label-md text-primary hover:text-primary-container transition-colors group">
             Xem tất cả <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
           </button>
         </div>

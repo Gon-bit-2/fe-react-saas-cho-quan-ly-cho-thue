@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { getPaymentDetail, approvePayment } from '../api';
-import { PaymentMethod, PaymentDto } from '../types';
+import { PaymentMethod, type Payment } from '../types';
 
 export function PaymentReviewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [payment, setPayment] = useState<PaymentDto | null>(null);
+  const [payment, setPayment] = useState<Payment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   const [isApproveOpen, setIsApproveOpen] = useState(false);
@@ -185,7 +185,7 @@ export function PaymentReviewPage() {
               <div className="flex flex-col gap-2 mb-4">
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
                   <span className="text-sm text-slate-500">Người Nộp</span>
-                  <span className="text-sm font-medium text-slate-900">{payment.renter?.fullName || 'N/A'}</span>
+                  <span className="text-sm font-medium text-slate-900">{payment.payer?.fullName || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
                   <span className="text-sm text-slate-500">Phòng</span>

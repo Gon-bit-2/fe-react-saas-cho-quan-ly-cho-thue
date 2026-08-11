@@ -20,7 +20,7 @@ export function RequireSystemRole({
   const hasAccess = roles.some((role) => hasSystemRole(role))
 
   if (!hasAccess) {
-    return <Navigate to="/403" replace />
+    return <Navigate to="/loi-truy-cap" replace />
   }
 
   return <Outlet />

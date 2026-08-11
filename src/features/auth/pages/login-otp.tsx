@@ -16,7 +16,7 @@ export function Component() {
   const state = location.state as { 
     email?: string; 
     action?: string;
-    passwordHash?: string;
+    password?: string;
     registerData?: { email: string; password: string; fullname: string; phone: string; confirm_password: string };
   }
   
@@ -82,11 +82,11 @@ export function Component() {
       }
 
       if (actionType === 'LOGIN') {
-        if (!state?.passwordHash) throw new Error('Thiếu thông tin đăng nhập')
+        if (!state?.password) throw new Error('Thiếu thông tin đăng nhập')
         
         const loginRes = await authApi.login({ 
           email, 
-          passwordHash: state.passwordHash, 
+          password: state.password, 
           code 
         })
         
@@ -105,7 +105,7 @@ export function Component() {
         
         await authApi.register({
           email: state.registerData.email,
-          passwordHash: state.registerData.password,
+          password: state.registerData.password,
           fullName: state.registerData.fullname,
           phone: state.registerData.phone,
           confirmPassword: state.registerData.confirm_password,

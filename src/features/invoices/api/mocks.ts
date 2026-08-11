@@ -1,4 +1,5 @@
-import { InvoiceStatus, DebtStatus, InvoiceItemType, Invoice, Debt } from '../types';
+import { InvoiceStatus, DebtStatus, InvoiceItemType } from '../types';
+import type { Invoice, Debt } from '../types';
 
 export const mockInvoices: Invoice[] = [
   {

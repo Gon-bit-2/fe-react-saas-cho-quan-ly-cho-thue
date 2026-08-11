@@ -84,7 +84,7 @@ export function Component() {
             </div>
             
             <div className="flex gap-3">
-              <Button onClick={() => navigate(`/app/quan-ly-phong/${room.id}/edit`)}>
+              <Button onClick={() => navigate(`/app/quan-ly-phong/${room.id}/chinh-sua`)}>
                 <Edit className="w-4 h-4 mr-2" /> Chỉnh sửa
               </Button>
             </div>

@@ -19,7 +19,7 @@ export function NotificationCenterPage() {
           isRead: filter === 'UNREAD' ? false : undefined,
         })
         if (!ignore) {
-          setNotifications(response.data)
+          setNotifications(response.data.data)
         }
       } catch (error) {
         console.error('Failed to load notifications', error)

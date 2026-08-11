@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Download, Filter, HelpCircle, FileText, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { PaymentTransaction } from '../api/plan.api';
+import type { PaymentTransaction } from '../api/plan.api';
 
 // Mock data based on the design
 const mockTransactions: PaymentTransaction[] = [

@@ -10,7 +10,7 @@ describe('Login OTP Page', () => {
   it('renders OTP form correctly with email from state', () => {
     renderWithProviders(<LoginOTP />, {
       route: '/login/otp',
-      routeState: { email: 'test@example.com', action: 'LOGIN', passwordHash: 'hash' }
+      routeState: { email: 'test@example.com', action: 'LOGIN', password: 'hash' }
     })
     
     expect(screen.getByText('Xác minh OTP')).toBeInTheDocument()
@@ -22,7 +22,7 @@ describe('Login OTP Page', () => {
   it('shows error if OTP is less than 6 digits', async () => {
     const { user } = renderWithProviders(<LoginOTP />, {
       route: '/login/otp',
-      routeState: { email: 'test@example.com', action: 'LOGIN', passwordHash: 'hash' }
+      routeState: { email: 'test@example.com', action: 'LOGIN', password: 'hash' }
     })
     
     const inputs = screen.getAllByRole('textbox')
@@ -40,7 +40,7 @@ describe('Login OTP Page', () => {
   it('submits successfully and navigates', async () => {
     const { user } = renderWithProviders(<LoginOTP />, {
       route: '/login/otp',
-      routeState: { email: 'test@example.com', action: 'LOGIN', passwordHash: 'hash' }
+      routeState: { email: 'test@example.com', action: 'LOGIN', password: 'hash' }
     })
     
     // We can simulate pasting the OTP or typing
@@ -71,7 +71,7 @@ describe('Login OTP Page', () => {
 
     const { user } = renderWithProviders(<LoginOTP />, {
       route: '/login/otp',
-      routeState: { email: 'test@example.com', action: 'LOGIN', passwordHash: 'hash' }
+      routeState: { email: 'test@example.com', action: 'LOGIN', password: 'hash' }
     })
     
     const inputs = screen.getAllByRole('textbox')

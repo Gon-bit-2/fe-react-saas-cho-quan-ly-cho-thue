@@ -1,18 +1,19 @@
 import { apiClient } from '@/shared/api/axios-client';
-import {
+import type {
   InvoiceListResponse,
   DebtListResponse,
   Invoice,
+  InvoiceListParams,
   CreateInvoiceDto,
   UpdateInvoiceDto,
 } from '../types';
 
-export const getInvoices = async (params?: Record<string, unknown>): Promise<InvoiceListResponse> => {
+export const getInvoices = async (params?: InvoiceListParams): Promise<InvoiceListResponse> => {
   const response = await apiClient.get<InvoiceListResponse>('/invoices', { params });
   return response.data;
 };
 
-export const getMyInvoices = async (params?: Record<string, unknown>): Promise<InvoiceListResponse> => {
+export const getMyInvoices = async (params?: InvoiceListParams): Promise<InvoiceListResponse> => {
   const response = await apiClient.get<InvoiceListResponse>('/invoices/me', { params });
   return response.data;
 };

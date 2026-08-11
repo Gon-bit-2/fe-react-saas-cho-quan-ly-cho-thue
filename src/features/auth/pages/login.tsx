@@ -43,7 +43,7 @@ export function Component() {
     try {
       const loginRes = await loginMutation.mutateAsync({
         email: data.email,
-        passwordHash: data.password,
+        password: data.password,
       })
 
       if (loginRes.message) {
@@ -51,7 +51,7 @@ export function Component() {
         navigate('/dang-nhap/otp', {
           state: {
             email: data.email,
-            passwordHash: data.password,
+            password: data.password,
             action: 'LOGIN',
           },
         })

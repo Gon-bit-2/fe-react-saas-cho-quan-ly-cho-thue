@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UpdateInvoiceDto, InvoiceItemType, InvoiceDto, InvoiceItemDto } from '../types';
+import { InvoiceItemType, type UpdateInvoiceDto, type Invoice, type InvoiceItem } from '../types';
 import { getInvoiceDetail, updateDraftInvoice, issueInvoice } from '../api';
+
+type InvoiceEditFormValues = UpdateInvoiceDto & {
+  extraItems: NonNullable<UpdateInvoiceDto['extraItems']>
+}
 
 export function InvoiceEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [invoice, setInvoice] = useState<InvoiceDto | null>(null);
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
 
-  const { register, control, handleSubmit, watch, setValue, reset } = useForm<UpdateInvoiceDto>({
+  const { register, control, handleSubmit, watch, setValue, reset } = useForm<InvoiceEditFormValues>({
     defaultValues: {
       extraItems: []
     }
@@ -30,8 +34,13 @@ export function InvoiceEditPage() {
     if (id) {
       getInvoiceDetail(id).then((data) => {
         setInvoice(data);
+        const editableItemTypes: InvoiceItemType[] = [
+          InvoiceItemType.PENALTY,
+          InvoiceItemType.OTHER,
+          InvoiceItemType.DISCOUNT,
+        ];
         const extraItems = data.items
-          .filter(i => [InvoiceItemType.PENALTY, InvoiceItemType.OTHER, InvoiceItemType.DISCOUNT].includes(i.itemType))
+          .filter((item) => editableItemTypes.includes(item.itemType))
           .map(i => ({
             itemType: i.itemType,
             description: i.description,
@@ -53,10 +62,10 @@ export function InvoiceEditPage() {
     }
   }, [id, reset]);
 
-  const baseRent = invoice?.items?.find((i: InvoiceItemDto) => i.itemType === InvoiceItemType.RENT)?.amount || 0;
-  const electricity = invoice?.items?.find((i: InvoiceItemDto) => i.itemType === InvoiceItemType.ELECTRICITY)?.amount || 0;
-  const water = invoice?.items?.find((i: InvoiceItemDto) => i.itemType === InvoiceItemType.WATER)?.amount || 0;
-  const services = invoice?.items?.find((i: InvoiceItemDto) => i.itemType === InvoiceItemType.SERVICE)?.amount || 0;
+  const baseRent = invoice?.items?.find((i: InvoiceItem) => i.itemType === InvoiceItemType.RENT)?.amount || 0;
+  const electricity = invoice?.items?.find((i: InvoiceItem) => i.itemType === InvoiceItemType.ELECTRICITY)?.amount || 0;
+  const water = invoice?.items?.find((i: InvoiceItem) => i.itemType === InvoiceItemType.WATER)?.amount || 0;
+  const services = invoice?.items?.find((i: InvoiceItem) => i.itemType === InvoiceItemType.SERVICE)?.amount || 0;
 
   const extraItems = watch("extraItems") || [];
   

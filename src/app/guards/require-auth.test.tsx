@@ -28,14 +28,14 @@ describe('RequireAuth Guard', () => {
     expect(screen.getByText('Protected Content')).toBeInTheDocument()
   })
 
-  it('redirects to /login when anonymous', () => {
+  it('redirects to /dang-nhap when anonymous', () => {
     vi.mocked(useAuth).mockReturnValue({ state: 'anonymous' } as unknown as ReturnType<typeof useAuth>)
     renderWithProviders(
       <Routes>
         <Route path="/protected" element={<RequireAuth />}>
           <Route path="" element={<div>Protected Content</div>} />
         </Route>
-        <Route path="/login" element={<div>Login Page</div>} />
+        <Route path="/dang-nhap" element={<div>Login Page</div>} />
       </Routes>,
       { route: '/protected' }
     )

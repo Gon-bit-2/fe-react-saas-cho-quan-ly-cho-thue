@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router'
+import { Link } from 'react-router'
 import { format } from 'date-fns'
 import { listingsModerationApi } from '@/shared/api/listings-moderation'
 
 export function ModerationHistoryPage() {
-  const { id } = useParams()
   const [history, setHistory] = useState<Array<{ id: string, action: string, fromStatus: string, note: string, actorRole: string, actorName: string, createdAt: string }>>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const data = await listingsModerationApi.getHistory(id!)
+        const data = await listingsModerationApi.getHistory()
         setHistory(data)
       } catch (error) {
         console.error('Lỗi khi tải lịch sử kiểm duyệt', error)
@@ -20,7 +19,7 @@ export function ModerationHistoryPage() {
       }
     }
     fetchHistory()
-  }, [id])
+  }, [])
 
   if (loading) {
     return (
@@ -35,9 +34,9 @@ export function ModerationHistoryPage() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Link to={`/admin/kiem-duyet-tin-phong/${id}`} className="font-label-md text-label-md text-primary flex items-center gap-1 hover:underline">
+            <Link to="/admin/kiem-duyet/hang-cho" className="font-label-md text-label-md text-primary flex items-center gap-1 hover:underline">
               <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-              Quay lại chi tiết
+              Quay lại hàng chờ
             </Link>
           </div>
           <h1 className="font-headline-lg text-headline-lg text-on-surface">Lịch sử moderation</h1>

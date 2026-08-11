@@ -28,16 +28,16 @@ describe('RequireGuest Guard', () => {
     expect(screen.getByText('Guest Content')).toBeInTheDocument()
   })
 
-  it('redirects to /account when authenticated', () => {
+  it('redirects to /tai-khoan when authenticated', () => {
     vi.mocked(useAuth).mockReturnValue({ state: 'authenticated' } as unknown as ReturnType<typeof useAuth>)
     renderWithProviders(
       <Routes>
-        <Route path="/login" element={<RequireGuest />}>
+        <Route path="/dang-nhap" element={<RequireGuest />}>
           <Route path="" element={<div>Login Page</div>} />
         </Route>
-        <Route path="/account" element={<div>Account Page</div>} />
+        <Route path="/tai-khoan" element={<div>Account Page</div>} />
       </Routes>,
-      { route: '/login' }
+      { route: '/dang-nhap' }
     )
     
     // It should redirect and not show Login Page

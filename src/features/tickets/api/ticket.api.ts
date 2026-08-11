@@ -1,5 +1,5 @@
-import { apiClient } from '@/lib/api/api-client'
-import { TicketSummary, TicketDetail, TicketComment, TicketStatus, TicketCategory, TicketPriority } from './types'
+import { apiClient } from '@/shared/api/axios-client'
+import type { TicketSummary, TicketDetail, TicketComment, TicketStatus, TicketCategory, TicketPriority } from './types'
 
 export interface GetTicketsParams {
   page?: number

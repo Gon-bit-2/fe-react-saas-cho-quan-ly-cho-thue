@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { format } from 'date-fns'
-import { listingsModerationApi, TListingModerationStatus, IListingModerationDTO } from '@/shared/api/listings-moderation'
+import { listingsModerationApi } from '@/shared/api/listings-moderation'
+import type { TListingModerationStatus, IListingModerationDTO } from '@/shared/api/listings-moderation'
 
 export function ModerationDetailPage() {
   const { id } = useParams()
@@ -35,7 +36,7 @@ export function ModerationDetailPage() {
     setSubmitting(true)
     try {
       await listingsModerationApi.updateStatus(id!, { status, reason })
-      navigate('/admin/kiem-duyet-tin-phong')
+      navigate('/admin/kiem-duyet/hang-cho')
     } catch (error) {
       console.error('Lỗi cập nhật trạng thái', error)
     } finally {

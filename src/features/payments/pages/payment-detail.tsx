@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getPaymentDetail, approvePayment } from '../api';
-import { PaymentMethod, PaymentStatus, PaymentDto } from '../types';
+import { PaymentMethod, PaymentStatus, type Payment } from '../types';
 
 export function PaymentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [payment, setPayment] = useState<PaymentDto | null>(null);
+  const [payment, setPayment] = useState<Payment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isApproving, setIsApproving] = useState(false);
 

@@ -18,7 +18,7 @@ export function RequirePermission({
   const hasAccess = permissions.every((perm) => hasPermission(perm))
 
   if (!hasAccess) {
-    return <Navigate to="/403" replace />
+    return <Navigate to="/loi-truy-cap" replace />
   }
 
   return <Outlet />

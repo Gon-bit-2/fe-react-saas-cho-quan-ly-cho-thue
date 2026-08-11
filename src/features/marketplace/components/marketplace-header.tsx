@@ -19,7 +19,7 @@ export function MarketplaceHeader() {
             <Link to="/" className="text-on-surface-variant font-label-md hover:text-primary transition-colors">
               Trang chủ
             </Link>
-            <Link to="/rooms" className="text-on-surface-variant font-label-md hover:text-primary transition-colors">
+            <Link to="/phong" className="text-on-surface-variant font-label-md hover:text-primary transition-colors">
               Tìm phòng
             </Link>
           </nav>
@@ -43,9 +43,13 @@ export function MarketplaceHeader() {
             </div>
           ) : (
             <div className="flex items-center gap-4">
-              <button className="text-on-surface-variant hover:text-primary flex items-center justify-center">
+              <Link
+                to="/app/thong-bao"
+                aria-label="Mở trung tâm thông báo"
+                className="text-on-surface-variant hover:text-primary flex items-center justify-center"
+              >
                 <span className="material-symbols-outlined">notifications</span>
-              </button>
+              </Link>
               <Link to="/tai-khoan" className="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-primary font-label-md cursor-pointer">
                 {profile?.email?.charAt(0).toUpperCase() || 'U'}
               </Link>

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getInvoiceDetail } from '../api';
-import { InvoiceStatus, InvoiceItemType, InvoiceDto, InvoiceItemDto } from '../types';
+import { InvoiceStatus, InvoiceItemType, type Invoice, type InvoiceItem } from '../types';
 
 export function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [invoice, setInvoice] = useState<InvoiceDto | null>(null);
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -65,8 +65,17 @@ export function InvoiceDetailPage() {
     }
   };
 
-  const rentItems = invoice.items?.filter((i: InvoiceItemDto) => [InvoiceItemType.RENT, InvoiceItemType.ELECTRICITY, InvoiceItemType.WATER, InvoiceItemType.SERVICE, InvoiceItemType.OTHER].includes(i.itemType)) || [];
-  const adjustmentItems = invoice.items?.filter((i: InvoiceItemDto) => [InvoiceItemType.PENALTY, InvoiceItemType.DISCOUNT].includes(i.itemType)) || [];
+  const rentItemTypes: InvoiceItemType[] = [
+    InvoiceItemType.RENT,
+    InvoiceItemType.ELECTRICITY,
+    InvoiceItemType.WATER,
+    InvoiceItemType.SERVICE,
+    InvoiceItemType.OTHER,
+  ];
+  const adjustmentItemTypes: InvoiceItemType[] = [InvoiceItemType.PENALTY, InvoiceItemType.DISCOUNT];
+  const rentItems = invoice.items?.filter((item: InvoiceItem) => rentItemTypes.includes(item.itemType)) || [];
+  const adjustmentItems =
+    invoice.items?.filter((item: InvoiceItem) => adjustmentItemTypes.includes(item.itemType)) || [];
 
   return (
     <div className="flex flex-col w-full bg-slate-50 min-h-full pb-20">
@@ -143,7 +152,7 @@ export function InvoiceDetailPage() {
                     </tr>
                   </thead>
                   <tbody className="text-sm text-slate-900">
-                    {rentItems.map((item: InvoiceItemDto) => (
+                    {rentItems.map((item: InvoiceItem) => (
                       <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                         <td className="py-4 px-6">
                           <div className="flex items-start gap-3">
@@ -161,7 +170,7 @@ export function InvoiceDetailPage() {
                       </tr>
                     ))}
                     
-                    {adjustmentItems.map((item: InvoiceItemDto) => (
+                    {adjustmentItems.map((item: InvoiceItem) => (
                       <tr key={item.id} className="bg-red-50/30 hover:bg-red-50/60 transition-colors">
                         <td className="py-4 px-6">
                           <div className="flex items-start gap-3">

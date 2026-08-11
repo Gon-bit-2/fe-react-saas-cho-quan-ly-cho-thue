@@ -1,5 +1,5 @@
-import { apiClient } from '@/lib/api/api-client'
-import { Notification } from './types'
+import { apiClient } from '@/shared/api/axios-client'
+import type { Notification } from './types'
 
 export interface GetNotificationsParams {
   page?: number

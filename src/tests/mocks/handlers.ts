@@ -8,7 +8,7 @@ export const handlers = [
   // Authentication Handlers
   http.post(`${API_URL}/auth/login`, async ({ request }) => {
     const body = await request.json() as Record<string, unknown>
-    if (body.email === 'test@example.com' && body.passwordHash) {
+    if (body.email === 'test@example.com' && body.password) {
       return HttpResponse.json<LoginRes>({
         accessToken: 'mock-access-token',
         refreshToken: 'mock-refresh-token',

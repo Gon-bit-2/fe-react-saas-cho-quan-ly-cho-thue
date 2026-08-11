@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TicketCommentSection } from '../components/ticket-comment-section';
 import { TicketAssignmentModal } from '../components/ticket-assignment-modal';
 import { ticketApi } from '../api/ticket.api';
-import { TicketDetail, TicketComment, TicketPriority, TicketStatus } from '../api/types';
+import type { TicketDetail, TicketComment, TicketPriority, TicketStatus } from '../api/types';
 
 export function TicketDetailPage() {
   const { id } = useParams<{ id: string }>();

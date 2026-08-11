@@ -180,7 +180,7 @@ export function Component() {
               </div>
               <Button
                 size="sm"
-                onClick={() => navigate(`/app/rooms/new?propertyId=${property.id}`)}
+                onClick={() => navigate(`/app/quan-ly-phong/tao-moi?propertyId=${property.id}`)}
                 className="bg-primary text-on-primary hover:bg-primary/90 font-label-md h-9 rounded-full shadow-sm"
               >
                 <Plus className="mr-2 h-4 w-4" /> Thêm phòng mới
@@ -200,7 +200,7 @@ export function Component() {
                   </p>
                   <Button
                     variant="outline"
-                    onClick={() => navigate(`/app/rooms/new?propertyId=${property.id}`)}
+                    onClick={() => navigate(`/app/quan-ly-phong/tao-moi?propertyId=${property.id}`)}
                     className="font-label-md border-surface-border text-primary hover:bg-primary/5 rounded-full"
                   >
                     Thêm phòng ngay
@@ -218,7 +218,7 @@ export function Component() {
                             ? 'bg-surface border-surface-border hover:border-primary/50'
                             : 'bg-surface-container-low border-surface-variant hover:border-surface-variant/80'
                       } `}
-                      onClick={() => navigate(`/app/rooms/${room.id}/edit`)}
+                      onClick={() => navigate(`/app/quan-ly-phong/${room.id}/chinh-sua`)}
                     >
                       {/* Top banner color strip based on status */}
                       <div

@@ -10,6 +10,10 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:api:smoke": "playwright test --config=playwright.api.config.ts --grep @smoke",
+    "test:api:flows": "playwright test --config=playwright.api.config.ts --grep-invert @smoke",
+    "test:api": "npm run test:api:typecheck && playwright test --config=playwright.api.config.ts",
+    "test:api:typecheck": "tsc -p tsconfig.api.json",
     "api:generate": "orval",
     "api:check": "orval --check"
   },

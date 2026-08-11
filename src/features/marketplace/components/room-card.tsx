@@ -42,7 +42,7 @@ export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
               <span className="font-headline-sm text-primary">{formattedPrice}<span className="text-sm font-normal text-on-surface-variant">/tháng</span></span>
             </div>
             
-            <Link to={`/rooms/${room.id}`} className="group-hover:text-primary transition-colors">
+            <Link to={`/phong/${room.id}`} className="group-hover:text-primary transition-colors">
               <h3 className="font-headline-sm text-text-main line-clamp-2 mb-2">{room.title}</h3>
             </Link>
             
@@ -80,7 +80,7 @@ export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
               <span className="font-label-md text-text-main line-clamp-1">{room.property.name}</span>
             </div>
             <Link 
-              to={`/rooms/${room.id}`}
+              to={`/phong/${room.id}`}
               className="font-label-md text-primary hover:text-primary-container transition-colors flex items-center gap-1"
             >
               Chi tiết <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -113,7 +113,7 @@ export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
           <span className="font-headline-sm text-primary">{formattedPrice}<span className="text-sm font-normal text-on-surface-variant">/tháng</span></span>
         </div>
         
-        <Link to={`/rooms/${room.id}`} className="group-hover:text-primary transition-colors">
+        <Link to={`/phong/${room.id}`} className="group-hover:text-primary transition-colors">
           <h3 className="font-label-md text-text-main line-clamp-2 mb-2 h-8">{room.title}</h3>
         </Link>
         

@@ -180,7 +180,7 @@ export function ModerationQueuePage() {
                     <td className="px-6 py-4">{getStatusDisplay(listing.status)}</td>
                     <td className="px-6 py-4 text-right">
                       <Link
-                        to={`/admin/kiem-duyet-tin-phong/${listing.id}`}
+                        to={`/admin/kiem-duyet/chi-tiet/${listing.id}`}
                         className="text-on-surface-variant hover:bg-surface-container-high hover:text-primary inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors"
                       >
                         <span className="material-symbols-outlined text-[20px]">visibility</span>

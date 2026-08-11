@@ -1,18 +1,23 @@
 import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreateInvoiceDto, InvoiceItemType, InvoiceStatus } from '../types';
+import { InvoiceItemType, InvoiceStatus } from '../types';
+import type { CreateInvoiceDto } from '../types';
 import { createInvoice } from '../api';
+
+type InvoiceCreateFormValues = CreateInvoiceDto & {
+  extraItems: NonNullable<CreateInvoiceDto['extraItems']>
+}
 
 export function InvoiceCreatePage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register, control, handleSubmit, watch, setValue } = useForm<CreateInvoiceDto>({
+  const { register, control, handleSubmit, watch, setValue } = useForm<InvoiceCreateFormValues>({
     defaultValues: {
       contractId: undefined,
       billingMonth: new Date().toISOString().slice(0, 7), // YYYY-MM

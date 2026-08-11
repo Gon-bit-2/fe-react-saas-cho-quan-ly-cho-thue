@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,12 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { getInvoices } from '../api';
-import { InvoiceStatus, InvoiceListDto, InvoiceDto } from '../types';
+import { InvoiceStatus, type Invoice, type InvoiceListParams } from '../types';
 
 export function InvoiceListPage() {
-  const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState<InvoiceListDto>({
+  const [filters, setFilters] = useState<InvoiceListParams>({
     page: 1,
     limit: 10
   });
@@ -24,7 +24,7 @@ export function InvoiceListPage() {
       try {
         const response = await getInvoices(filters);
         setInvoices(response.data);
-        setTotal(response.total);
+        setTotal(response.meta.total);
       } catch (error) {
         console.error('Failed to load invoices', error);
       } finally {
@@ -82,13 +82,27 @@ export function InvoiceListPage() {
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tháng</label>
           <Input 
             type="month" 
-            onChange={(e) => setFilters(prev => ({ ...prev, month: e.target.value }))}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                billingMonth: e.target.value ? `${e.target.value}-01` : undefined,
+                page: 1,
+              }))
+            }
           />
         </div>
         
         <div className="flex-1 min-w-[150px] flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Trạng thái</label>
-          <Select onValueChange={(val) => setFilters(prev => ({ ...prev, status: val as InvoiceStatus }))}>
+          <Select
+            onValueChange={(val) =>
+              setFilters((prev) => ({
+                ...prev,
+                status: val === 'all' ? undefined : (val as InvoiceStatus),
+                page: 1,
+              }))
+            }
+          >
             <SelectTrigger>
               <SelectValue placeholder="Tất cả trạng thái" />
             </SelectTrigger>
