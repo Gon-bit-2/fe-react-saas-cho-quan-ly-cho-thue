@@ -208,12 +208,16 @@ export const router = createBrowserRouter([
               {
                 path: 'hop-dong/:id',
                 lazy: () =>
-                  import('@/features/tenant-app/pages/contracts/contract-detail').then((m) => ({ Component: m.default })),
+                  import('@/features/tenant-app/pages/contracts/contract-detail').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               {
                 path: 'hop-dong/:id/thanh-vien',
                 lazy: () =>
-                  import('@/features/tenant-app/pages/contracts/contract-members').then((m) => ({ Component: m.default })),
+                  import('@/features/tenant-app/pages/contracts/contract-members').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               // Quản lý tài sản (W09)
               {
@@ -229,17 +233,23 @@ export const router = createBrowserRouter([
               {
                 path: 'ban-giao/:id',
                 lazy: () =>
-                  import('@/features/tenant-app/pages/handovers/handover-detail').then((m) => ({ Component: m.default })),
+                  import('@/features/tenant-app/pages/handovers/handover-detail').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               {
                 path: 'ban-giao/:id/tranh-chap',
                 lazy: () =>
-                  import('@/features/tenant-app/pages/handovers/handover-dispute').then((m) => ({ Component: m.default })),
+                  import('@/features/tenant-app/pages/handovers/handover-dispute').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               {
                 path: 'yeu-cau-ket-thuc-hop-dong',
                 lazy: () =>
-                  import('@/features/tenant-app/pages/terminations/termination-list').then((m) => ({ Component: m.default })),
+                  import('@/features/tenant-app/pages/terminations/termination-list').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               // Quản lý dịch vụ (W11)
               {
@@ -260,12 +270,16 @@ export const router = createBrowserRouter([
               {
                 path: 'dich-vu-da-gan',
                 lazy: () =>
-                  import('@/features/tenant-app/pages/service-assignments/assignment-list').then((m) => ({ Component: m.default })),
+                  import('@/features/tenant-app/pages/service-assignments/assignment-list').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               {
                 path: 'dich-vu-da-gan/tao-moi',
                 lazy: () =>
-                  import('@/features/tenant-app/pages/service-assignments/assignment-form').then((m) => ({ Component: m.default })),
+                  import('@/features/tenant-app/pages/service-assignments/assignment-form').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               // Quản lý hóa đơn & thanh toán (W12, W13)
               {

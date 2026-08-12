@@ -3,19 +3,7 @@ import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
 import type { ContractTerminationRequest } from '@/types/termination'
 
-export const MOCK_TERMINATIONS: ContractTerminationRequest[] = [
-  {
-    id: 1,
-    contractId: 1,
-    renterId: 101,
-    requestedDate: '2026-07-20T10:00:00Z',
-    desiredEndDate: '2026-08-01T10:00:00Z',
-    reason: 'Chuyển chỗ làm',
-    status: 'PENDING',
-    createdAt: '2026-07-20T10:00:00Z',
-    updatedAt: '2026-07-20T10:00:00Z',
-  }
-]
+
 
 const TERMINATION_KEYS = {
   all: ['terminations'] as const,
@@ -42,15 +30,8 @@ export const useTerminations = (params: Record<string, unknown> = {}) => {
   return useQuery({
     queryKey: TERMINATION_KEYS.list(tenantId, params),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>('/contract-terminations', { params, tenantId })
-        if (!data.data || data.data.length === 0) {
-          return { data: MOCK_TERMINATIONS, meta: { page: 1, limit: 10, total: MOCK_TERMINATIONS.length, totalPages: 1 } }
-        }
-        return data
-      } catch {
-        return { data: MOCK_TERMINATIONS, meta: { page: 1, limit: 10, total: MOCK_TERMINATIONS.length, totalPages: 1 } }
-      }
+      const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>('/contract-terminations', { params, tenantId })
+      return data
     },
     enabled: !!tenantId,
   })
@@ -63,17 +44,8 @@ export const useTermination = (id: number) => {
   return useQuery({
     queryKey: TERMINATION_KEYS.detail(tenantId, id),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<ContractTerminationRequest>(`/contract-terminations/${id}`, { tenantId })
-        return data
-      } catch (error: unknown) {
-        const err = error as { response?: { status?: number } }
-        if (err.response?.status === 404) {
-          const mock = MOCK_TERMINATIONS.find(t => t.id === id)
-          if (mock) return mock
-        }
-        throw error
-      }
+      const { data } = await apiClient.get<ContractTerminationRequest>(`/contract-terminations/${id}`, { tenantId })
+      return data
     },
     enabled: !!tenantId && !!id,
   })

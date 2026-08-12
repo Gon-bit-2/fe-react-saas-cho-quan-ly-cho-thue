@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ui": "playwright test --config=playwright.config.ts",
     "test:api:smoke": "playwright test --config=playwright.api.config.ts --grep @smoke",
     "test:api:flows": "playwright test --config=playwright.api.config.ts --grep-invert @smoke",
     "test:api": "npm run test:api:typecheck && playwright test --config=playwright.api.config.ts",

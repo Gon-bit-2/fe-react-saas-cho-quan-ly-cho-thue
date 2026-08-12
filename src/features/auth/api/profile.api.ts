@@ -6,5 +6,5 @@ export const profileApi = {
   getProfile: () => apiClient.get<UserProfile>('/auth/profile'),
 
   /** Cập nhật thông tin profile */
-  updateProfile: (data: Partial<UserProfile>) => apiClient.put<UserProfile>('/auth/profile', data),
+  updateProfile: (data: Partial<UserProfile>) => apiClient.patch<UserProfile>('/auth/profile', data),
 }

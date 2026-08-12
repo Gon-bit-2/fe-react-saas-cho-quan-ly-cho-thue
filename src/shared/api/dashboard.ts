@@ -12,52 +12,7 @@ const DASHBOARD_KEYS = {
     [...DASHBOARD_KEYS.all, 'recent-activity', tenantId, limit] as const,
 }
 
-// Fallback Mock Data
-const MOCK_SUMMARY: DashboardSummary = {
-  totalRooms: 45,
-  availableRooms: 5,
-  totalContracts: 38,
-  activeContracts: 35,
-  totalRevenue: 150000000,
-  unpaidInvoices: 12,
-  openTickets: 3,
-}
 
-const MOCK_REVENUE_TREND: RevenueTrend[] = Array.from({ length: 30 }).map((_, i) => {
-  const date = new Date()
-  date.setDate(date.getDate() - (29 - i))
-  return {
-    date: date.toISOString().split('T')[0],
-    revenue: Math.floor(Math.random() * 5000000) + 1000000,
-  }
-})
-
-const MOCK_RECENT_ACTIVITY: RecentActivity[] = [
-  {
-    id: '1',
-    type: 'INVOICE',
-    title: 'Hóa đơn tháng 8 phòng 101',
-    description: 'Đã thanh toán',
-    createdAt: new Date().toISOString(),
-    status: 'PAID',
-  },
-  {
-    id: '2',
-    type: 'TICKET',
-    title: 'Hỏng vòi nước phòng 202',
-    description: 'Cần sửa chữa gấp',
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    status: 'OPEN',
-  },
-  {
-    id: '3',
-    type: 'PAYMENT',
-    title: 'Thanh toán QR PayOS',
-    description: '3.500.000đ',
-    createdAt: new Date(Date.now() - 7200000).toISOString(),
-    status: 'SUCCESS',
-  },
-]
 
 export const useDashboardSummary = (from?: string, to?: string) => {
   const { selectedMembership } = useAuth()
@@ -86,10 +41,6 @@ export const useDashboardSummary = (from?: string, to?: string) => {
         openTickets: data.tickets?.open || 0,
       } as DashboardSummary
 
-      if (summary.totalRooms === 0) {
-        return MOCK_SUMMARY
-      }
-
       return summary
     },
     enabled: !!tenantId,
@@ -112,10 +63,6 @@ export const useRevenueTrend = (from?: string, to?: string, groupBy?: 'day' | 'm
         date: item.bucket.split('T')[0],
         revenue: item.amount,
       })) as RevenueTrend[]
-
-      if (items.length === 0) {
-        return MOCK_REVENUE_TREND
-      }
 
       return items
     },
@@ -143,10 +90,6 @@ export const useRecentActivity = (limit = 10) => {
         createdAt: item.occurredAt,
         status: item.status,
       })) as RecentActivity[]
-
-      if (items.length === 0) {
-        return MOCK_RECENT_ACTIVITY
-      }
 
       return items
     },

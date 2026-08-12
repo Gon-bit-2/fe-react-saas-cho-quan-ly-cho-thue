@@ -3,31 +3,7 @@ import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
 import type { HandoverRecord } from '@/types/asset'
 
-export const MOCK_HANDOVERS: HandoverRecord[] = [
-  {
-    id: 1,
-    contractId: 1,
-    roomId: 201,
-    type: 'CHECKIN',
-    status: 'CONFIRMED',
-    handoverDate: '2026-08-01T10:00:00Z',
-    items: [],
-    createdAt: '2026-08-01T10:00:00Z',
-    updatedAt: '2026-08-01T10:00:00Z',
-  },
-  {
-    id: 2,
-    contractId: 2,
-    roomId: 202,
-    type: 'CHECKOUT',
-    status: 'DISPUTED',
-    handoverDate: '2026-08-15T10:00:00Z',
-    notes: 'Thiếu một số đồ đạc',
-    items: [],
-    createdAt: '2026-08-15T10:00:00Z',
-    updatedAt: '2026-08-15T10:00:00Z',
-  }
-]
+
 
 const HANDOVER_KEYS = {
   all: ['handovers'] as const,
@@ -54,15 +30,8 @@ export const useHandovers = (params: Record<string, unknown> = {}) => {
   return useQuery({
     queryKey: HANDOVER_KEYS.list(tenantId, params),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<PaginatedResponse<HandoverRecord>>('/handovers', { params, tenantId })
-        if (!data.data || data.data.length === 0) {
-          return { data: MOCK_HANDOVERS, meta: { page: 1, limit: 10, total: MOCK_HANDOVERS.length, totalPages: 1 } }
-        }
-        return data
-      } catch {
-        return { data: MOCK_HANDOVERS, meta: { page: 1, limit: 10, total: MOCK_HANDOVERS.length, totalPages: 1 } }
-      }
+      const { data } = await apiClient.get<PaginatedResponse<HandoverRecord>>('/handovers', { params, tenantId })
+      return data
     },
     enabled: !!tenantId,
   })
@@ -75,17 +44,8 @@ export const useHandover = (id: number) => {
   return useQuery({
     queryKey: HANDOVER_KEYS.detail(tenantId, id),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<HandoverRecord>(`/handovers/${id}`, { tenantId })
-        return data
-      } catch (error: unknown) {
-        const err = error as { response?: { status?: number } }
-        if (err.response?.status === 404) {
-          const mock = MOCK_HANDOVERS.find(h => h.id === id)
-          if (mock) return mock
-        }
-        throw error
-      }
+      const { data } = await apiClient.get<HandoverRecord>(`/handovers/${id}`, { tenantId })
+      return data
     },
     enabled: !!tenantId && !!id,
   })

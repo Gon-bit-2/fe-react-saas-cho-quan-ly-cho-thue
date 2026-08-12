@@ -2,7 +2,7 @@ import { useSearchParams } from 'react-router'
 import { useState } from 'react'
 import { useMarketplaceRooms } from '@/shared/api/marketplace'
 import { RoomCard } from '../components/room-card'
-import { MOCK_ROOMS } from '../mock-data'
+
 
 export function Component() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -34,7 +34,7 @@ export function Component() {
   const { data, isLoading } = useMarketplaceRooms(apiFilters)
 
   // Fallback to mock data if API is loading or returns empty
-  const rooms = data?.data?.length ? data.data : MOCK_ROOMS
+  const rooms = data?.data || []
 
   const handleApplyFilters = () => {
     const params = new URLSearchParams()

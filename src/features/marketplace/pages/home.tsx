@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router'
 import { useMarketplaceRooms } from '@/shared/api/marketplace'
 import { RoomCard } from '../components/room-card'
-import { MOCK_ROOMS } from '../mock-data'
 import { useState } from 'react'
 
 export function Component() {
@@ -23,8 +22,7 @@ export function Component() {
     navigate(`/phong?${params.toString()}`)
   }
 
-  // Fallback to mock data if API is loading or returns empty
-  const rooms = data?.data?.length ? data.data : MOCK_ROOMS
+  const rooms = data?.data || []
 
   return (
     <div className="flex flex-col w-full">

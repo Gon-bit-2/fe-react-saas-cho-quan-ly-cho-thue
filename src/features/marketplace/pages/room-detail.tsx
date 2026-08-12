@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router'
 import { useState } from 'react'
 import { useMarketplaceRoom } from '@/shared/api/marketplace'
-import { MOCK_ROOMS } from '../mock-data'
+
 
 import { useAuth } from '@/shared/hooks/use-auth'
 import { BookViewingDrawer } from '../components/book-viewing-drawer'
@@ -18,8 +18,7 @@ export function Component() {
   const [isViewingOpen, setIsViewingOpen] = useState(false)
   const [isRequestOpen, setIsRequestOpen] = useState(false)
 
-  // Fallback to mock data
-  const room = data || MOCK_ROOMS.find((r) => r.id === id) || MOCK_ROOMS[0]
+  const room = data
 
   if (isLoading && !data) {
     return (
@@ -28,6 +27,15 @@ export function Component() {
       </div>
     )
   }
+
+  if (!room) {
+    return (
+      <div className="flex items-center justify-center py-40">
+        <div className="text-on-surface-variant font-body-lg">Không tìm thấy thông tin phòng</div>
+      </div>
+    )
+  }
+
 
   const formattedPrice = new Intl.NumberFormat('vi-VN', {
     style: 'currency',

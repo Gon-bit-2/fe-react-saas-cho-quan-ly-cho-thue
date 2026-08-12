@@ -19,74 +19,7 @@ const ROOM_KEYS = {
   detail: (tenantId: string, id: number) => [...ROOM_KEYS.details(tenantId), id] as const,
 }
 
-// Fallback Mock Data
-const MOCK_PROPERTIES: Property[] = [
-  {
-    id: 1,
-    name: 'Tòa nhà A',
-    address: '123 Đường X',
-    province: 'Hà Nội',
-    district: 'Cầu Giấy',
-    ward: 'Dịch Vọng',
-    propertyType: 'APARTMENT',
-    floorsCount: 5,
-    roomsCount: 20,
-    status: 'ACTIVE',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    name: 'Nhà trọ sinh viên',
-    address: '456 Đường Y',
-    province: 'TP.HCM',
-    district: 'Thủ Đức',
-    ward: 'Linh Trung',
-    propertyType: 'ROOM',
-    floorsCount: 2,
-    roomsCount: 10,
-    status: 'ACTIVE',
-    createdAt: new Date().toISOString(),
-  },
-]
 
-const MOCK_ROOMS: Room[] = [
-  {
-    id: 1,
-    propertyId: 1,
-    roomCode: '101',
-    floor: 1,
-    area: 25,
-    basePrice: 3500000,
-    maxOccupants: 2,
-    status: 'OCCUPIED',
-    marketplaceStatus: 'PUBLISHED',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    propertyId: 1,
-    roomCode: '102',
-    floor: 1,
-    area: 30,
-    basePrice: 4000000,
-    maxOccupants: 3,
-    status: 'AVAILABLE',
-    marketplaceStatus: 'PUBLISHED',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    propertyId: 2,
-    roomCode: 'A1',
-    floor: 1,
-    area: 15,
-    basePrice: 1500000,
-    maxOccupants: 1,
-    status: 'MAINTENANCE',
-    marketplaceStatus: 'UNPUBLISHED',
-    createdAt: new Date().toISOString(),
-  },
-]
 
 export const useProperties = (params: PropertyListParams = {}) => {
   const { selectedMembership } = useAuth()
@@ -99,13 +32,6 @@ export const useProperties = (params: PropertyListParams = {}) => {
         params,
         tenantId,
       })
-
-      if (!data.data || data.data.length === 0) {
-        return {
-          data: MOCK_PROPERTIES,
-          meta: { page: 1, limit: 10, total: MOCK_PROPERTIES.length, totalPages: 1 },
-        }
-      }
 
       return data
     },
@@ -120,17 +46,8 @@ export const useProperty = (id: number) => {
   return useQuery({
     queryKey: PROPERTY_KEYS.detail(tenantId, id),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<Property>(`/properties/${id}`, { tenantId })
-        return data
-      } catch (error: unknown) {
-        const err = error as { response?: { status?: number } }
-        if (err.response?.status === 404) {
-          const mockProp = MOCK_PROPERTIES.find((p) => p.id === id)
-          if (mockProp) return mockProp
-        }
-        throw error
-      }
+      const { data } = await apiClient.get<Property>(`/properties/${id}`, { tenantId })
+      return data
     },
     enabled: !!tenantId && !!id,
   })
@@ -148,13 +65,6 @@ export const useRooms = (params: RoomListParams = {}) => {
         tenantId,
       })
 
-      if (!data.data || data.data.length === 0) {
-        return {
-          data: MOCK_ROOMS,
-          meta: { page: 1, limit: 10, total: MOCK_ROOMS.length, totalPages: 1 },
-        }
-      }
-
       return data
     },
     enabled: !!tenantId,
@@ -168,17 +78,8 @@ export const useRoom = (id: number) => {
   return useQuery({
     queryKey: ROOM_KEYS.detail(tenantId, id),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<Room>(`/rooms/${id}`, { tenantId })
-        return data
-      } catch (error: unknown) {
-        const err = error as { response?: { status?: number } }
-        if (err.response?.status === 404) {
-          const mockRoom = MOCK_ROOMS.find((r) => r.id === id)
-          if (mockRoom) return mockRoom
-        }
-        throw error
-      }
+      const { data } = await apiClient.get<Room>(`/rooms/${id}`, { tenantId })
+      return data
     },
     enabled: !!tenantId && !!id,
   })
