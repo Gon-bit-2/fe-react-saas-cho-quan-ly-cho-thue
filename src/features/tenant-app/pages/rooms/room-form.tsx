@@ -89,7 +89,7 @@ export function Component() {
     setTimeout(() => {
       setIsSubmitting(false)
       toast.success(isEditing ? 'Cập nhật phòng thành công!' : 'Đã thêm phòng mới thành công!')
-      navigate('/app/quan-ly-phong/danh-sach')
+      navigate('/quan-ly-phong/danh-sach')
     }, 1000)
   }
 

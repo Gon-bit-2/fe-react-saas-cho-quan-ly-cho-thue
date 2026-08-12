@@ -16,17 +16,17 @@ export function Component() {
   const user = profileResponse?.data
 
   const navItems = [
-    { name: 'Tổng quan', path: '/app/tong-quan', icon: 'grid_view' },
-    { name: 'Khu trọ', path: '/app/khu-tro', icon: 'apartment' },
-    { name: 'Quản lý phòng', path: '/app/quan-ly-phong/danh-sach', icon: 'door_open' },
-    { name: 'Người thuê', path: '/app/nguoi-thue', icon: 'group' },
-    { name: 'Hợp đồng', path: '/app/hop-dong', icon: 'description' },
-    { name: 'Tài sản', path: '/app/quan-ly-tai-san', icon: 'inventory_2' },
-    { name: 'Dịch vụ', path: '/app/dich-vu', icon: 'electric_bolt' },
-    { name: 'Hóa đơn', path: '/app/hoa-don', icon: 'receipt_long' },
-    { name: 'Thanh toán', path: '/app/thanh-toan', icon: 'payments' },
-    { name: 'Hỗ trợ', path: '/app/ho-tro', icon: 'confirmation_number' },
-    { name: 'Thông báo', path: '/app/thong-bao', icon: 'notifications' },
+    { name: 'Tổng quan', path: '/tong-quan', icon: 'grid_view' },
+    { name: 'Khu trọ', path: '/khu-tro', icon: 'apartment' },
+    { name: 'Quản lý phòng', path: '/quan-ly-phong/danh-sach', icon: 'door_open' },
+    { name: 'Người thuê', path: '/nguoi-thue', icon: 'group' },
+    { name: 'Hợp đồng', path: '/hop-dong', icon: 'description' },
+    { name: 'Tài sản', path: '/quan-ly-tai-san', icon: 'inventory_2' },
+    { name: 'Dịch vụ', path: '/dich-vu', icon: 'electric_bolt' },
+    { name: 'Hóa đơn', path: '/hoa-don', icon: 'receipt_long' },
+    { name: 'Thanh toán', path: '/thanh-toan', icon: 'payments' },
+    { name: 'Hỗ trợ', path: '/ho-tro', icon: 'confirmation_number' },
+    { name: 'Thông báo', path: '/thong-bao', icon: 'notifications' },
   ]
 
   return (

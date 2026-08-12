@@ -34,7 +34,7 @@ export function Component() {
   const handleAction = (action: string) => {
     toast.success(`Đã cập nhật trạng thái lịch hẹn: ${action}`)
     setTimeout(() => {
-      navigate('/app/quan-ly-nha-tro/lich-xem-phong')
+      navigate('/quan-ly-nha-tro/lich-xem-phong')
     }, 1000)
   }
 
@@ -60,7 +60,7 @@ export function Component() {
         </div>
         
         <div className="relative z-10">
-          <Button variant="ghost" size="sm" className="mb-4 text-slate-500 hover:text-slate-900 -ml-2" onClick={() => navigate('/app/quan-ly-nha-tro/lich-xem-phong')}>
+          <Button variant="ghost" size="sm" className="mb-4 text-slate-500 hover:text-slate-900 -ml-2" onClick={() => navigate('/quan-ly-nha-tro/lich-xem-phong')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại danh sách
           </Button>
           

@@ -31,7 +31,7 @@ function ServiceEditForm({ service }: { service: Service }) {
     e.preventDefault()
     try {
       await updateService(formData)
-      navigate('/app/dich-vu')
+      navigate('/dich-vu')
     } catch (err) {
       console.error(err)
     }

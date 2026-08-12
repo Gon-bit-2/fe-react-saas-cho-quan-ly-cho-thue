@@ -45,7 +45,7 @@ export function Component() {
           <h1 className="font-headline-lg text-headline-lg text-on-surface">Quản lý nhà trọ</h1>
           <p className="font-body-md text-on-surface-variant">Danh sách tất cả các cơ sở, tòa nhà và khu trọ của bạn</p>
         </div>
-        <Button onClick={() => navigate('/app/khu-tro/tao-moi')} className="bg-primary text-on-primary hover:bg-primary/90 font-label-md rounded-full px-6 h-10 shadow-md">
+        <Button onClick={() => navigate('/khu-tro/tao-moi')} className="bg-primary text-on-primary hover:bg-primary/90 font-label-md rounded-full px-6 h-10 shadow-md">
           <Plus className="mr-2 h-4 w-4" /> Thêm nhà trọ mới
         </Button>
       </div>

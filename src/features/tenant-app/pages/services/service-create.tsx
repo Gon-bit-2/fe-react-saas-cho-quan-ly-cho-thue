@@ -21,7 +21,7 @@ export default function ServiceCreate() {
     e.preventDefault()
     try {
       await createService(formData)
-      navigate('/app/dich-vu')
+      navigate('/dich-vu')
     } catch (err) {
       console.error(err)
     }

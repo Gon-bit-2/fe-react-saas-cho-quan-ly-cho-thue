@@ -32,47 +32,6 @@ export function Component() {
         </Button>
       </div>
     )
-  }
-
-  const property = propertiesData?.data?.find((p: Property) => p.id === room.propertyId)
-
-  return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-12 animate-in fade-in duration-500">
-      {/* Header Profile */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-5">
-          <Building2 className="w-48 h-48" />
-        </div>
-        
-        <div className="relative z-10">
-          <Button variant="ghost" size="sm" className="mb-4 text-slate-500 hover:text-slate-900 -ml-2" onClick={() => navigate('/app/quan-ly-phong/danh-sach')}>
-            <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại danh sách
-          </Button>
-          
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-            <div className="space-y-4">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
-                  {room.title || `Phòng ${room.roomCode}`}
-                  <Badge variant={room.status === 'AVAILABLE' ? 'default' : 'secondary'} className={room.status === 'AVAILABLE' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 shadow-none' : ''}>
-                    {room.status === 'AVAILABLE' ? 'Đang trống' : 'Đã cho thuê'}
-                  </Badge>
-                </h1>
-                <p className="text-slate-500 mt-2 flex items-center gap-2">
-                  <MapPin className="w-4 h-4" /> 
-                  Cơ sở: <span className="font-semibold text-slate-700">{property?.name || 'Chưa phân bổ'}</span> 
-                  <span className="mx-2">•</span> 
-                  Mã phòng: <span className="font-semibold text-slate-700">{room.roomCode}</span>
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-6">
-                <div>
-                  <p className="text-sm text-slate-500 font-medium">Giá thuê tháng</p>
-                  <p className="text-2xl font-bold text-emerald-600">
-                    {new Intl.NumberFormat('vi-VN').format(room.basePrice)}<span className="text-lg font-medium text-slate-500 ml-1">đ</span>
-                  </p>
-                </div>
                 <div className="w-px h-10 bg-slate-200"></div>
                 <div>
                   <p className="text-sm text-slate-500 font-medium">Tiền cọc</p>

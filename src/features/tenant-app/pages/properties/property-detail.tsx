@@ -91,7 +91,7 @@ export function Component() {
             <Button
               variant="outline"
               size="icon"
-              onClick={() => navigate('/app/khu-tro')}
+              onClick={() => navigate('/khu-tro')}
               className="bg-surface border-surface-border hover:bg-surface-container rounded-full"
             >
               <ArrowLeft className="h-5 w-5" />

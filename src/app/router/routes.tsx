@@ -41,6 +41,22 @@ export const router = createBrowserRouter([
         path: 'phong/:roomId',
         lazy: () => import('@/features/marketplace/pages/room-detail'),
       },
+      {
+        path: 'gioi-thieu',
+        lazy: () => import('@/features/marketplace/pages/about'),
+      },
+      {
+        path: 'help',
+        lazy: () => import('@/features/marketplace/pages/help-center'),
+      },
+      {
+        path: 'terms',
+        lazy: () => import('@/features/marketplace/pages/terms'),
+      },
+      {
+        path: 'privacy',
+        lazy: () => import('@/features/marketplace/pages/privacy'),
+      },
     ],
   },
 
@@ -111,7 +127,7 @@ export const router = createBrowserRouter([
         element: <RequireTenantContext />,
         children: [
           {
-            path: '/app',
+            path: '/',
             lazy: () => import('@/app/layouts/tenant-layout'),
             children: [
               {

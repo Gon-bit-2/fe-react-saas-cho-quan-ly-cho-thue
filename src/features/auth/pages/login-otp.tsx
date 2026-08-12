@@ -98,7 +98,7 @@ export function Component() {
             { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! }, 
             profileResponse.data
           )
-          navigate('/tai-khoan')
+          navigate('/')
         }
       } else if (actionType === 'REGISTER') {
         if (!state?.registerData) throw new Error('Thiếu thông tin đăng ký')

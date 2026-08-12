@@ -35,7 +35,8 @@ export function Component() {
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false)
-      navigate('/app/khu-tro')
+      toast.success(isEditing ? 'Cập nhật thành công!' : 'Tạo mới thành công!')
+      navigate('/khu-tro')
     }, 1000)
   }
 

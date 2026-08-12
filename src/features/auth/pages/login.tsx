@@ -70,7 +70,7 @@ export function Component() {
           { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! },
           profileResponse.data
         )
-        navigate('/tai-khoan')
+        navigate('/')
       }
     } catch (err) {
       const appErr = toAppError(err)

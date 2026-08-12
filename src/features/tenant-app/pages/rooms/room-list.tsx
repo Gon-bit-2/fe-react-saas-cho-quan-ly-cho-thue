@@ -62,7 +62,7 @@ export function Component() {
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">Danh sách phòng</h2>
           <p className="text-slate-500 mt-1">Quản lý trạng thái và thông tin của tất cả các phòng trong hệ thống</p>
         </div>
-        <Button size="lg" className="shadow-sm" onClick={() => navigate('/app/quan-ly-phong/tao-moi')}>
+        <Button size="lg" className="shadow-sm" onClick={() => navigate('/quan-ly-phong/tao-moi')}>
           <Plus className="mr-2 h-4 w-4" /> Thêm phòng mới
         </Button>
       </div>

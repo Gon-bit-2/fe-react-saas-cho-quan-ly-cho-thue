@@ -17,7 +17,7 @@ export default function RenterInviteFormPage() {
     setTimeout(() => {
       setLoading(false)
       // Chuyển hướng đến chi tiết lời mời sau khi tạo xong (giả sử id = 999)
-      navigate('/app/nguoi-thue/loi-moi/999')
+      navigate('/nguoi-thue/loi-moi/999')
     }, 1000)
   }
 
