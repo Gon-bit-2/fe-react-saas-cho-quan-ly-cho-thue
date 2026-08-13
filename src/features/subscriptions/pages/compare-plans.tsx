@@ -196,7 +196,7 @@ export const ComparePlansPage = () => {
               </li>
             </ul>
             <Button
-              onClick={() => navigate('/app/goi-dich-vu/thanh-toan')}
+              onClick={() => navigate('/goi-dich-vu/thanh-toan')}
               className="flex w-full items-center justify-center gap-2"
             >
               Nâng cấp{' '}

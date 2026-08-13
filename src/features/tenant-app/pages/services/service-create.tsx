@@ -5,16 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ServiceType, type Service } from '@/types/service'
 
 export default function ServiceCreate() {
   const navigate = useNavigate()
   const { mutateAsync: createService, isPending } = useCreateService()
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Pick<Service, 'code' | 'name' | 'price' | 'unit' | 'type'>>({
+    code: '',
     name: '',
     price: 0,
     unit: '',
-    type: 'SERVICE'
+    type: ServiceType.SERVICE
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,6 +41,16 @@ export default function ServiceCreate() {
             <CardTitle>Thông tin dịch vụ</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="code">Mã dịch vụ</Label>
+              <Input
+                id="code"
+                placeholder="Ví dụ: DIEN, NUOC, INTERNET"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="name">Tên dịch vụ</Label>
               <Input 

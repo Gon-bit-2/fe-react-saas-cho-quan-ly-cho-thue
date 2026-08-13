@@ -55,7 +55,7 @@ export function InvoiceListPage() {
           <h1 className="text-3xl font-bold text-slate-900 mb-1">Danh Sách Hóa Đơn</h1>
           <p className="text-sm text-slate-500">Quản lý và theo dõi thanh toán cho tất cả các tài sản.</p>
         </div>
-        <Link to="/app/hoa-don/tao-moi">
+        <Link to="/hoa-don/tao-moi">
           <Button className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px]">add</span>
             Tạo Hóa Đơn
@@ -155,7 +155,7 @@ export function InvoiceListPage() {
                 invoices.map((invoice) => (
                   <TableRow key={invoice.id} className="group hover:bg-slate-50 cursor-pointer">
                     <TableCell className="font-medium text-primary">
-                      <Link to={`/app/hoa-don/${invoice.id}`}>{invoice.invoiceCode}</Link>
+                      <Link to={`/hoa-don/${invoice.id}`}>{invoice.invoiceCode}</Link>
                     </TableCell>
                     <TableCell className="text-slate-500">
                       {new Date(invoice.billingMonth).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}
@@ -187,14 +187,14 @@ export function InvoiceListPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <Link to={`/app/hoa-don/${invoice.id}`}>
+                          <Link to={`/hoa-don/${invoice.id}`}>
                             <DropdownMenuItem>
                               <span className="material-symbols-outlined mr-2 text-[18px]">visibility</span>
                               Xem chi tiết
                             </DropdownMenuItem>
                           </Link>
                           {invoice.status === InvoiceStatus.DRAFT && (
-                            <Link to={`/app/hoa-don/${invoice.id}/chinh-sua`}>
+                            <Link to={`/hoa-don/${invoice.id}/chinh-sua`}>
                               <DropdownMenuItem>
                                 <span className="material-symbols-outlined mr-2 text-[18px]">edit</span>
                                 Chỉnh sửa nháp

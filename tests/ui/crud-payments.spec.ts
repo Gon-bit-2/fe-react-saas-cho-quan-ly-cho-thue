@@ -17,10 +17,10 @@ test.describe.serial('CRUD: Manual Payments', () => {
     await page.getByLabel(/email/i).fill(USERS.tenant.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.tenant.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // Create
-    await page.goto('/app/thanh-toan');
+    await page.goto('/thanh-toan');
     const reportBtn = page.getByRole('button', { name: /báo cáo|thanh toán/i }).first();
     if (await reportBtn.isVisible()) {
       await reportBtn.click();
@@ -41,10 +41,10 @@ test.describe.serial('CRUD: Manual Payments', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // Update
-    await page.goto('/app/thanh-toan');
+    await page.goto('/thanh-toan');
     const pendingTxn = page.locator('tr, .card', { hasText: 'Chờ duyệt' }).first();
     if (await pendingTxn.isVisible()) {
       await pendingTxn.getByRole('button', { name: /duyệt/i }).click();
@@ -62,9 +62,9 @@ test.describe.serial('CRUD: Manual Payments', () => {
     await page.getByLabel(/email/i).fill(USERS.tenant.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.tenant.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
-    await page.goto('/app/thanh-toan');
+    await page.goto('/thanh-toan');
     const pendingTxn = page.locator('tr, .card', { hasText: 'Chờ duyệt' }).first();
     if (await pendingTxn.isVisible()) {
       const cancelBtn = pendingTxn.getByRole('button', { name: /hủy/i }).first();

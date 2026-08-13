@@ -19,9 +19,9 @@ export const RenterDetailPage = () => {
       try {
         if (!id) return
         const response = await adminRenterApi.getRenterDetails(parseInt(id))
-        setRenter(response?.data || getMockRenterDetail(parseInt(id)))
+        setRenter(response?.data || null)
       } catch (error) {
-        setRenter(getMockRenterDetail(parseInt(id || '101')))
+        setRenter(null)
         console.error(error)
       } finally {
         setLoading(false)
@@ -244,14 +244,3 @@ export const RenterDetailPage = () => {
   )
 }
 
-function getMockRenterDetail(id: number): UserProfile {
-  return {
-    id: id,
-    email: 'nguyen.vana@example.com',
-    fullName: 'Nguyễn Văn A',
-    status: 'ACTIVE',
-    tenantMembers: [],
-    createdAt: '2023-10-15T00:00:00Z',
-    updatedAt: '2023-10-15T00:00:00Z',
-  }
-}

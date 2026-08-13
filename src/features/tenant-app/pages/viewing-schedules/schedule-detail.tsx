@@ -5,37 +5,23 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, MapPin, Calendar, Clock, CheckCircle2, XCircle, FileText, Check, Phone, ArrowRight } from 'lucide-react'
 import type { AppointmentStatus } from '@/types/viewing-schedule'
 import { toast } from 'sonner'
+import { useViewingAppointment } from '@/shared/api/marketplace'
 
 export function Component() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { data: schedule, isLoading } = useViewingAppointment(Number(id))
 
-  // Mock data for UI demonstration
-  const schedule = {
-    id: Number(id),
-    status: 'PENDING' as AppointmentStatus,
-    scheduledAt: '2026-08-10T14:30:00Z',
-    landlordNote: 'Nhớ mang theo form cọc.',
-    createdAt: '2026-08-05T10:00:00Z',
-    room: {
-      id: 201,
-      code: 'P.201',
-      price: 3500000,
-      property: 'Tòa nhà Cầu Giấy',
-      address: 'Ngõ 123 Cầu Giấy, HN'
-    },
-    renter: {
-      name: 'Nguyễn Văn A',
-      phone: '0987654321',
-      email: 'nguyenvana@example.com',
-    }
+  if (isLoading) {
+    return <div className="p-12 text-center text-slate-500">Đang tải dữ liệu...</div>
   }
 
-  const handleAction = (action: string) => {
-    toast.success(`Đã cập nhật trạng thái lịch hẹn: ${action}`)
-    setTimeout(() => {
-      navigate('/quan-ly-nha-tro/lich-xem-phong')
-    }, 1000)
+  if (!schedule) {
+    return <div className="p-12 text-center text-slate-500">Không tìm thấy lịch hẹn.</div>
+  }
+
+  const handleAction = () => {
+    toast.success(`Chức năng đang phát triển`)
   }
 
   const getStatusBadge = (status: AppointmentStatus) => {
@@ -77,10 +63,10 @@ export function Component() {
             </div>
             
             <div className="flex gap-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
-              <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleAction('CANCELED')}>
+              <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={handleAction}>
                 <XCircle className="w-4 h-4 mr-2" /> Hủy hẹn
               </Button>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-200" onClick={() => handleAction('CONFIRMED')}>
+              <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-200" onClick={handleAction}>
                 <Check className="w-4 h-4 mr-2" /> Xác nhận lịch
               </Button>
             </div>
@@ -129,7 +115,7 @@ export function Component() {
                    <h3 className="font-semibold text-emerald-800 text-lg mb-1">Khách đã xem xong?</h3>
                    <p className="text-emerald-700/80 text-sm">Chuyển trạng thái sang đã xem để lưu trữ tiến độ.</p>
                 </div>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200 text-white" onClick={() => handleAction('COMPLETED')}>
+                <Button className="bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200 text-white" onClick={handleAction}>
                    <CheckCircle2 className="w-4 h-4 mr-2" /> Đánh dấu đã xem
                 </Button>
              </div>
@@ -142,11 +128,11 @@ export function Component() {
               <CardTitle className="text-lg text-slate-800">Thông tin liên lạc</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4 bg-white">
-              <div className="font-bold text-slate-900 text-lg">{schedule.renter.name}</div>
+              <div className="font-bold text-slate-900 text-lg">{schedule.renter?.fullName}</div>
               <div className="space-y-3 pt-2">
                 <div className="flex items-center text-sm text-slate-600">
                   <Phone className="w-4 h-4 mr-3 text-slate-400" />
-                  {schedule.renter.phone}
+                  {schedule.renter?.phone || 'Chưa cung cấp'}
                 </div>
               </div>
               <Button variant="outline" className="w-full mt-2 border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100">
@@ -162,16 +148,16 @@ export function Component() {
             <CardContent className="p-6 space-y-4 bg-white">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500 text-sm flex items-center gap-2"><MapPin className="w-4 h-4" /> Mã phòng</span>
-                  <Badge variant="outline" className="font-bold text-slate-700">{schedule.room.code}</Badge>
+                  <span className="text-slate-500 text-sm flex items-center gap-2"><MapPin className="w-4 h-4" /> Giá thuê</span>
+                  <Badge variant="outline" className="font-bold text-slate-700">{schedule.room?.basePrice?.toLocaleString()} đ</Badge>
                 </div>
                 <div className="pt-2 border-t border-slate-50">
                   <span className="text-slate-500 text-sm block mb-1">Cơ sở / Địa chỉ</span>
-                  <div className="font-medium text-slate-900">{schedule.room.property}</div>
-                  <div className="text-xs text-slate-500 mt-1">{schedule.room.address}</div>
+                  <div className="font-medium text-slate-900">{schedule.room?.property?.name}</div>
+                  <div className="text-xs text-slate-500 mt-1">{schedule.room?.property?.addressDetail}, {schedule.room?.property?.ward}, {schedule.room?.property?.district}</div>
                 </div>
               </div>
-              <Button variant="ghost" className="w-full text-indigo-600 justify-between" onClick={() => navigate(`/app/quan-ly-phong/${schedule.room.id}/chi-tiet`)}>
+              <Button variant="ghost" className="w-full text-indigo-600 justify-between" onClick={() => navigate(`/quan-ly-phong/${schedule.room?.id}/chi-tiet`)}>
                 Xem chi tiết phòng <ArrowRight className="w-4 h-4" />
               </Button>
             </CardContent>

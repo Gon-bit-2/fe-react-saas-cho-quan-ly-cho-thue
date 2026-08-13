@@ -47,7 +47,7 @@ export default function ContractFormPage() {
     // Giả lập gọi API tạo/sửa hợp đồng
     setTimeout(() => {
       setLoading(false)
-      navigate('/app/hop-dong')
+      navigate('/hop-dong')
     }, 1000)
   }
 
@@ -55,7 +55,7 @@ export default function ContractFormPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild className="shrink-0">
-          <Link to="/app/hop-dong">
+          <Link to="/hop-dong">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
@@ -159,7 +159,7 @@ export default function ContractFormPage() {
 
         <div className="flex items-center justify-end gap-3 mt-6">
           <Button variant="outline" type="button" asChild>
-            <Link to="/app/hop-dong">Hủy bỏ</Link>
+            <Link to="/hop-dong">Hủy bỏ</Link>
           </Button>
           <Button type="submit" disabled={loading}>
             {loading ? 'Đang lưu...' : (

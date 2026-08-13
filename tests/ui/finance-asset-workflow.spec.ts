@@ -12,11 +12,11 @@ test.describe.serial('Finance and Asset Workflow E2E (UI)', () => {
 
   const ROUTES = {
     login: '/dang-nhap',
-    assets: '/app/quan-ly-tai-san',
-    handovers: '/app/ban-giao', // Base cho list hoặc detail (có thể cần truy cập qua link)
-    services: '/app/dich-vu',
-    serviceAssignments: '/app/dich-vu-da-gan',
-    invoices: '/app/hoa-don'
+    assets: '/quan-ly-tai-san',
+    handovers: '/ban-giao', // Base cho list hoặc detail (có thể cần truy cập qua link)
+    services: '/dich-vu',
+    serviceAssignments: '/dich-vu-da-gan',
+    invoices: '/hoa-don'
   };
 
   test('Landlord: Thêm tài sản và tạo biên bản bàn giao', async ({ browser }) => {
@@ -28,7 +28,7 @@ test.describe.serial('Finance and Asset Workflow E2E (UI)', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // 2. Vào quản lý tài sản
     await page.goto(ROUTES.assets);
@@ -61,7 +61,7 @@ test.describe.serial('Finance and Asset Workflow E2E (UI)', () => {
     await page.getByLabel(/email/i).fill(USERS.tenant.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.tenant.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // 2. Vào mục Bàn giao (hoặc xem thông báo/biên bản)
     // Cần URL hoặc menu cụ thể
@@ -80,10 +80,11 @@ test.describe.serial('Finance and Asset Workflow E2E (UI)', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // 1. Tạo dịch vụ
     await page.goto(`${ROUTES.services}/tao-moi`);
+    await page.getByLabel(/mã dịch vụ/i).fill(`DIEN_${Date.now()}`);
     await page.getByLabel(/tên dịch vụ/i).fill(serviceName);
     await page.getByLabel(/đơn giá/i).fill('3500'); // VNĐ/kWh
     await page.getByLabel(/đơn vị/i).fill('kWh');
@@ -112,7 +113,7 @@ test.describe.serial('Finance and Asset Workflow E2E (UI)', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // Tạm thời bỏ qua test phần 4 do cần điền đủ form phức tạp
     /*

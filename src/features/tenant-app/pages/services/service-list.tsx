@@ -16,7 +16,7 @@ export default function ServiceList() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight">Danh mục dịch vụ</h1>
         <Button asChild>
-          <Link to="/app/dich-vu/tao-moi">
+          <Link to="/dich-vu/tao-moi">
             <Plus className="mr-2 h-4 w-4" /> Thêm dịch vụ
           </Link>
         </Button>
@@ -52,7 +52,7 @@ export default function ServiceList() {
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" asChild>
-                      <Link to={`/app/dich-vu/${item.id}/chinh-sua`}>Sửa</Link>
+                      <Link to={`/dich-vu/${item.id}/chinh-sua`}>Sửa</Link>
                     </Button>
                   </TableCell>
                 </TableRow>

@@ -17,16 +17,16 @@ test.describe.serial('CRUD: Contracts & Termination', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // Create
-    await page.goto('/app/hop-dong/tao-moi');
+    await page.goto('/hop-dong/tao');
     await page.getByLabel(/tên hợp đồng/i).fill(contractName);
     // Chọn phòng, khách...
     await page.getByRole('button', { name: /lưu nháp/i }).click();
     
     // Read
-    await page.waitForURL('/app/hop-dong');
+    await page.waitForURL('/hop-dong');
     await expect(page.getByText(contractName).first()).toBeVisible();
     await context.close();
   });
@@ -40,7 +40,7 @@ test.describe.serial('CRUD: Contracts & Termination', () => {
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
     
-    await page.goto('/app/hop-dong');
+    await page.goto('/hop-dong');
     const contractRow = page.locator('tr, .card', { hasText: contractName }).first();
     if (await contractRow.isVisible()) {
       await contractRow.getByRole('button', { name: /sửa/i }).click();
@@ -61,7 +61,7 @@ test.describe.serial('CRUD: Contracts & Termination', () => {
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
     
-    await page.goto('/app/hop-dong');
+    await page.goto('/hop-dong');
     const contractRow = page.locator('tr, .card', { hasText: contractName }).first();
     if (await contractRow.isVisible()) {
       await contractRow.getByRole('button', { name: /hủy|xóa/i }).click();

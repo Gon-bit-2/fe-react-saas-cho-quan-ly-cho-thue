@@ -16,7 +16,7 @@ export function AccessDeniedPage() {
         <Button variant="outline" onClick={() => window.history.back()}>
           Quay lại trang trước
         </Button>
-        <Link to="/app">
+        <Link to="/">
           <Button>Về trang chủ</Button>
         </Link>
       </div>

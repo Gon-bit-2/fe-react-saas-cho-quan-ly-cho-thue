@@ -13,11 +13,11 @@ test.describe.serial('CRUD: Invoices & Debt', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
   });
 
   test('Create & Read: Landlord tạo và xem Hóa đơn nháp', async ({ page }) => {
-    await page.goto('/app/hoa-don/tao-moi');
+    await page.goto('/hoa-don/tao-moi');
     
     // Create
     await page.getByLabel(/ghi chú|mô tả/i).fill(invoiceDesc);
@@ -25,12 +25,12 @@ test.describe.serial('CRUD: Invoices & Debt', () => {
     await page.getByRole('button', { name: /lưu nháp|tạo mới/i }).click();
     
     // Read
-    await page.waitForURL('/app/hoa-don');
+    await page.waitForURL('/hoa-don');
     await expect(page.getByText(invoiceDesc).first()).toBeVisible();
   });
 
   test('Update: Landlord phát hành Hóa đơn', async ({ page }) => {
-    await page.goto('/app/hoa-don');
+    await page.goto('/hoa-don');
     
     const draftInvoice = page.locator('tr, .card', { hasText: invoiceDesc }).first();
     if (await draftInvoice.isVisible()) {
@@ -43,7 +43,7 @@ test.describe.serial('CRUD: Invoices & Debt', () => {
   });
 
   test('Delete: Landlord hủy Hóa đơn', async ({ page }) => {
-    await page.goto('/app/hoa-don');
+    await page.goto('/hoa-don');
     
     const targetInvoice = page.locator('tr, .card', { hasText: invoiceDesc }).first();
     if (await targetInvoice.isVisible()) {

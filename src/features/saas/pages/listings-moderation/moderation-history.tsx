@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { format } from 'date-fns'
 import { listingsModerationApi } from '@/shared/api/listings-moderation'
 
 export function ModerationHistoryPage() {
+  const { id } = useParams()
   const [history, setHistory] = useState<Array<{ id: string, action: string, fromStatus: string, note: string, actorRole: string, actorName: string, createdAt: string }>>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const data = await listingsModerationApi.getHistory()
+        if (!id) return
+        const data = await listingsModerationApi.getHistory(id)
         setHistory(data)
       } catch (error) {
         console.error('Lỗi khi tải lịch sử kiểm duyệt', error)
@@ -19,7 +21,7 @@ export function ModerationHistoryPage() {
       }
     }
     fetchHistory()
-  }, [])
+  }, [id])
 
   if (loading) {
     return (

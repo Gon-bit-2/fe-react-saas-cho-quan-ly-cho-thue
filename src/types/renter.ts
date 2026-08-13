@@ -53,6 +53,23 @@ export interface InviteRenterBody {
   phone?: string
 }
 
+export interface RenterInvitation {
+  id: number
+  tenantId: number
+  email: string
+  fullName: string
+  phone?: string | null
+  expiresAt: string
+  acceptedAt?: string | null
+  acceptedUserId?: number | null
+  revokedAt?: string | null
+  status: 'ACCEPTED' | 'CANCELED' | 'EXPIRED' | 'PENDING'
+  tenant: { id: number; name: string }
+  createdBy: { id: number; fullName: string }
+  createdAt: string
+  updatedAt: string
+}
+
 export interface AcceptRenterInvitationBody {
   email: string
   code: string

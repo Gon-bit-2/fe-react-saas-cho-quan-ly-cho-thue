@@ -35,7 +35,7 @@ export function ModerationDetailPage() {
 
     setSubmitting(true)
     try {
-      await listingsModerationApi.updateStatus(id!, { status, reason })
+      await listingsModerationApi.updateStatus(id!, { status, note: reason })
       navigate('/admin/kiem-duyet/hang-cho')
     } catch (error) {
       console.error('Lỗi cập nhật trạng thái', error)

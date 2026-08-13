@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -28,14 +28,13 @@ export const LandlordsPage = () => {
     const fetchTenants = async () => {
       try {
         const response = await adminTenantApi.getTenants()
-        // Since we might not have a real backend responding, we fallback to mock data if empty
-        if (response?.data && response.data.length > 0) {
+        if (response?.data) {
           setTenants(response.data)
         } else {
-          setTenants(getMockTenants())
+          setTenants([])
         }
       } catch (error) {
-        setTenants(getMockTenants())
+        setTenants([])
         console.error(error)
       } finally {
         setLoading(false)
@@ -274,42 +273,4 @@ export const LandlordsPage = () => {
       </div>
     </div>
   )
-}
-
-// Fallback mock data
-function getMockTenants(): Tenant[] {
-  return [
-    {
-      id: 1,
-      name: 'Nguyễn Văn Anh',
-      status: 'ACTIVE',
-      ownerId: 1,
-      createdAt: '2023-10-15T00:00:00Z',
-      updatedAt: '2023-10-15T00:00:00Z',
-    },
-    {
-      id: 2,
-      name: 'Trần Thị Bích',
-      status: 'ACTIVE',
-      ownerId: 2,
-      createdAt: '2023-11-02T00:00:00Z',
-      updatedAt: '2023-11-02T00:00:00Z',
-    },
-    {
-      id: 3,
-      name: 'Lê Hoàng Phong',
-      status: 'INACTIVE',
-      ownerId: 3,
-      createdAt: '2023-08-20T00:00:00Z',
-      updatedAt: '2023-08-20T00:00:00Z',
-    },
-    {
-      id: 4,
-      name: 'Hoàng Kim Dung',
-      status: 'BANNED',
-      ownerId: 4,
-      createdAt: '2023-05-12T00:00:00Z',
-      updatedAt: '2023-05-12T00:00:00Z',
-    },
-  ]
 }

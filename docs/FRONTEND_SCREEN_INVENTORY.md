@@ -130,7 +130,7 @@ Khám phá | Thuê nhà | Thanh toán | Hỗ trợ | Tài khoản
 
 | ID | Màn hình | Route gợi ý | Actor | Ưu tiên | Nguồn |
 |---|---|---|---|---|---|
-| W-O01 | Dashboard tenant | `/app/dashboard` | LANDLORD, MANAGER, ACCOUNTANT | P0 | G11/FR-14, FR-25 |
+| W-O01 | Dashboard tenant | `/dashboard` | LANDLORD, MANAGER, ACCOUNTANT | P0 | G11/FR-14, FR-25 |
 | W-O02 | Hoạt động gần đây | tab trong dashboard | Cùng nhóm | P0 | G11 |
 | W-O03 | Chọn/chuyển tenant | topbar control | Tenant staff | P0 | G01/FR-03 |
 
@@ -140,13 +140,13 @@ Dashboard gồm room metrics, occupancy, contract ending soon, invoice/payment/d
 
 | ID | Màn hình | Route gợi ý | Actor | Ưu tiên | Nguồn |
 |---|---|---|---|---|---|
-| W-O04 | Danh sách nhà trọ | `/app/properties` | LANDLORD, MANAGER | P0 | G03/FR-06 |
-| W-O05 | Tạo/sửa nhà trọ | `/app/properties/new`, `/:id/edit` | LANDLORD, MANAGER | P0 | G03 |
-| W-O06 | Chi tiết nhà trọ | `/app/properties/:id` | LANDLORD, MANAGER | P0 | G03 |
+| W-O04 | Danh sách nhà trọ | `/properties` | LANDLORD, MANAGER | P0 | G03/FR-06 |
+| W-O05 | Tạo/sửa nhà trọ | `/properties/new`, `/:id/edit` | LANDLORD, MANAGER | P0 | G03 |
+| W-O06 | Chi tiết nhà trọ | `/properties/:id` | LANDLORD, MANAGER | P0 | G03 |
 | W-O07 | Quản lý tầng | tab `floors` trong property detail | LANDLORD, MANAGER | P0 | G03 |
-| W-O08 | Danh sách phòng | `/app/rooms` | LANDLORD, MANAGER | P0 | G03/FR-07 |
-| W-O09 | Tạo/sửa phòng | `/app/rooms/new`, `/:id/edit` | LANDLORD, MANAGER | P0 | G03 |
-| W-O10 | Chi tiết phòng | `/app/rooms/:id` | LANDLORD, MANAGER | P0 | G03 |
+| W-O08 | Danh sách phòng | `/rooms` | LANDLORD, MANAGER | P0 | G03/FR-07 |
+| W-O09 | Tạo/sửa phòng | `/rooms/new`, `/:id/edit` | LANDLORD, MANAGER | P0 | G03 |
+| W-O10 | Chi tiết phòng | `/rooms/:id` | LANDLORD, MANAGER | P0 | G03 |
 | W-O11 | Ảnh & tiện ích phòng | tabs trong room detail | LANDLORD, MANAGER | P0 | G03 |
 | W-O12 | Publish/ẩn/gửi duyệt tin | action panel trong room detail | LANDLORD, MANAGER | P0 | G03–G04/FR-08 |
 
@@ -154,68 +154,68 @@ Dashboard gồm room metrics, occupancy, contract ending soon, invoice/payment/d
 
 | ID | Màn hình | Route gợi ý | Actor | Ưu tiên | Nguồn |
 |---|---|---|---|---|---|
-| W-O13 | Danh sách yêu cầu thuê | `/app/rental-requests` | LANDLORD, MANAGER | P0 | G04/FR-11 |
-| W-O14 | Chi tiết/xử lý yêu cầu thuê | `/app/rental-requests/:id` | LANDLORD, MANAGER | P0 | G04 |
-| W-O15 | Danh sách/lịch xem phòng | `/app/appointments` | LANDLORD, MANAGER | P0 | G04 |
-| W-O16 | Chi tiết/xử lý lịch xem | `/app/appointments/:id` | LANDLORD, MANAGER | P0 | G04 |
-| W-O17 | Danh sách người thuê | `/app/renters` | LANDLORD, MANAGER | P0 | G05/FR-12 |
-| W-O18 | Chi tiết người thuê/lịch sử thuê | `/app/renters/:id` | LANDLORD, MANAGER | P0 | G05 |
+| W-O13 | Danh sách yêu cầu thuê | `/rental-requests` | LANDLORD, MANAGER | P0 | G04/FR-11 |
+| W-O14 | Chi tiết/xử lý yêu cầu thuê | `/rental-requests/:id` | LANDLORD, MANAGER | P0 | G04 |
+| W-O15 | Danh sách/lịch xem phòng | `/appointments` | LANDLORD, MANAGER | P0 | G04 |
+| W-O16 | Chi tiết/xử lý lịch xem | `/appointments/:id` | LANDLORD, MANAGER | P0 | G04 |
+| W-O17 | Danh sách người thuê | `/renters` | LANDLORD, MANAGER | P0 | G05/FR-12 |
+| W-O18 | Chi tiết người thuê/lịch sử thuê | `/renters/:id` | LANDLORD, MANAGER | P0 | G05 |
 | W-O19 | Mời/provision renter | drawer từ renter/request/contract | LANDLORD, MANAGER | P1 | G05 |
 
 ### 6.4. Hợp đồng, tài sản, bàn giao, kết thúc
 
 | ID | Màn hình | Route gợi ý | Actor | Ưu tiên | Nguồn |
 |---|---|---|---|---|---|
-| W-O20 | Danh sách hợp đồng | `/app/contracts` | LANDLORD, MANAGER | P0 | G05/FR-13–14 |
-| W-O21 | Tạo/sửa hợp đồng | `/app/contracts/new`, `/:id/edit` | LANDLORD, MANAGER | P0 | G05 |
-| W-O22 | Chi tiết hợp đồng | `/app/contracts/:id` | LANDLORD, MANAGER | P0 | G05 |
+| W-O20 | Danh sách hợp đồng | `/contracts` | LANDLORD, MANAGER | P0 | G05/FR-13–14 |
+| W-O21 | Tạo/sửa hợp đồng | `/contracts/new`, `/:id/edit` | LANDLORD, MANAGER | P0 | G05 |
+| W-O22 | Chi tiết hợp đồng | `/contracts/:id` | LANDLORD, MANAGER | P0 | G05 |
 | W-O23 | Kích hoạt/hủy hợp đồng | action panel trong detail | LANDLORD, MANAGER | P0 | G05 |
-| W-O24 | Danh mục tài sản | `/app/assets/categories` | LANDLORD, MANAGER | P1 | G05 |
-| W-O25 | Tài sản theo phòng | `/app/rooms/:id/assets` | LANDLORD, MANAGER | P1 | G05 |
-| W-O26 | Danh sách bàn giao | `/app/handovers` | LANDLORD, MANAGER | P1 | G05 |
-| W-O27 | Tạo/chi tiết bàn giao | `/app/handovers/new`, `/:id` | LANDLORD, MANAGER | P1 | G05 |
+| W-O24 | Danh mục tài sản | `/assets/categories` | LANDLORD, MANAGER | P1 | G05 |
+| W-O25 | Tài sản theo phòng | `/rooms/:id/assets` | LANDLORD, MANAGER | P1 | G05 |
+| W-O26 | Danh sách bàn giao | `/handovers` | LANDLORD, MANAGER | P1 | G05 |
+| W-O27 | Tạo/chi tiết bàn giao | `/handovers/new`, `/:id` | LANDLORD, MANAGER | P1 | G05 |
 | W-O28 | Xử lý dispute bàn giao | panel trong handover detail | LANDLORD, MANAGER | P1 | G05 |
-| W-O29 | Yêu cầu kết thúc hợp đồng | `/app/terminations` | LANDLORD, MANAGER | P1 | G05 |
-| W-O30 | Chi tiết/approve/reject/complete termination | `/app/terminations/:id` | LANDLORD, MANAGER | P1 | G05 |
+| W-O29 | Yêu cầu kết thúc hợp đồng | `/terminations` | LANDLORD, MANAGER | P1 | G05 |
+| W-O30 | Chi tiết/approve/reject/complete termination | `/terminations/:id` | LANDLORD, MANAGER | P1 | G05 |
 
 ### 6.5. Điện nước, OCR và dịch vụ
 
 | ID | Màn hình | Route gợi ý | Actor | Ưu tiên | Nguồn |
 |---|---|---|---|---|---|
-| W-O31 | Danh sách công tơ | `/app/meters` | LANDLORD, MANAGER | P0 | G06/FR-15 |
-| W-O32 | Tạo/sửa/chi tiết công tơ | `/app/meters/new`, `/:id` | LANDLORD, MANAGER | P0 | G06 |
-| W-O33 | Danh sách chỉ số | `/app/meter-readings` | LANDLORD, MANAGER, ACCOUNTANT | P0 | G06/FR-16 |
-| W-O34 | Nhập/sửa/chi tiết chỉ số | `/app/meter-readings/new`, `/:id` | Nhóm trên | P0 | G06 |
-| W-O35 | Upload OCR chỉ số | `/app/ocr/new` | Role được API cho phép | P1 | G06/FR-17 |
-| W-O36 | Danh sách job OCR | `/app/ocr` | Role được API cho phép | P1 | G06 |
-| W-O37 | Review/accept kết quả OCR | `/app/ocr/:id` | Role được API cho phép | P1 | G06 |
-| W-O38 | Danh mục dịch vụ | `/app/services` | LANDLORD, MANAGER | P0 | G06/FR-15 |
-| W-O39 | Tạo/sửa dịch vụ | `/app/services/new`, `/:id/edit` | LANDLORD, MANAGER | P0 | G06 |
-| W-O40 | Gán dịch vụ cho phòng/hợp đồng | `/app/service-assignments` | LANDLORD, MANAGER | P0 | G06 |
+| W-O31 | Danh sách công tơ | `/meters` | LANDLORD, MANAGER | P0 | G06/FR-15 |
+| W-O32 | Tạo/sửa/chi tiết công tơ | `/meters/new`, `/:id` | LANDLORD, MANAGER | P0 | G06 |
+| W-O33 | Danh sách chỉ số | `/meter-readings` | LANDLORD, MANAGER, ACCOUNTANT | P0 | G06/FR-16 |
+| W-O34 | Nhập/sửa/chi tiết chỉ số | `/meter-readings/new`, `/:id` | Nhóm trên | P0 | G06 |
+| W-O35 | Upload OCR chỉ số | `/ocr/new` | Role được API cho phép | P1 | G06/FR-17 |
+| W-O36 | Danh sách job OCR | `/ocr` | Role được API cho phép | P1 | G06 |
+| W-O37 | Review/accept kết quả OCR | `/ocr/:id` | Role được API cho phép | P1 | G06 |
+| W-O38 | Danh mục dịch vụ | `/services` | LANDLORD, MANAGER | P0 | G06/FR-15 |
+| W-O39 | Tạo/sửa dịch vụ | `/services/new`, `/:id/edit` | LANDLORD, MANAGER | P0 | G06 |
+| W-O40 | Gán dịch vụ cho phòng/hợp đồng | `/service-assignments` | LANDLORD, MANAGER | P0 | G06 |
 
 ### 6.6. Hóa đơn, công nợ và thanh toán
 
 | ID | Màn hình | Route gợi ý | Actor | Ưu tiên | Nguồn |
 |---|---|---|---|---|---|
-| W-O41 | Danh sách hóa đơn | `/app/invoices` | LANDLORD, MANAGER, ACCOUNTANT | P0 | G07/FR-18–19 |
-| W-O42 | Tạo/sửa hóa đơn draft | `/app/invoices/new`, `/:id/edit` | Nhóm trên | P0 | G07 |
-| W-O43 | Chi tiết hóa đơn | `/app/invoices/:id` | Nhóm trên | P0 | G07 |
+| W-O41 | Danh sách hóa đơn | `/invoices` | LANDLORD, MANAGER, ACCOUNTANT | P0 | G07/FR-18–19 |
+| W-O42 | Tạo/sửa hóa đơn draft | `/invoices/new`, `/:id/edit` | Nhóm trên | P0 | G07 |
+| W-O43 | Chi tiết hóa đơn | `/invoices/:id` | Nhóm trên | P0 | G07 |
 | W-O44 | Phát hành/hủy/đánh dấu overdue | action panel trong detail | Nhóm trên | P0 | G07 |
-| W-O45 | Danh sách công nợ | `/app/debts` | LANDLORD, MANAGER, ACCOUNTANT | P0 | G07/FR-20 |
-| W-O46 | Danh sách thanh toán chờ đối soát | `/app/payments` | Staff tài chính | P0 | G08/FR-21–22 |
-| W-O47 | Chi tiết/approve/reject payment | `/app/payments/:id` | Staff tài chính | P0 | G08 |
+| W-O45 | Danh sách công nợ | `/debts` | LANDLORD, MANAGER, ACCOUNTANT | P0 | G07/FR-20 |
+| W-O46 | Danh sách thanh toán chờ đối soát | `/payments` | Staff tài chính | P0 | G08/FR-21–22 |
+| W-O47 | Chi tiết/approve/reject payment | `/payments/:id` | Staff tài chính | P0 | G08 |
 
 ### 6.7. Ticket, notification và subscription
 
 | ID | Màn hình | Route gợi ý | Actor | Ưu tiên | Nguồn |
 |---|---|---|---|---|---|
-| W-O48 | Danh sách ticket | `/app/tickets` | LANDLORD, MANAGER, MAINTENANCE_STAFF | P0 | G09/FR-23 |
-| W-O49 | Chi tiết ticket | `/app/tickets/:id` | Nhóm trên | P0 | G09 |
+| W-O48 | Danh sách ticket | `/tickets` | LANDLORD, MANAGER, MAINTENANCE_STAFF | P0 | G09/FR-23 |
+| W-O49 | Chi tiết ticket | `/tickets/:id` | Nhóm trên | P0 | G09 |
 | W-O50 | Phân công/trạng thái/comment/attachment | panels trong ticket detail | Theo permission | P0 | G09 |
-| W-O51 | Trung tâm thông báo | `/app/notifications` | Authenticated staff | P0 | G10/FR-24 |
-| W-O52 | Gói dịch vụ hiện tại | `/app/subscription` | LANDLORD | P1 | G02, G08/FR-05 |
-| W-O53 | Chọn plan & PayOS checkout | `/app/subscription/plans` | LANDLORD | P1 | G02, G08 |
-| W-O54 | Lịch sử/chi tiết thanh toán gói | `/app/subscription/payments`, `/:id` | LANDLORD | P1 | G08 |
+| W-O51 | Trung tâm thông báo | `/notifications` | Authenticated staff | P0 | G10/FR-24 |
+| W-O52 | Gói dịch vụ hiện tại | `/subscription` | LANDLORD | P1 | G02, G08/FR-05 |
+| W-O53 | Chọn plan & PayOS checkout | `/subscription/plans` | LANDLORD | P1 | G02, G08 |
+| W-O54 | Lịch sử/chi tiết thanh toán gói | `/subscription/payments`, `/:id` | LANDLORD | P1 | G08 |
 
 ## 7. Web — Platform Admin
 

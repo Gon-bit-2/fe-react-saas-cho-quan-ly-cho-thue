@@ -17,10 +17,11 @@ test.describe.serial('Core Rental Workflow E2E (UI)', () => {
   // Các URL tĩnh của hệ thống theo routes.tsx
   const ROUTES = {
     login: '/dang-nhap',
-    landlordProperty: '/app/khu-tro',
-    landlordRoom: '/app/quan-ly-phong/danh-sach',
-    landlordRequests: '/app/quan-ly-nha-tro/yeu-cau-thue',
-    landlordContracts: '/app/hop-dong',
+    landlordProperty: '/khu-tro',
+    landlordRoom: '/quan-ly-phong/danh-sach',
+    landlordRoomCreate: '/quan-ly-phong/tao-moi',
+    landlordRequests: '/quan-ly-nha-tro/yeu-cau-thue',
+    landlordContracts: '/hop-dong',
     adminModeration: '/admin/kiem-duyet/hang-cho',
     marketplace: '/phong'
   };
@@ -34,7 +35,7 @@ test.describe.serial('Core Rental Workflow E2E (UI)', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // 2. Tạo Khu trọ
     await page.goto(`${ROUTES.landlordProperty}/tao-moi`);
@@ -46,7 +47,7 @@ test.describe.serial('Core Rental Workflow E2E (UI)', () => {
     await expect(page.getByText(propertyName)).toBeVisible();
 
     // 3. Tạo Phòng và gửi duyệt
-    await page.goto(`${ROUTES.landlordRoom}/tao-moi`);
+    await page.goto(ROUTES.landlordRoomCreate);
     await page.getByLabel(/tên phòng/i).fill(roomName);
     await page.getByLabel(/giá thuê/i).fill('3500000');
     await page.getByLabel(/diện tích/i).fill('25');
@@ -98,7 +99,7 @@ test.describe.serial('Core Rental Workflow E2E (UI)', () => {
     await page.getByLabel(/email/i).fill(USERS.tenant.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.tenant.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // 2. Ra Marketplace tìm phòng
     await page.goto(ROUTES.marketplace);
@@ -134,7 +135,7 @@ test.describe.serial('Core Rental Workflow E2E (UI)', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // 2. Vào xem yêu cầu thuê
     await page.goto(ROUTES.landlordRequests);

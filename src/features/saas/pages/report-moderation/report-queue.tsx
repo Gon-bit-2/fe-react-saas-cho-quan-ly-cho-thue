@@ -72,7 +72,7 @@ export function ReportQueuePage() {
             value={query.search || ''}
             onChange={(e) => setQuery({ ...query, search: e.target.value })}
           />
-          <Button onClick={fetchReports}>Lọc</Button>
+          <Button onClick={() => setQuery((current) => ({ ...current }))}>Lọc</Button>
         </CardContent>
       </Card>
 

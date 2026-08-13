@@ -57,7 +57,7 @@ export function InvoiceCreatePage() {
         ...data,
         billingMonth: `${data.billingMonth}-01T00:00:00Z` // normalize to full date
       });
-      navigate('/app/hoa-don'); // Adjust based on real routes
+      navigate('/hoa-don'); // Adjust based on real routes
     } catch (error) {
       console.error('Failed to create invoice:', error);
     } finally {

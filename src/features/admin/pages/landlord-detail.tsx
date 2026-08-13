@@ -48,9 +48,9 @@ export const LandlordDetailPage = () => {
       try {
         if (!id) return
         const response = await adminTenantApi.getTenantDetails(parseInt(id))
-        setTenant(response?.data || getMockTenantDetail(parseInt(id)))
+        setTenant(response?.data || null)
       } catch (error) {
-        setTenant(getMockTenantDetail(parseInt(id || '1')))
+        setTenant(null)
         console.error(error)
       } finally {
         setLoading(false)
@@ -506,23 +506,3 @@ export const LandlordDetailPage = () => {
   )
 }
 
-// Mock data
-function getMockTenantDetail(id: number): Tenant {
-  return {
-    id: id,
-    name: 'Nguyễn Văn Cường',
-    status: 'ACTIVE',
-    ownerId: id,
-    owner: {
-      id: id,
-      email: 'cuong.nguyen@example.com',
-      fullName: 'Nguyễn Văn Cường',
-      status: 'ACTIVE',
-      tenantMembers: [],
-      createdAt: '2023-10-15T00:00:00Z',
-      updatedAt: '2023-10-15T00:00:00Z',
-    },
-    createdAt: '2023-10-15T00:00:00Z',
-    updatedAt: '2023-10-15T00:00:00Z',
-  }
-}

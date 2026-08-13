@@ -83,12 +83,6 @@ export function TicketListPage() {
           <h1 className="mb-1 text-3xl font-bold text-slate-900">Danh Sách Hỗ Trợ (Tickets)</h1>
           <p className="text-sm text-slate-500">Quản lý và xử lý các yêu cầu hỗ trợ từ người thuê.</p>
         </div>
-        <Link to="/app/ho-tro/tao-moi">
-          <Button className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            Tạo Ticket
-          </Button>
-        </Link>
       </div>
 
       <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -178,7 +172,7 @@ export function TicketListPage() {
                 tickets.map((ticket) => (
                   <TableRow key={ticket.id} className="group cursor-pointer hover:bg-slate-50">
                     <TableCell className="font-medium text-slate-500">
-                      <Link to={`/app/ho-tro/${ticket.id}`}>#TK-{ticket.id}</Link>
+                      <Link to={`/ho-tro/${ticket.id}`}>#TK-{ticket.id}</Link>
                     </TableCell>
                     <TableCell>
                       <div className="mb-1 font-medium text-slate-900">{ticket.title}</div>
@@ -222,7 +216,7 @@ export function TicketListPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <Link to={`/app/ho-tro/${ticket.id}`}>
+                          <Link to={`/ho-tro/${ticket.id}`}>
                             <DropdownMenuItem>
                               <span className="material-symbols-outlined mr-2 text-[18px]">visibility</span>
                               Xem chi tiết

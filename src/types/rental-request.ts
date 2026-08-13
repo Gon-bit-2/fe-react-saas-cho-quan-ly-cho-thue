@@ -19,3 +19,12 @@ export interface RentalRequest {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ListRentalRequestsQuery {
+  page?: number;
+  limit?: number;
+  status?: RentalRequestStatus;
+  roomId?: number;
+  propertyId?: number;
+  search?: string;
+}

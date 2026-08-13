@@ -10,20 +10,48 @@ import { RentalRequestDrawer } from '../components/rental-request-drawer'
 export function Component() {
   const { roomId } = useParams()
   const id = Number(roomId)
+  const isValidRoomId = Number.isInteger(id) && id > 0
   const { state } = useAuth()
   const isAuthenticated = state === 'authenticated'
 
-  const { data, isLoading } = useMarketplaceRoom(id)
+  const { data, isLoading, isError, refetch } = useMarketplaceRoom(id)
 
   const [isViewingOpen, setIsViewingOpen] = useState(false)
   const [isRequestOpen, setIsRequestOpen] = useState(false)
 
   const room = data
 
+  if (!isValidRoomId) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-40 text-center">
+        <h1 className="font-headline-sm text-text-main">Đường dẫn phòng không hợp lệ</h1>
+        <Link to="/phong" className="bg-primary text-on-primary rounded-lg px-4 py-2 font-medium">
+          Xem danh sách phòng
+        </Link>
+      </div>
+    )
+  }
+
   if (isLoading && !data) {
     return (
       <div className="flex items-center justify-center py-40">
         <div className="border-primary/30 border-t-primary h-8 w-8 animate-spin rounded-full border-4" />
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-40 text-center">
+        <h1 className="font-headline-sm text-text-main">Không thể tải thông tin phòng</h1>
+        <p className="font-body-md text-on-surface-variant">Vui lòng kiểm tra kết nối và thử lại.</p>
+        <button
+          type="button"
+          onClick={() => void refetch()}
+          className="bg-primary text-on-primary rounded-lg px-4 py-2 font-medium"
+        >
+          Thử lại
+        </button>
       </div>
     )
   }
@@ -42,6 +70,8 @@ export function Component() {
     currency: 'VND',
     maximumFractionDigits: 0,
   }).format(room.basePrice)
+  const propertyType = room.property.type ? room.property.type.replaceAll('_', ' ') : 'Chưa phân loại'
+  const location = [room.property.ward, room.property.district, room.property.province].filter(Boolean).join(', ')
 
   return (
     <div className="bg-surface-container-low min-h-screen pb-20 md:pb-8">
@@ -56,7 +86,7 @@ export function Component() {
                 style={{ backgroundImage: `url('${room.images[0]?.url || 'https://placehold.co/1200x800/png'}')` }}
               />
               <div className="bg-surface-container-lowest/90 text-text-main font-label-md absolute top-4 left-4 rounded-lg px-3 py-1.5 shadow-sm backdrop-blur">
-                {room.property.propertyType.replace('_', ' ')}
+                {propertyType}
               </div>
             </div>
 
@@ -85,7 +115,7 @@ export function Component() {
             <h1 className="font-headline-lg text-text-main mb-4">{room.title}</h1>
             <p className="font-body-md text-on-surface-variant mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-[20px]">location_on</span>
-              {room.property.address}, {room.property.ward}, {room.property.district}, {room.property.province}
+              {location || 'Chưa cập nhật khu vực'}
             </p>
 
             <div className="border-surface-border flex flex-wrap gap-6 border-y py-6">
@@ -96,18 +126,18 @@ export function Component() {
               <div>
                 <p className="font-label-sm text-on-surface-variant mb-1 uppercase">Tiền cọc</p>
                 <p className="font-headline-sm text-text-main">
-                  {room.deposit
+                  {room.depositAmount !== null
                     ? new Intl.NumberFormat('vi-VN', {
                         style: 'currency',
                         currency: 'VND',
                         maximumFractionDigits: 0,
-                      }).format(room.deposit)
+                      }).format(room.depositAmount)
                     : 'Không yêu cầu'}
                 </p>
               </div>
               <div>
                 <p className="font-label-sm text-on-surface-variant mb-1 uppercase">Diện tích</p>
-                <p className="font-headline-sm text-text-main">{room.area}m²</p>
+                <p className="font-headline-sm text-text-main">{room.area !== null ? `${room.area}m²` : 'Chưa cập nhật'}</p>
               </div>
               <div>
                 <p className="font-label-sm text-on-surface-variant mb-1 uppercase">Sức chứa</p>

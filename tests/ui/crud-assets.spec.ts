@@ -14,11 +14,11 @@ test.describe.serial('CRUD: Asset Management', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
   });
 
   test('Create & Read: Landlord thêm tài sản', async ({ page }) => {
-    await page.goto('/app/quan-ly-tai-san');
+    await page.goto('/quan-ly-tai-san');
     
     // Create
     await page.getByRole('button', { name: /thêm|tạo mới/i }).click();
@@ -31,7 +31,7 @@ test.describe.serial('CRUD: Asset Management', () => {
   });
 
   test('Update: Landlord sửa thông tin tài sản', async ({ page }) => {
-    await page.goto('/app/quan-ly-tai-san');
+    await page.goto('/quan-ly-tai-san');
     
     const row = page.locator('tr, .card', { hasText: assetName }).first();
     if (await row.isVisible()) {
@@ -46,7 +46,7 @@ test.describe.serial('CRUD: Asset Management', () => {
   });
 
   test('Delete: Landlord xóa tài sản', async ({ page }) => {
-    await page.goto('/app/quan-ly-tai-san');
+    await page.goto('/quan-ly-tai-san');
     
     const row = page.locator('tr, .card', { hasText: assetName }).first();
     if (await row.isVisible()) {

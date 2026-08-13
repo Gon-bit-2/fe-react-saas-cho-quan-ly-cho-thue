@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router'
 import { useAuth } from '@/shared/hooks/use-auth'
 import { TenantSwitcher } from '@/features/tenant-app/components/tenant-switcher'
@@ -30,12 +29,6 @@ export function Component() {
     navigate('/dang-nhap')
   }
 
-  // Redirect to dashboard if on root /
-  useEffect(() => {
-    if (location.pathname === '/app' || location.pathname === '/app/') {
-      navigate('/tong-quan', { replace: true })
-    }
-  }, [location.pathname, navigate])
 
   return (
     <div className="bg-background font-body-md text-body-md text-on-surface">

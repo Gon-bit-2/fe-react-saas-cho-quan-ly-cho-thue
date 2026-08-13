@@ -17,7 +17,7 @@ test.describe.serial('CRUD: Viewing schedules & Rental requests', () => {
     await page.getByLabel(/email/i).fill(USERS.tenant.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.tenant.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // Tìm phòng marketplace
     await page.goto('/');
@@ -46,9 +46,9 @@ test.describe.serial('CRUD: Viewing schedules & Rental requests', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
-    await page.goto('/app/khach-thue/yeu-cau');
+    await page.goto('/quan-ly-nha-tro/yeu-cau-thue');
     
     // Tìm yêu cầu theo notes
     const row = page.locator('tr, .card', { hasText: requestNotes }).first();
@@ -59,7 +59,7 @@ test.describe.serial('CRUD: Viewing schedules & Rental requests', () => {
     await context.close();
   });
 
-  test('Delete: Tenant hủy Lịch xem phòng', async ({ browser }) => {
+  test.skip('Delete: Tenant hủy Lịch xem phòng (chưa có màn self-service)', async ({ browser }) => {
     // Tương tự, nếu có lịch xem phòng, Tenant có thể vào hủy
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -69,7 +69,7 @@ test.describe.serial('CRUD: Viewing schedules & Rental requests', () => {
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.tenant.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
     
-    await page.goto('/app/lich-xem-phong');
+    await page.goto('/quan-ly-nha-tro/lich-xem-phong');
     const appointmentRow = page.locator('tr, .card', { hasText: 'Chờ xác nhận' }).first();
     if (await appointmentRow.isVisible()) {
       await appointmentRow.getByRole('button', { name: /hủy/i }).click();

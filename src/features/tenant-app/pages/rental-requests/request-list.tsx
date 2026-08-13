@@ -8,59 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, FileText, CalendarClock, User, CheckCircle2, Clock, XCircle, ArrowRight } from 'lucide-react'
 import type { RentalRequest, RentalRequestStatus } from '@/types/rental-request'
 
-// Mock API hook since this feature might not have the API client setup completely
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const useRentalRequests = (_filters: unknown) => {
-  // Trả về mock data cho UI design testing
-  return {
-    data: {
-      data: [
-        {
-          id: 1,
-          tenantId: 1,
-          renterId: 101,
-          roomId: 201,
-          propertyId: 10,
-          status: 'PENDING',
-          expectedStartDate: '2026-09-01T00:00:00Z',
-          message: 'Tôi muốn thuê dài hạn 1 năm.',
-          createdAt: '2026-08-05T10:00:00Z',
-          updatedAt: '2026-08-05T10:00:00Z',
-        },
-        {
-          id: 2,
-          tenantId: 1,
-          renterId: 102,
-          roomId: 205,
-          propertyId: 10,
-          status: 'APPROVED',
-          expectedStartDate: '2026-08-15T00:00:00Z',
-          message: '',
-          createdAt: '2026-08-06T14:30:00Z',
-          updatedAt: '2026-08-07T09:00:00Z',
-        },
-        {
-          id: 3,
-          tenantId: 1,
-          renterId: 103,
-          roomId: 302,
-          propertyId: 11,
-          status: 'REJECTED',
-          expectedStartDate: '2026-08-10T00:00:00Z',
-          message: 'Có thể thương lượng giá không ạ?',
-          createdAt: '2026-08-02T08:15:00Z',
-          updatedAt: '2026-08-03T11:00:00Z',
-        }
-      ] as RentalRequest[]
-    },
-    isLoading: false
-  }
-}
+import { useRentalRequests } from '@/shared/api/rental-requests'
 
 export function Component() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<RentalRequestStatus | 'all'>('all')
 
   const { data, isLoading } = useRentalRequests({
     search: searchTerm,
@@ -117,7 +70,10 @@ export function Component() {
           />
         </div>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => setStatusFilter(value as RentalRequestStatus | 'all')}
+        >
           <SelectTrigger className="w-[200px] bg-slate-50/50 border-slate-200">
             <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
@@ -164,7 +120,7 @@ export function Component() {
                 </TableCell>
               </TableRow>
             ) : (
-              data?.data.map((req: RentalRequest) => (
+              data?.data?.map((req: RentalRequest) => (
                 <TableRow key={req.id} className="group transition-colors hover:bg-slate-50/80 cursor-default">
                   <TableCell className="text-center font-medium text-slate-500 py-4">
                     #{req.id}
@@ -199,7 +155,7 @@ export function Component() {
                       variant="ghost" 
                       size="sm" 
                       className="opacity-0 group-hover:opacity-100 transition-opacity font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-                      onClick={() => navigate(`/app/quan-ly-nha-tro/yeu-cau-thue/${req.id}`)}
+                      onClick={() => navigate(`/quan-ly-nha-tro/yeu-cau-thue/${req.id}`)}
                     >
                       Xử lý <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>

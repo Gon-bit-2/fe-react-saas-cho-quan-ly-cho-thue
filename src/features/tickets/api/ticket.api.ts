@@ -23,42 +23,62 @@ export interface PaginatedResponse<T> {
 
 export const ticketApi = {
   /** Lấy danh sách ticket */
-  getTickets: (params?: GetTicketsParams) =>
-    apiClient.get<PaginatedResponse<TicketSummary>>('/tickets', { params }),
+  getTickets: async (params?: GetTicketsParams) => {
+    const { data } = await apiClient.get<PaginatedResponse<TicketSummary>>('/tickets', { params })
+    return data
+  },
 
   /** Lấy chi tiết ticket */
-  getTicketById: (id: number) =>
-    apiClient.get<TicketDetail>(`/tickets/${id}`),
+  getTicketById: async (id: number) => {
+    const { data } = await apiClient.get<TicketDetail>(`/tickets/${id}`)
+    return data
+  },
 
   /** Lấy danh sách bình luận của ticket */
-  getTicketComments: (id: number) =>
-    apiClient.get<TicketComment[]>(`/tickets/${id}/comments`),
+  getTicketComments: async (id: number) => {
+    const { data } = await apiClient.get<TicketComment[]>(`/tickets/${id}/comments`)
+    return data
+  },
 
   /** Lấy danh sách ticket của tôi (Renter) */
-  getMyTickets: (params?: GetTicketsParams) =>
-    apiClient.get<PaginatedResponse<TicketSummary>>('/tickets/me', { params }),
+  getMyTickets: async (params?: GetTicketsParams) => {
+    const { data } = await apiClient.get<PaginatedResponse<TicketSummary>>('/tickets/me', { params })
+    return data
+  },
 
   /** Lấy chi tiết ticket của tôi */
-  getMyTicketById: (id: number) =>
-    apiClient.get<TicketDetail>(`/tickets/me/${id}`),
+  getMyTicketById: async (id: number) => {
+    const { data } = await apiClient.get<TicketDetail>(`/tickets/me/${id}`)
+    return data
+  },
 
   /** Lấy bình luận ticket của tôi */
-  getMyTicketComments: (id: number) =>
-    apiClient.get<TicketComment[]>(`/tickets/me/${id}/comments`),
+  getMyTicketComments: async (id: number) => {
+    const { data } = await apiClient.get<TicketComment[]>(`/tickets/me/${id}/comments`)
+    return data
+  },
 
   /** Tạo bình luận mới */
-  createComment: (id: number, content: string, isInternal: boolean = false) =>
-    apiClient.post<TicketComment>(`/tickets/${id}/comments`, { content, isInternal }),
+  createComment: async (id: number, content: string, isInternal: boolean = false) => {
+    const { data } = await apiClient.post<TicketComment>(`/tickets/${id}/comments`, { message: content, isInternal })
+    return data
+  },
 
   /** Đổi trạng thái ticket */
-  updateTicketStatus: (id: number, status: TicketStatus, note?: string) =>
-    apiClient.patch<TicketDetail>(`/tickets/${id}/status`, { status, note }),
+  updateTicketStatus: async (id: number, status: TicketStatus) => {
+    const { data } = await apiClient.patch<TicketDetail>(`/tickets/${id}/status`, { status })
+    return data
+  },
 
   /** Phân công người xử lý */
-  assignTicket: (id: number, assignedTo: number | null) =>
-    apiClient.patch<TicketDetail>(`/tickets/${id}/assign`, { assignedTo }),
+  assignTicket: async (id: number, assignedTo: number | null) => {
+    const { data } = await apiClient.patch<TicketDetail>(`/tickets/${id}/assign`, { assignedTo })
+    return data
+  },
 
   /** Renter tạo ticket mới */
-  createMyTicket: (data: { roomId: number; contractId?: number; title: string; description: string; category: TicketCategory; priority: TicketPriority }) =>
-    apiClient.post<TicketDetail>('/tickets/me', data),
+  createMyTicket: async (payload: { roomId: number; contractId?: number; title: string; description: string; category: TicketCategory; priority: TicketPriority }) => {
+    const { data } = await apiClient.post<TicketDetail>('/tickets', payload)
+    return data
+  },
 }

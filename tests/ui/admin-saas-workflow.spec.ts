@@ -14,8 +14,8 @@ test.describe.serial('Admin and SaaS Workflow E2E (UI)', () => {
     adminDashboard: '/admin',
     adminLandlords: '/admin/chu-tro',
     adminPlans: '/admin/goi-dich-vu',
-    landlordSubscription: '/app/goi-dich-vu',
-    landlordCompare: '/app/goi-dich-vu/so-sanh'
+    landlordSubscription: '/goi-dich-vu',
+    landlordCompare: '/goi-dich-vu/so-sanh'
   };
 
   test('Admin: Quản trị Gói dịch vụ (SaaS) và Người dùng', async ({ browser }) => {
@@ -67,7 +67,7 @@ test.describe.serial('Admin and SaaS Workflow E2E (UI)', () => {
     await page.getByLabel(/email/i).fill(USERS.landlord.email);
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
-    await page.waitForURL(/.*\/(tai-khoan|app)/);
+    await page.waitForURL('/');
 
     // 2. Xem gói dịch vụ hiện tại
     await page.goto(ROUTES.landlordSubscription);

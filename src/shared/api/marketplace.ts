@@ -8,18 +8,90 @@ import type {
   CreateRentalRequestBody
 } from '@/features/marketplace/types'
 
+type DecimalValue = number | string | null
+
+interface MarketplaceRoomResponse {
+  id: number
+  title: string
+  roomCode: string
+  basePrice: DecimalValue
+  depositAmount?: DecimalValue
+  deposit?: DecimalValue
+  electricityPrice: DecimalValue
+  waterPrice: DecimalValue
+  area: DecimalValue
+  maxOccupants: number
+  status: string
+  marketplaceStatus: string
+  property: {
+    id: number
+    name: string
+    province: string
+    district: string
+    ward: string
+    type?: string
+    propertyType?: string
+  }
+  images?: MarketplaceRoom['images']
+  amenities?: Array<MarketplaceRoom['amenities'][number] | { amenity: MarketplaceRoom['amenities'][number] }>
+}
+
+function toNumber(value: DecimalValue | undefined, fallback = 0): number {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+function toNullableNumber(value: DecimalValue | undefined): number | null {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+/** Chuẩn hóa contract API (decimal string, quan hệ lồng nhau) thành model dùng trong UI. */
+export function normalizeMarketplaceRoom(room: MarketplaceRoomResponse): MarketplaceRoom {
+  return {
+    id: room.id,
+    title: room.title,
+    roomCode: room.roomCode,
+    basePrice: toNumber(room.basePrice),
+    depositAmount: toNullableNumber(room.depositAmount ?? room.deposit),
+    electricityPrice: toNullableNumber(room.electricityPrice),
+    waterPrice: toNullableNumber(room.waterPrice),
+    area: toNullableNumber(room.area),
+    maxOccupants: room.maxOccupants,
+    status: room.status,
+    marketplaceStatus: room.marketplaceStatus,
+    property: {
+      id: room.property.id,
+      name: room.property.name,
+      province: room.property.province,
+      district: room.property.district,
+      ward: room.property.ward,
+      type: room.property.type ?? room.property.propertyType ?? '',
+    },
+    images: room.images ?? [],
+    amenities: (room.amenities ?? []).map((item) => ('amenity' in item ? item.amenity : item)),
+  }
+}
+import type { ViewingScheduleDetail } from '@/types/viewing-schedule'
+
 // ─── API Functions ──────────────────────────────────────────────
 
 export const marketplaceApi = {
   listRooms: async (filters: MarketplaceFilters): Promise<PaginatedResponse<MarketplaceRoom>> => {
-    const { data } = await apiClient.get<PaginatedResponse<MarketplaceRoom>>('/marketplace/rooms', {
+    const { data } = await apiClient.get<PaginatedResponse<MarketplaceRoomResponse>>('/marketplace/rooms', {
       params: filters
     })
-    return data
+    return { ...data, data: data.data.map(normalizeMarketplaceRoom) }
   },
 
   getRoomById: async (id: number): Promise<MarketplaceRoom> => {
-    const { data } = await apiClient.get<MarketplaceRoom>(`/marketplace/rooms/${id}`)
+    const { data } = await apiClient.get<MarketplaceRoomResponse>(`/marketplace/rooms/${id}`)
+    return normalizeMarketplaceRoom(data)
+  },
+
+  getAppointmentById: async (id: number) => {
+    const { data } = await apiClient.get<ViewingScheduleDetail>(`/room-viewing-appointments/${id}`)
     return data
   },
 
@@ -41,6 +113,7 @@ export const marketplaceKeys = {
   rooms: () => [...marketplaceKeys.all, 'rooms'] as const,
   roomList: (filters: MarketplaceFilters) => [...marketplaceKeys.rooms(), filters] as const,
   roomDetail: (id: number) => [...marketplaceKeys.rooms(), id] as const,
+  appointmentDetail: (id: number) => [...marketplaceKeys.all, 'appointment', id] as const,
 }
 
 export function useMarketplaceRooms(filters: MarketplaceFilters = {}) {
@@ -54,7 +127,7 @@ export function useMarketplaceRoom(id: number) {
   return useQuery({
     queryKey: marketplaceKeys.roomDetail(id),
     queryFn: () => marketplaceApi.getRoomById(id),
-    enabled: !!id
+    enabled: Number.isInteger(id) && id > 0
   })
 }
 
@@ -67,5 +140,13 @@ export function useCreateViewing() {
 export function useCreateRentalRequest() {
   return useMutation({
     mutationFn: marketplaceApi.createRentalRequest
+  })
+}
+
+export function useViewingAppointment(id: number) {
+  return useQuery({
+    queryKey: marketplaceKeys.appointmentDetail(id),
+    queryFn: () => marketplaceApi.getAppointmentById(id),
+    enabled: !!id
   })
 }

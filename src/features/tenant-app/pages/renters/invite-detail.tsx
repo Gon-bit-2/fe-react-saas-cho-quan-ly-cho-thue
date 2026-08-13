@@ -1,37 +1,30 @@
-import React from 'react'
 import { useParams, Link } from 'react-router'
-import { ArrowLeft, Copy } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
+import { useRenterInvitation } from '@/shared/api/renters'
+
 export default function RenterInviteDetailPage() {
   const { id } = useParams()
+  const { data: invite, isLoading } = useRenterInvitation(id || '')
 
-  // Dữ liệu mẫu (thay bằng API)
-  const mockInvite = {
-    id,
-    fullName: 'Lê Văn C',
-    email: 'levanc@example.com',
-    status: 'PENDING', // PENDING, ACCEPTED, EXPIRED, CANCELLED
-    inviteLink: 'https://app.example.com/register?invite=abc-xyz',
-    createdAt: '2026-08-08T08:00:00Z',
-    expiresAt: '2026-08-15T08:00:00Z',
+  if (isLoading) {
+    return <div className="p-12 text-center text-slate-500">Đang tải dữ liệu...</div>
   }
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(mockInvite.inviteLink)
-    // Cần thêm toast thông báo ở đây
-    alert('Đã copy liên kết!')
+  if (!invite) {
+    return <div className="p-12 text-center text-slate-500">Không tìm thấy lời mời.</div>
   }
 
   const getStatusBadge = () => {
-    switch (mockInvite.status) {
+    switch (invite.status) {
       case 'ACCEPTED':
         return <Badge className="bg-green-100 text-green-700">Đã chấp nhận</Badge>
       case 'EXPIRED':
         return <Badge className="bg-slate-100 text-slate-700">Đã hết hạn</Badge>
-      case 'CANCELLED':
+      case 'CANCELED':
         return <Badge className="bg-red-100 text-red-700">Đã hủy</Badge>
       case 'PENDING':
       default:
@@ -44,7 +37,7 @@ export default function RenterInviteDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild className="shrink-0">
-          <Link to="/app/nguoi-thue">
+          <Link to="/nguoi-thue">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
@@ -54,10 +47,10 @@ export default function RenterInviteDetailPage() {
             {getStatusBadge()}
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Gửi tới: {mockInvite.email}
+            Gửi tới: {invite.email}
           </p>
         </div>
-        {mockInvite.status === 'PENDING' && (
+        {invite.status === 'PENDING' && (
           <div className="flex items-center gap-2">
             <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50">
               Hủy lời mời
@@ -68,24 +61,10 @@ export default function RenterInviteDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Liên kết đăng ký</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-slate-500 mb-4">
-              Người thuê có thể sử dụng liên kết dưới đây để tạo tài khoản và tự động tham gia vào hệ thống quản lý của bạn.
-            </p>
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-md p-2">
-              <code className="text-sm text-slate-700 flex-1 px-2 truncate overflow-hidden">
-                {mockInvite.inviteLink}
-              </code>
-              <Button size="sm" variant="outline" onClick={handleCopyLink} className="shrink-0">
-                <Copy className="h-4 w-4 mr-2" />
-                Copy
-              </Button>
-            </div>
-          </CardContent>
+        {/* Bỏ Link Invite vì API không còn trả về nữa */}
+        <Card className="md:col-span-2 flex flex-col justify-center items-center text-center p-8 bg-slate-50 border-dashed">
+            <p className="text-slate-500 mb-2">Lời mời đã được gửi đi qua email tới người dùng.</p>
+            <p className="text-sm text-slate-400">Người thuê sẽ nhận được email hướng dẫn và link đăng ký kèm theo.</p>
         </Card>
 
         <Card>
@@ -95,18 +74,18 @@ export default function RenterInviteDetailPage() {
           <CardContent className="space-y-4">
             <div>
               <div className="text-xs text-slate-500 mb-1">Người nhận</div>
-              <div className="text-sm font-medium text-slate-900">{mockInvite.fullName}</div>
+              <div className="text-sm font-medium text-slate-900">{invite.fullName}</div>
             </div>
             <div>
               <div className="text-xs text-slate-500 mb-1">Thời gian gửi</div>
               <div className="text-sm text-slate-900">
-                {new Date(mockInvite.createdAt).toLocaleString('vi-VN')}
+                {new Date(invite.createdAt).toLocaleString('vi-VN')}
               </div>
             </div>
             <div>
               <div className="text-xs text-slate-500 mb-1">Hết hạn vào</div>
               <div className="text-sm text-slate-900">
-                {new Date(mockInvite.expiresAt).toLocaleString('vi-VN')}
+                {new Date(invite.expiresAt).toLocaleString('vi-VN')}
               </div>
             </div>
           </CardContent>

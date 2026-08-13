@@ -50,7 +50,7 @@ export default function RenterDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild className="shrink-0">
-          <Link to="/app/nguoi-thue">
+          <Link to="/nguoi-thue">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>

@@ -1,6 +1,35 @@
 export type ContractStatus = 'DRAFT' | 'WAITING_LANDLORD_SIGN' | 'WAITING_RENTER_SIGN' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED' | 'CANCELED'
 export type ContractBillingCycle = 'MONTHLY' | 'QUARTERLY'
 
+export interface ContractMember {
+  id: number
+  userId: number
+  role: string
+  createdAt: string
+  user: {
+    id: number
+    fullName: string
+    email: string
+    phone: string
+  }
+}
+
+export interface ContractRoom {
+  id: number
+  roomCode: string
+  title: string
+  status: string
+  marketplaceStatus: string
+  maxOccupants: number
+}
+
+export interface ContractRenter {
+  id: number
+  fullName: string
+  email: string
+  phone?: string | null
+}
+
 export interface Contract {
   id: number
   roomId: number
@@ -18,6 +47,9 @@ export interface Contract {
   status: ContractStatus
   createdAt: string
   updatedAt: string
+  members?: ContractMember[]
+  room?: ContractRoom
+  renter?: ContractRenter
 }
 
 export interface ListContractsQuery {

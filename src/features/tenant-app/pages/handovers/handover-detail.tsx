@@ -17,7 +17,7 @@ export default function HandoverDetail() {
         <h1 className="text-2xl font-bold tracking-tight">Chi tiết bàn giao #{handover.id}</h1>
         {handover.status === 'DISPUTED' && (
           <Button variant="destructive" asChild>
-            <Link to={`/app/ban-giao/${handover.id}/tranh-chap`}>Xử lý tranh chấp</Link>
+            <Link to={`/ban-giao/${handover.id}/tranh-chap`}>Xử lý tranh chấp</Link>
           </Button>
         )}
       </div>

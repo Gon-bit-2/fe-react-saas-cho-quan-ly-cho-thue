@@ -1,10 +1,11 @@
-export enum TerminationRequestStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-  COMPLETED = 'COMPLETED',
-  CANCELED = 'CANCELED',
-}
+export const TerminationRequestStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  COMPLETED: 'COMPLETED',
+  CANCELED: 'CANCELED',
+} as const
+export type TerminationRequestStatus = (typeof TerminationRequestStatus)[keyof typeof TerminationRequestStatus]
 
 export interface ContractTerminationRequest {
   id: number

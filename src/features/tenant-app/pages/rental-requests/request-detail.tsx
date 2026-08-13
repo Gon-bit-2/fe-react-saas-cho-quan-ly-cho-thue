@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router'
+import { useRentalRequest, useUpdateRentalRequestDecision } from '@/shared/api/rental-requests'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -10,30 +11,27 @@ export function Component() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  // Mock data for UI demonstration
-  const request = {
-    id: Number(id),
-    status: 'PENDING' as RentalRequestStatus,
-    expectedStartDate: '2026-09-01T00:00:00Z',
-    message: 'Chào bạn, mình là sinh viên năm nhất trường Y, mong muốn được thuê phòng này dài hạn trong 2 năm. Mình có thể chuyển vào đầu tháng 9.',
-    createdAt: '2026-08-05T10:00:00Z',
-    room: {
-      code: 'P.201',
-      price: 3500000,
-      property: 'Tòa nhà Cầu Giấy',
-    },
-    renter: {
-      name: 'Nguyễn Văn A',
-      phone: '0987654321',
-      email: 'nguyenvana@example.com',
+  const { data: request, isLoading } = useRentalRequest(Number(id))
+  const { mutateAsync: updateDecision } = useUpdateRentalRequestDecision()
+
+  const handleAction = async (action: 'APPROVED' | 'REJECTED') => {
+    try {
+      await updateDecision({ id: Number(id), decision: action })
+      toast.success(`Đã xử lý yêu cầu: ${action}`)
+      setTimeout(() => {
+        navigate('/quan-ly-nha-tro/yeu-cau-thue')
+      }, 1000)
+    } catch {
+      toast.error('Có lỗi xảy ra khi xử lý yêu cầu.')
     }
   }
 
-  const handleAction = (action: string) => {
-    toast.success(`Đã xử lý yêu cầu: ${action}`)
-    setTimeout(() => {
-      navigate('/app/quan-ly-nha-tro/yeu-cau-thue')
-    }, 1000)
+  if (isLoading) {
+    return <div className="text-center py-12 text-slate-500">Đang tải thông tin...</div>
+  }
+
+  if (!request) {
+    return <div className="text-center py-12 text-slate-500">Không tìm thấy yêu cầu thuê.</div>
   }
 
   const getStatusBadge = (status: RentalRequestStatus) => {
@@ -56,7 +54,7 @@ export function Component() {
         </div>
         
         <div className="relative z-10">
-          <Button variant="ghost" size="sm" className="mb-4 text-slate-500 hover:text-slate-900 -ml-2" onClick={() => navigate('/app/quan-ly-nha-tro/yeu-cau-thue')}>
+          <Button variant="ghost" size="sm" className="mb-4 text-slate-500 hover:text-slate-900 -ml-2" onClick={() => navigate('/quan-ly-nha-tro/yeu-cau-thue')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại danh sách
           </Button>
           
@@ -98,7 +96,7 @@ export function Component() {
                 <div className="text-sm text-indigo-900/60 font-medium mb-1">Ngày mong muốn chuyển vào</div>
                 <div className="text-indigo-900 font-semibold flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  {new Date(request.expectedStartDate).toLocaleDateString('vi-VN')}
+                  {request.expectedStartDate ? new Date(request.expectedStartDate).toLocaleDateString('vi-VN') : 'Không rõ'}
                 </div>
               </div>
               
@@ -123,20 +121,20 @@ export function Component() {
                   <User className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="font-bold text-slate-900">{request.renter.name}</div>
+                  <div className="font-bold text-slate-900">Renter ID: {request.renterId}</div>
                   <div className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mt-1">
-                    Khách hàng mới
+                    Khách hàng
                   </div>
                 </div>
               </div>
               <div className="space-y-3 pt-2">
                 <div className="flex items-center text-sm text-slate-600">
                   <Phone className="w-4 h-4 mr-3 text-slate-400" />
-                  {request.renter.phone}
+                  -
                 </div>
                 <div className="flex items-center text-sm text-slate-600">
                   <Mail className="w-4 h-4 mr-3 text-slate-400" />
-                  {request.renter.email}
+                  -
                 </div>
               </div>
             </CardContent>
@@ -149,16 +147,16 @@ export function Component() {
             <CardContent className="p-6 space-y-4 bg-white">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500 text-sm flex items-center gap-2"><MapPin className="w-4 h-4" /> Cơ sở</span>
-                  <span className="font-semibold text-slate-900">{request.room.property}</span>
+                  <span className="text-slate-500 text-sm flex items-center gap-2"><MapPin className="w-4 h-4" /> Room ID</span>
+                  <span className="font-semibold text-slate-900">{request.roomId}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 text-sm flex items-center gap-2"><Info className="w-4 h-4" /> Mã phòng</span>
-                  <Badge variant="outline" className="font-bold text-indigo-700 bg-indigo-50 border-indigo-200">{request.room.code}</Badge>
+                  <Badge variant="outline" className="font-bold text-indigo-700 bg-indigo-50 border-indigo-200">{request.roomId}</Badge>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-slate-50">
-                  <span className="text-slate-500 text-sm">Giá đề xuất</span>
-                  <span className="font-bold text-emerald-600">{new Intl.NumberFormat('vi-VN').format(request.room.price)}đ</span>
+                  <span className="text-slate-500 text-sm">Property ID</span>
+                  <span className="font-bold text-emerald-600">{request.propertyId}</span>
                 </div>
               </div>
             </CardContent>

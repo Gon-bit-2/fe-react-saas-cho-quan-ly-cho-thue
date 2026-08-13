@@ -7,6 +7,7 @@ import { GoogleCallbackPage } from '@/app/router/google-callback'
 import { NotFoundPage } from '@/app/pages/not-found'
 import { ForbiddenPage } from '@/app/pages/forbidden'
 import { SessionExpiredPage } from '@/app/pages/session-expired'
+import { RouteErrorPage } from '@/app/providers/error-boundary'
 
 /**
  * Router chính — tạo MỘT lần ngoài React tree.
@@ -16,7 +17,7 @@ import { SessionExpiredPage } from '@/app/pages/session-expired'
  * - Guest auth: `/login`, `/login/otp`, `/register`, `/forgot-password`
  * - Google callback: `/auth/google/callback`
  * - Authenticated: `/tai-khoan/*`
- * - Tenant operations: `/app/*` (RequireAuth + RequireTenantContext)
+ * - Tenant operations: các route nghiệp vụ tại domain gốc (RequireAuth + RequireTenantContext)
  * - Platform admin: `/admin/*` (RequireAuth + RequireSystemRole ADMIN)
  * - Error pages: `/loi-truy-cap`, `/phien-het-han`
  * - Wildcard: `*` → 404
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
   // ─── Public Routes ──────────────────────────────────────
   {
     path: '/',
+    errorElement: <RouteErrorPage />,
     lazy: () => import('@/app/layouts/public-layout'),
     children: [
       {

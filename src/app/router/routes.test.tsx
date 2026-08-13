@@ -1,10 +1,25 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const readSource = (relativePath: string) =>
   readFileSync(new URL(relativePath, import.meta.url), 'utf8')
 
+const readSourceTree = (directory: string): string =>
+  readdirSync(directory, { withFileTypes: true })
+    .flatMap((entry) => {
+      const entryPath = join(directory, entry.name)
+      if (entry.isDirectory()) return readSourceTree(entryPath)
+      return /\.(ts|tsx)$/.test(entry.name) ? [readFileSync(entryPath, 'utf8')] : []
+    })
+    .join('\n')
+
 const routerSource = readSource('./routes.tsx')
+const runtimeSource = [
+  readSourceTree(join(process.cwd(), 'src', 'app')),
+  readSourceTree(join(process.cwd(), 'src', 'features')),
+  readSourceTree(join(process.cwd(), 'src', 'shared')),
+].join('\n')
 const navigationSource = [
   readSource('../layouts/tenant-layout.tsx'),
   readSource('../pages/session-expired.tsx'),
@@ -39,16 +54,21 @@ const canonicalRouteDefinitions = [
 
 const retiredNavigationPaths = [
   '/rooms',
-  '/app/contracts',
-  '/app/notifications',
-  '/app/packages',
+  '/contracts',
+  '/notifications',
+  '/packages',
   '/auth/login',
   '/403',
   '/admin/kiem-duyet-tin-phong',
-  '/app/rooms',
+  '/app/',
 ]
 
 describe('canonical navigation routes', () => {
+  it('does not register or navigate to the retired /app namespace', () => {
+    expect(routerSource).not.toContain("path: '/app'")
+    expect(runtimeSource).not.toMatch(/(?:to=|navigate\()\{?["'`]\/app(?:\/|["'`])/)
+  })
+
   it.each(canonicalRouteDefinitions)('registers %s', (routeDefinition) => {
     expect(routerSource).toContain(routeDefinition)
   })

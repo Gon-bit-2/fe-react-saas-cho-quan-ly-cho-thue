@@ -18,7 +18,7 @@ export const getMyInvoices = async (params?: InvoiceListParams): Promise<Invoice
   return response.data;
 };
 
-export const getDebts = async (params?: Record<string, unknown>): Promise<DebtListResponse> => {
+export const getDebts = async (params?: InvoiceListParams): Promise<DebtListResponse> => {
   const response = await apiClient.get<DebtListResponse>('/invoices/debts', { params });
   return response.data;
 };

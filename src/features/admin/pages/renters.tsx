@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -27,13 +27,13 @@ export const RentersPage = () => {
     const fetchRenters = async () => {
       try {
         const response = await adminRenterApi.getRenters()
-        if (response.data && response.data.length > 0) {
+        if (response.data) {
           setRenters(response.data)
         } else {
-          setRenters(getMockRenters())
+          setRenters([])
         }
       } catch (error) {
-        setRenters(getMockRenters())
+        setRenters([])
         console.error(error)
       } finally {
         setLoading(false)
@@ -224,36 +224,4 @@ export const RentersPage = () => {
       </Card>
     </div>
   )
-}
-
-function getMockRenters(): UserProfile[] {
-  return [
-    {
-      id: 101,
-      email: 'nguyen.vana@example.com',
-      fullName: 'Nguyễn Văn A',
-      status: 'ACTIVE',
-      tenantMembers: [],
-      createdAt: '2023-10-15T00:00:00Z',
-      updatedAt: '2023-10-15T00:00:00Z',
-    },
-    {
-      id: 102,
-      email: 'le.minhtuan@example.com',
-      fullName: 'Lê Minh Tuấn',
-      status: 'ACTIVE',
-      tenantMembers: [],
-      createdAt: '2023-10-15T00:00:00Z',
-      updatedAt: '2023-10-15T00:00:00Z',
-    },
-    {
-      id: 103,
-      email: 'hoang.kieu@example.com',
-      fullName: 'Hoàng Thị Kiều',
-      status: 'ACTIVE',
-      tenantMembers: [],
-      createdAt: '2023-10-15T00:00:00Z',
-      updatedAt: '2023-10-15T00:00:00Z',
-    },
-  ]
 }

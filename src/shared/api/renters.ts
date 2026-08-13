@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
-import type { Renter, ListRentersQuery, InviteRenterBody } from '@/types/renter'
+import type { Renter, RenterInvitation, ListRentersQuery, InviteRenterBody } from '@/types/renter'
 
 
 
@@ -11,6 +11,8 @@ const RENTER_KEYS = {
   list: (tenantId: string, params: ListRentersQuery) => [...RENTER_KEYS.lists(tenantId), params] as const,
   details: (tenantId: string) => [...RENTER_KEYS.all, 'detail', tenantId] as const,
   detail: (tenantId: string, id: number) => [...RENTER_KEYS.details(tenantId), id] as const,
+  roommates: (tenantId: string, renterId: number) => [...RENTER_KEYS.detail(tenantId, renterId), 'roommates'] as const,
+  invitationDetail: (tenantId: string, id: number | string) => [...RENTER_KEYS.all, 'invitation', tenantId, id] as const,
 }
 
 interface PaginatedResponse<T> {
@@ -60,8 +62,26 @@ export const useCreateRenterInvite = () => {
 
   return useMutation({
     mutationFn: async (payload: InviteRenterBody) => {
-      const { data } = await apiClient.post('/renters/invite', payload, { tenantId })
+      const { data } = await apiClient.post<RenterInvitation>('/renters/invitations', payload, { tenantId })
       return data
     }
+  })
+}
+
+export const getInvitation = async (tenantId: string, id: number | string) => {
+  const { data } = await apiClient.get<RenterInvitation>(`/renters/invitations/${id}`, {
+    tenantId,
+  })
+  return data
+}
+
+export const useRenterInvitation = (id: number | string) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+
+  return useQuery({
+    queryKey: RENTER_KEYS.invitationDetail(tenantId, id),
+    queryFn: () => getInvitation(tenantId, id),
+    enabled: !!tenantId && !!id,
   })
 }

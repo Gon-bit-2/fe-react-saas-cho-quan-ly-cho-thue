@@ -82,7 +82,7 @@ export function InvoiceDetailPage() {
       {/* Action Bar */}
       <div className="sticky top-[64px] z-30 bg-white/90 backdrop-blur-md px-8 py-4 flex items-center justify-between border-b border-slate-200">
         <div className="flex items-center gap-4">
-          <Link to="/app/hoa-don">
+          <Link to="/hoa-don">
             <Button variant="ghost" size="icon" className="rounded-full">
               <span className="material-symbols-outlined">arrow_back</span>
             </Button>

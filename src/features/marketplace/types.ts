@@ -3,23 +3,20 @@ export interface MarketplaceRoom {
   title: string
   roomCode: string
   basePrice: number
-  deposit: number | null
+  depositAmount: number | null
   electricityPrice: number | null
   waterPrice: number | null
-  area: number
+  area: number | null
   maxOccupants: number
   status: string
   marketplaceStatus: string
   property: {
     id: number
     name: string
-    address: string
     province: string
     district: string
     ward: string
-    propertyType: string
-    latitude: number | null
-    longitude: number | null
+    type: string
   }
   images: Array<{
     id: number

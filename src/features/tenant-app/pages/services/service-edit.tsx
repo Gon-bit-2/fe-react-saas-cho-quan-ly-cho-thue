@@ -22,6 +22,7 @@ function ServiceEditForm({ service }: { service: Service }) {
   const { mutateAsync: updateService, isPending } = useUpdateService(service.id)
   
   const [formData, setFormData] = useState({
+    code: service.code,
     name: service.name,
     price: service.price,
     unit: service.unit,
@@ -49,6 +50,15 @@ function ServiceEditForm({ service }: { service: Service }) {
             <CardTitle>Thông tin dịch vụ</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="code">Mã dịch vụ</Label>
+              <Input
+                id="code"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="name">Tên dịch vụ</Label>
               <Input 

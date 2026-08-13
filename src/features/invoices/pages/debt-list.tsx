@@ -4,11 +4,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { getInvoices } from '../api'
-import { InvoiceStatus, type Invoice, type InvoiceListParams } from '../types'
+import { getDebts } from '../api'
+import { InvoiceStatus, type Debt, type InvoiceListParams } from '../types'
 
 export function DebtListPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [debts, setDebts] = useState<Debt[]>([])
+  const [stats, setStats] = useState({
+    totalOutstanding: 0,
+    overdueMoreThan30Days: 0,
+    overdueWithin30Days: 0,
+    currentNotDue: 0,
+  })
   const [isLoading, setIsLoading] = useState(true)
   const [filters, setFilters] = useState<InvoiceListParams>({
     page: 1,
@@ -17,21 +23,21 @@ export function DebtListPage() {
   })
   const [total, setTotal] = useState(0)
 
-  // Mock stats
-  const stats = {
-    totalOutstanding: 124500000,
-    overdueMoreThan30: 45200000,
-    overdueLessThan30: 68300000,
-    currentNotDue: 11000000,
-  }
 
   useEffect(() => {
     const loadInvoices = async () => {
       setIsLoading(true)
       try {
-        const response = await getInvoices(filters)
-        // Filter out only debts in reality, here just use mock data
-        setInvoices(response.data.filter((invoice) => invoice.debtAmount > 0))
+        const response = await getDebts(filters)
+        setDebts(response.data)
+        if (response.stats) {
+          setStats({
+            totalOutstanding: response.stats.totalOutstanding || 0,
+            overdueMoreThan30Days: response.stats.overdueMoreThan30Days || 0,
+            overdueWithin30Days: response.stats.overdueWithin30Days || 0,
+            currentNotDue: response.stats.currentNotDue || 0,
+          })
+        }
         setTotal(response.meta.total)
       } catch (error) {
         console.error('Failed to load debts', error)
@@ -76,9 +82,9 @@ export function DebtListPage() {
           <div className="relative z-10 text-2xl font-bold text-slate-900 tabular-nums">
             {stats.totalOutstanding.toLocaleString()} ₫
           </div>
-          <div className="relative z-10 mt-2 flex items-center gap-1 text-red-600">
-            <span className="material-symbols-outlined text-[14px]">trending_up</span>
-            <span className="text-xs font-medium">+5.2% so với tháng trước</span>
+          <div className="relative z-10 mt-2 flex items-center gap-1 text-slate-500">
+            <span className="material-symbols-outlined text-[14px]">trending_flat</span>
+            <span className="text-xs font-medium">Chưa có dữ liệu</span>
           </div>
         </div>
 
@@ -92,10 +98,10 @@ export function DebtListPage() {
             <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Quá hạn &gt; 30 ngày</span>
           </div>
           <div className="relative z-10 text-2xl font-bold text-red-600 tabular-nums">
-            {stats.overdueMoreThan30.toLocaleString()} ₫
+            {stats.overdueMoreThan30Days.toLocaleString()} ₫
           </div>
           <div className="relative z-10 mt-2 flex items-center gap-1 text-slate-500">
-            <span className="text-xs font-medium">Từ 12 người thuê</span>
+            <span className="text-xs font-medium">Chưa có dữ liệu</span>
           </div>
         </div>
 
@@ -109,10 +115,10 @@ export function DebtListPage() {
             <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Quá hạn 1-30 ngày</span>
           </div>
           <div className="relative z-10 text-2xl font-bold text-amber-600 tabular-nums">
-            {stats.overdueLessThan30.toLocaleString()} ₫
+            {stats.overdueWithin30Days.toLocaleString()} ₫
           </div>
           <div className="relative z-10 mt-2 flex items-center gap-1 text-slate-500">
-            <span className="text-xs font-medium">Từ 24 người thuê</span>
+            <span className="text-xs font-medium">Chưa có dữ liệu</span>
           </div>
         </div>
 
@@ -131,7 +137,7 @@ export function DebtListPage() {
             {stats.currentNotDue.toLocaleString()} ₫
           </div>
           <div className="relative z-10 mt-2 flex items-center gap-1 text-slate-500">
-            <span className="text-xs font-medium">Từ 5 người thuê</span>
+            <span className="text-xs font-medium">Chưa có dữ liệu</span>
           </div>
         </div>
       </div>
@@ -209,20 +215,22 @@ export function DebtListPage() {
                     Đang tải dữ liệu...
                   </TableCell>
                 </TableRow>
-              ) : invoices.length === 0 ? (
+              ) : debts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="py-8 text-center text-slate-500">
                     Không có công nợ nào
                   </TableCell>
                 </TableRow>
               ) : (
-                invoices.map((invoice, index) => {
-                  const isOverdue = invoice.status === InvoiceStatus.OVERDUE
+                debts.map((debt, index) => {
+                  const invoice = debt.invoice
+                  if (!invoice) return null
+                  const isOverdue = debt.status === 'OVERDUE'
                   const isWarning = invoice.status === InvoiceStatus.UNPAID && index % 2 === 1 // mock logic
 
                   return (
                     <TableRow
-                      key={invoice.id}
+                      key={debt.id}
                       className={`group transition-colors hover:bg-slate-50/80 ${isOverdue ? 'bg-red-50/30' : isWarning ? 'bg-amber-50/30' : ''}`}
                     >
                       <TableCell className="py-3">
@@ -245,23 +253,23 @@ export function DebtListPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Link to={`/app/hoa-don/${invoice.id}`} className="text-primary font-medium hover:underline">
+                        <Link to={`/hoa-don/${invoice.id}`} className="text-primary font-medium hover:underline">
                           {invoice.invoiceCode}
                         </Link>
                       </TableCell>
                       <TableCell className="text-right text-slate-600 tabular-nums">
-                        {invoice.totalAmount.toLocaleString()} ₫
+                        {debt.originalAmount.toLocaleString()} ₫
                       </TableCell>
                       <TableCell className="text-right text-emerald-600 tabular-nums">
-                        {invoice.paidAmount.toLocaleString()} ₫
+                        {debt.paidAmount.toLocaleString()} ₫
                       </TableCell>
                       <TableCell
                         className={`text-right text-base font-bold tabular-nums ${isOverdue ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-slate-900'}`}
                       >
-                        {invoice.debtAmount.toLocaleString()} ₫
+                        {debt.remainingAmount.toLocaleString()} ₫
                       </TableCell>
                       <TableCell className="text-slate-600 tabular-nums">
-                        {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('vi-VN') : '-'}
+                        {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString('vi-VN') : '-'}
                       </TableCell>
                       <TableCell>
                         {isOverdue ? (
@@ -318,7 +326,7 @@ export function DebtListPage() {
         {/* Pagination */}
         <div className="mt-auto flex items-center justify-between border-t border-slate-200 bg-white px-6 py-4">
           <div className="text-sm text-slate-500">
-            Hiển thị {invoices.length > 0 ? (filters.page! - 1) * filters.limit! + 1 : 0} đến{' '}
+            Hiển thị {debts.length > 0 ? (filters.page! - 1) * filters.limit! + 1 : 0} đến{' '}
             {Math.min(filters.page! * filters.limit!, total)} trong số {total} mục
           </div>
           <div className="flex gap-1">

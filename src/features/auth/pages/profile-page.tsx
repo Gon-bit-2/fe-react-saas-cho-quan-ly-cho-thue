@@ -21,7 +21,7 @@ export function ProfilePage() {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const data = await profileApi.getProfile();
+        const { data } = await profileApi.getProfile();
         setProfile(data);
         setFormData(prev => ({
           ...prev,

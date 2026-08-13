@@ -7,8 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, Search, DoorOpen, Building2, MapPin } from 'lucide-react'
-import type { Room } from '@/types/room'
-import type { Property } from '@/features/tenant-app/types'
+import type { Property, Room } from '@/features/tenant-app/types'
 
 export function Component() {
   const navigate = useNavigate()
@@ -186,7 +185,7 @@ export function Component() {
                         variant="ghost" 
                         size="sm" 
                         className="opacity-0 group-hover:opacity-100 transition-opacity font-medium"
-                        onClick={() => navigate(`/app/quan-ly-phong/${room.id}/chi-tiet`)}
+                        onClick={() => navigate(`/quan-ly-phong/${room.id}/chi-tiet`)}
                       >
                         Chi tiết
                       </Button>

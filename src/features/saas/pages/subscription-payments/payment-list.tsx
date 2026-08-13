@@ -74,10 +74,10 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Tổng doanh thu</span>
             <span className="material-symbols-outlined text-[20px]">account_balance_wallet</span>
           </div>
-          <div className="font-display text-display text-on-surface">128.5M</div>
+          <div className="font-display text-display text-on-surface">0đ</div>
           <div className="font-body-md text-body-md text-status-info flex items-center gap-1">
-            <span className="material-symbols-outlined text-[16px]">trending_up</span>
-            <span>+12.5% so với tháng trước</span>
+            <span className="material-symbols-outlined text-[16px]">trending_flat</span>
+            <span>Chưa có dữ liệu</span>
           </div>
         </div>
         <div className="bg-surface flex flex-col gap-2 rounded-xl p-6 shadow-sm">
@@ -85,10 +85,10 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Giao dịch thành công</span>
             <span className="material-symbols-outlined text-[20px]">check_circle</span>
           </div>
-          <div className="font-display text-display text-on-surface">342</div>
+          <div className="font-display text-display text-on-surface">0</div>
           <div className="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
             <span className="material-symbols-outlined text-[16px]">schedule</span>
-            <span>Tháng hiện tại</span>
+            <span>Chưa có dữ liệu</span>
           </div>
         </div>
         <div className="bg-surface flex flex-col gap-2 rounded-xl p-6 shadow-sm">
@@ -96,9 +96,9 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Đang chờ xử lý</span>
             <span className="material-symbols-outlined text-[20px]">hourglass_empty</span>
           </div>
-          <div className="font-display text-display text-status-warning">15</div>
+          <div className="font-display text-display text-status-warning">0</div>
           <div className="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
-            <span>Cần kiểm tra lại</span>
+            <span>Chưa có dữ liệu</span>
           </div>
         </div>
         <div className="bg-surface flex flex-col gap-2 rounded-xl p-6 shadow-sm">
@@ -106,9 +106,9 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Tỷ lệ thành công</span>
             <span className="material-symbols-outlined text-[20px]">pie_chart</span>
           </div>
-          <div className="font-display text-display text-on-surface">98%</div>
+          <div className="font-display text-display text-on-surface">0%</div>
           <div className="bg-surface-container-high mt-2 h-2 w-full overflow-hidden rounded-full">
-            <div className="bg-status-info h-full rounded-full" style={{ width: '98%' }}></div>
+            <div className="bg-status-info h-full rounded-full" style={{ width: '0%' }}></div>
           </div>
         </div>
       </div>

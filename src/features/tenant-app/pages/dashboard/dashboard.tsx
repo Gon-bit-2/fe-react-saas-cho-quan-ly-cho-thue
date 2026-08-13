@@ -162,8 +162,8 @@ export function Component() {
                       width={60}
                     />
                     <Tooltip 
-                      formatter={(value: number) => [formatVND(value), 'Doanh thu']}
-                      labelFormatter={(label) => formatDate(label)}
+                      formatter={(value) => [formatVND(Number(value ?? 0)), 'Doanh thu']}
+                      labelFormatter={(label) => formatDate(String(label ?? ''))}
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: 'var(--color-surface-container-lowest)' }}
                     />
                     <Line 

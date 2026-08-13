@@ -34,7 +34,7 @@ export function PaymentReviewPage() {
     try {
       await approvePayment(id);
       setIsApproveOpen(false);
-      navigate(`/app/thanh-toan/${id}`);
+      navigate(`/thanh-toan/${id}`);
     } catch (error) {
       console.error(error);
     } finally {
@@ -46,7 +46,7 @@ export function PaymentReviewPage() {
     // Implement reject payment if API supports it
     console.log("Reject payment", id);
     setIsRejectOpen(false);
-    navigate(`/app/thanh-toan/${id}`);
+    navigate(`/thanh-toan/${id}`);
   };
 
   if (isLoading) {
@@ -64,7 +64,7 @@ export function PaymentReviewPage() {
         <div className="flex-1 flex flex-col gap-6">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <Link to={`/app/thanh-toan/${id}`}>
+              <Link to={`/thanh-toan/${id}`}>
                 <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-white">
                   <span className="material-symbols-outlined text-xl">arrow_back</span>
                 </Button>

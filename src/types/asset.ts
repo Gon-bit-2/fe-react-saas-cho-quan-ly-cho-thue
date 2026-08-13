@@ -1,21 +1,24 @@
-export enum AssetCondition {
-  NEW = 'NEW',
-  GOOD = 'GOOD',
-  NORMAL = 'NORMAL',
-  DAMAGED = 'DAMAGED',
-  LOST = 'LOST',
-}
+export const AssetCondition = {
+  NEW: 'NEW',
+  GOOD: 'GOOD',
+  NORMAL: 'NORMAL',
+  DAMAGED: 'DAMAGED',
+  LOST: 'LOST',
+} as const
+export type AssetCondition = (typeof AssetCondition)[keyof typeof AssetCondition]
 
-export enum HandoverType {
-  CHECKIN = 'CHECKIN',
-  CHECKOUT = 'CHECKOUT',
-}
+export const HandoverType = {
+  CHECKIN: 'CHECKIN',
+  CHECKOUT: 'CHECKOUT',
+} as const
+export type HandoverType = (typeof HandoverType)[keyof typeof HandoverType]
 
-export enum HandoverStatus {
-  DRAFT = 'DRAFT',
-  CONFIRMED = 'CONFIRMED',
-  DISPUTED = 'DISPUTED',
-}
+export const HandoverStatus = {
+  DRAFT: 'DRAFT',
+  CONFIRMED: 'CONFIRMED',
+  DISPUTED: 'DISPUTED',
+} as const
+export type HandoverStatus = (typeof HandoverStatus)[keyof typeof HandoverStatus]
 
 export interface AssetCategory {
   id: number

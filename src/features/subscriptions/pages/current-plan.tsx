@@ -1,56 +1,38 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { planApi } from '../api/plan.api'
 import type { Plan, Subscription } from '../api/plan.api'
+import { useAuth } from '@/shared/hooks/use-auth'
 
-// Mock data based on the design
-const mockSubscription: Subscription = {
-  id: 'sub_123',
-  tenantId: 'tenant_1',
-  planId: 'plan_pro',
-  status: 'ACTIVE',
-  billingCycle: 'YEARLY',
-  startDate: '2023-10-01',
-  endDate: '2024-09-30',
-  nextBillingDate: '2024-10-01',
-  autoRenew: true,
-  createdAt: '2023-10-01T00:00:00Z',
-  updatedAt: '2023-10-01T00:00:00Z',
-}
 
-const mockPlan: Plan = {
-  id: 'plan_pro',
-  name: 'Professional',
-  description: 'Gói dành cho nhà quản lý chuyên nghiệp',
-  price: 199,
-  billingCycle: 'YEARLY',
-  features: [
-    'Quản lý không giới hạn số lượng nhà trọ',
-    'Phân tích và báo cáo chuyên sâu',
-    'Cổng thông tin bảo trì & sự cố',
-    'Thanh toán tự động',
-  ],
-  maxProperties: 20,
-  maxUsers: 10,
-  storageLimitGb: 10,
-  isActive: true,
-  createdAt: '2023-01-01T00:00:00Z',
-  updatedAt: '2023-01-01T00:00:00Z',
-}
 
 export const CurrentPlanPage = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [plan, setPlan] = useState<Plan | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  const { selectedMembership } = useAuth()
+  const tenantId = Number(selectedMembership?.tenantId || 0)
+
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setSubscription(mockSubscription)
-      setPlan(mockPlan)
-      setIsLoading(false)
-    }, 500)
-  }, [])
+    if (!tenantId) return
+
+    const fetchData = async () => {
+      try {
+        const { data: sub } = await planApi.getCurrentSubscription(tenantId)
+        setSubscription(sub)
+        if (sub?.plan) {
+          setPlan(sub.plan)
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [tenantId])
 
   if (isLoading) {
     return <div className="flex items-center justify-center p-8">Đang tải thông tin gói...</div>
@@ -66,8 +48,8 @@ export const CurrentPlanPage = () => {
   const currentStaff = 5
 
   const propertyUsage = Math.min((currentProperties / plan.maxProperties) * 100, 100)
-  const storageUsage = Math.min((currentStorageGb / plan.storageLimitGb) * 100, 100)
-  const staffUsage = Math.min((currentStaff / plan.maxUsers) * 100, 100)
+  const storageUsage = plan.storageLimitGb ? Math.min((currentStorageGb / plan.storageLimitGb) * 100, 100) : 0
+  const staffUsage = plan.maxUsers ? Math.min((currentStaff / plan.maxUsers) * 100, 100) : 0
 
   return (
     <div className="flex flex-col gap-6">

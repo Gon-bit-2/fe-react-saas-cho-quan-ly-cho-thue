@@ -54,6 +54,7 @@ describe('Select Tenant Page', () => {
 
     const tenant1Btn = screen.getByRole('button', { name: /Test Tenant 1/i })
     await user.click(tenant1Btn)
+    await user.click(screen.getByRole('button', { name: /Tiếp tục/i }))
 
     expect(mockSelectTenant).toHaveBeenCalledWith(100)
   })

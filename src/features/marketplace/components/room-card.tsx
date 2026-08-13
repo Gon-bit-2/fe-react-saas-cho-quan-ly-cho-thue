@@ -100,7 +100,7 @@ export function RoomCard({ room, variant = 'default', badge = null }: RoomCardPr
         <div className="w-full md:w-1/2 p-6 flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-start mb-2">
-              <span className="font-label-sm text-primary uppercase tracking-wider">{room.property.propertyType?.replace('_', ' ') || ''}</span>
+              <span className="font-label-sm text-primary uppercase tracking-wider">{room.property.type.replaceAll('_', ' ')}</span>
               <span className="font-headline-sm text-primary">{formattedPrice}<span className="text-sm font-normal text-on-surface-variant">/tháng</span></span>
             </div>
             

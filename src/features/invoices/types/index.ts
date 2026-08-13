@@ -170,4 +170,10 @@ export interface DebtListResponse {
     total: number
     totalPages: number
   }
+  stats?: {
+    totalOutstanding: number
+    overdueMoreThan30Days: number
+    overdueWithin30Days: number
+    currentNotDue: number
+  }
 }

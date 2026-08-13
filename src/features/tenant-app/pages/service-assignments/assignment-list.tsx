@@ -15,7 +15,7 @@ export default function AssignmentList() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight">Danh sách dịch vụ đã gán</h1>
         <Button asChild>
-          <Link to="/app/dich-vu-da-gan/tao-moi">
+          <Link to="/dich-vu-da-gan/tao-moi">
             <Plus className="mr-2 h-4 w-4" /> Gán dịch vụ
           </Link>
         </Button>

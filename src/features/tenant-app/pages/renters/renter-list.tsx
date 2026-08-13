@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import {
   Table,
   TableBody,
@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useRenters } from '@/shared/api/renters'
+import type { RenterVerificationStatus } from '@/types/renter'
 
 const getStatusBadge = (status: RenterVerificationStatus) => {
   switch (status) {
@@ -78,7 +79,7 @@ export default function RenterListPage() {
         </div>
         <div className="flex items-center gap-3">
           <Button asChild>
-            <Link to="/app/nguoi-thue/loi-moi/tao">
+            <Link to="/nguoi-thue/loi-moi/tao">
               <Plus className="h-4 w-4 mr-2" />
               Gửi lời mời
             </Link>
@@ -170,10 +171,10 @@ export default function RenterListPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => navigate(`/app/nguoi-thue/${renter.id}`)}>
+                        <DropdownMenuItem onClick={() => navigate(`/nguoi-thue/${renter.id}`)}>
                           Xem chi tiết
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate(`/app/hop-dong/tao?renterId=${renter.id}`)}>
+                        <DropdownMenuItem onClick={() => navigate(`/hop-dong/tao?renterId=${renter.id}`)}>
                           Tạo hợp đồng
                         </DropdownMenuItem>
                       </DropdownMenuContent>

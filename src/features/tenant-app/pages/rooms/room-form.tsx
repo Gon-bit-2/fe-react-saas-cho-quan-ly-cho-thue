@@ -29,7 +29,8 @@ const roomFormSchema = z.object({
   marketplaceStatus: z.enum(['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'HIDDEN']),
 })
 
-type RoomFormValues = z.infer<typeof roomFormSchema>
+type RoomFormInput = z.input<typeof roomFormSchema>
+type RoomFormValues = z.output<typeof roomFormSchema>
 
 export function Component() {
   const { id } = useParams()
@@ -43,7 +44,7 @@ export function Component() {
   
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { register, handleSubmit, control, reset, formState: { errors } } = useForm<RoomFormValues>({
+  const { register, handleSubmit, control, reset, formState: { errors } } = useForm<RoomFormInput, unknown, RoomFormValues>({
     resolver: zodResolver(roomFormSchema),
     defaultValues: {
       propertyId: defaultPropertyId || '',

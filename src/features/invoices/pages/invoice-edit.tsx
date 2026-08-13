@@ -84,7 +84,7 @@ export function InvoiceEditPage() {
     setIsSubmitting(true);
     try {
       await updateDraftInvoice(id, data);
-      navigate('/app/hoa-don');
+      navigate('/hoa-don');
     } catch (error) {
       console.error('Failed to update invoice:', error);
     } finally {
@@ -100,7 +100,7 @@ export function InvoiceEditPage() {
       // eslint-disable-next-line react-hooks/incompatible-library
       await updateDraftInvoice(id, watch());
       await issueInvoice(id);
-      navigate('/app/hoa-don');
+      navigate('/hoa-don');
     } catch (error) {
       console.error('Failed to issue invoice:', error);
     } finally {

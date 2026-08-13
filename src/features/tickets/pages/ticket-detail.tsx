@@ -44,7 +44,7 @@ export function TicketDetailPage() {
     if (!ticket) return;
     try {
       const newComment = await ticketApi.createComment(ticket.id, content, isInternal);
-      setComments([...comments, newComment]);
+      setComments((current) => [...current, newComment]);
     } catch (error) {
       console.error('Failed to add comment', error);
     }
@@ -54,7 +54,7 @@ export function TicketDetailPage() {
     if (!ticket) return;
     try {
       if (data.status) {
-        await ticketApi.updateTicketStatus(ticket.id, data.status, data.note);
+        await ticketApi.updateTicketStatus(ticket.id, data.status);
       }
       if (data.assigneeId !== undefined) {
         await ticketApi.assignTicket(ticket.id, data.assigneeId);
@@ -115,7 +115,7 @@ export function TicketDetailPage() {
     <div className="flex flex-col w-full p-8 gap-6 max-w-[1440px] mx-auto bg-background min-h-[calc(100vh-64px)]">
       {/* Breadcrumb */}
       <div className="flex items-center text-sm text-slate-500 gap-2 font-medium">
-        <Link to="/app/ho-tro" className="hover:text-primary transition-colors">Hỗ trợ (Tickets)</Link>
+        <Link to="/ho-tro" className="hover:text-primary transition-colors">Hỗ trợ (Tickets)</Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
         <span className="text-slate-900 font-semibold">#{ticket.id}</span>
       </div>
@@ -151,17 +151,14 @@ export function TicketDetailPage() {
             </p>
           </div>
 
-          {/* Attachments Section - MOCK */}
+          {/* Attachments Section */}
           <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4 border border-slate-200">
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">attachment</span>
               Hình ảnh đính kèm ({ticket.attachmentCount || 0})
             </h2>
             {ticket.attachmentCount > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-slate-100 rounded-lg h-32 flex items-center justify-center text-slate-400">Hình ảnh 1</div>
-                <div className="bg-slate-100 rounded-lg h-32 flex items-center justify-center text-slate-400">Hình ảnh 2</div>
-              </div>
+              <div className="text-sm text-slate-500 italic">Tính năng xem ảnh đang phát triển.</div>
             ) : (
               <div className="text-sm text-slate-500 italic">Không có hình ảnh đính kèm.</div>
             )}
@@ -197,11 +194,11 @@ export function TicketDetailPage() {
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3 text-slate-600 hover:text-primary transition-colors cursor-pointer w-fit">
                 <span className="material-symbols-outlined text-[20px]">call</span>
-                <span className="text-sm">0901 234 567</span>
+                <span className="text-sm">{ticket.createdBy?.phone || 'Chưa cập nhật'}</span>
               </div>
               <div className="flex items-center gap-3 text-slate-600 hover:text-primary transition-colors cursor-pointer w-fit">
                 <span className="material-symbols-outlined text-[20px]">mail</span>
-                <span className="text-sm">user@email.com</span>
+                <span className="text-sm">{ticket.createdBy?.email || 'Chưa cập nhật'}</span>
               </div>
             </div>
           </div>
@@ -215,7 +212,7 @@ export function TicketDetailPage() {
             </div>
             <div className="h-[1px] w-full bg-slate-200 my-2"></div>
             {ticket.contractId && (
-              <Link to={`/app/hop-dong/${ticket.contractId}`} className="flex items-center justify-between group p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors">
+              <Link to={`/hop-dong/${ticket.contractId}`} className="flex items-center justify-between group p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-md">description</span>
                   <div className="flex flex-col">

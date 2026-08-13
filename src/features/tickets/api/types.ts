@@ -30,6 +30,8 @@ export interface TicketUser {
   id: number
   fullName: string
   avatarUrl?: string | null
+  email?: string
+  phone?: string | null
 }
 
 export interface TicketSummary {

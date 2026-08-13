@@ -111,7 +111,7 @@ export function Component() {
                         <Building2 className="h-6 w-6" />
                       </div>
                       <p className="font-body-md text-on-surface-variant">Không tìm thấy nhà trọ nào.</p>
-                      <Button variant="link" className="text-primary font-label-md" onClick={() => navigate('/app/khu-tro/tao-moi')}>
+                      <Button variant="link" className="text-primary font-label-md" onClick={() => navigate('/khu-tro/tao-moi')}>
                         Thêm nhà trọ mới
                       </Button>
                     </div>
@@ -129,7 +129,7 @@ export function Component() {
                         <div className="flex flex-col gap-1">
                           <div 
                             className="font-headline-sm text-on-surface group-hover:text-primary transition-colors cursor-pointer" 
-                            onClick={() => navigate(`/app/khu-tro/${property.id}`)}
+                            onClick={() => navigate(`/khu-tro/${property.id}`)}
                           >
                             {property.name}
                           </div>
@@ -163,7 +163,7 @@ export function Component() {
                         variant="ghost" 
                         size="sm" 
                         className="font-label-md text-primary hover:bg-primary/10 hover:text-primary rounded-lg"
-                        onClick={() => navigate(`/app/khu-tro/${property.id}`)}
+                        onClick={() => navigate(`/khu-tro/${property.id}`)}
                       >
                         Quản lý
                       </Button>

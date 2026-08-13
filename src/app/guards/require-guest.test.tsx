@@ -28,20 +28,20 @@ describe('RequireGuest Guard', () => {
     expect(screen.getByText('Guest Content')).toBeInTheDocument()
   })
 
-  it('redirects to /tai-khoan when authenticated', () => {
+  it('redirects to the home page when authenticated', () => {
     vi.mocked(useAuth).mockReturnValue({ state: 'authenticated' } as unknown as ReturnType<typeof useAuth>)
     renderWithProviders(
       <Routes>
         <Route path="/dang-nhap" element={<RequireGuest />}>
           <Route path="" element={<div>Login Page</div>} />
         </Route>
-        <Route path="/tai-khoan" element={<div>Account Page</div>} />
+        <Route path="/" element={<div>Home Page</div>} />
       </Routes>,
       { route: '/dang-nhap' }
     )
     
     // It should redirect and not show Login Page
     expect(screen.queryByText('Login Page')).not.toBeInTheDocument()
-    expect(screen.getByText('Account Page')).toBeInTheDocument()
+    expect(screen.getByText('Home Page')).toBeInTheDocument()
   })
 })

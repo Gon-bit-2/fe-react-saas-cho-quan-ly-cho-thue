@@ -50,12 +50,12 @@ export const planApi = {
     return apiClient.get<Plan[]>('/plans')
   },
   getCurrentSubscription: (tenantId: number) => {
-    return apiClient.get<Subscription>(`/tenants/${tenantId}/subscriptions/current`)
+    return apiClient.get<Subscription>(`/subscriptions/me`, { headers: { 'x-tenant-id': tenantId } })
   },
   checkoutPlan: (tenantId: number, data: { planId: number; billingCycle: string }) => {
-    return apiClient.post<{ checkoutUrl: string }>(`/tenants/${tenantId}/subscription-payments/checkout`, data)
+    return apiClient.post<{ checkoutUrl: string }>(`/subscriptions/checkout`, data, { headers: { 'x-tenant-id': tenantId } })
   },
   getPaymentHistory: (tenantId: number) => {
-    return apiClient.get<PaymentTransaction[]>(`/tenants/${tenantId}/subscription-payments`)
+    return apiClient.get<PaymentTransaction[]>(`/subscription-payments/me`, { headers: { 'x-tenant-id': tenantId } })
   },
 }

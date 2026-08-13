@@ -22,6 +22,62 @@ export interface RecentActivity {
   status: string
 }
 
+export interface ActionCenterRoom {
+  id: number
+  roomCode: string
+  title: string
+  property: { id: number; name: string }
+}
+
+interface ActionCenterPerson {
+  id: number
+  fullName: string
+}
+
+interface ActionCenterCollection<T> {
+  total: number
+  items: T[]
+}
+
+export interface ActionCenterResponse {
+  tenantId: number
+  pendingRequests: ActionCenterCollection<{
+    id: number
+    status: 'PENDING'
+    expectedStartDate: string
+    createdAt: string
+    renter: ActionCenterPerson
+    room: ActionCenterRoom
+  }>
+  expiringContracts: ActionCenterCollection<{
+    id: number
+    contractCode: string
+    status: 'ACTIVE'
+    endDate: string
+    renter: ActionCenterPerson
+    room: ActionCenterRoom
+  }>
+  unpaidInvoices: ActionCenterCollection<{
+    id: number
+    invoiceCode: string
+    status: 'UNPAID' | 'PARTIALLY_PAID' | 'OVERDUE'
+    dueDate: string
+    debtAmount: number
+    daysOverdue: number
+    renter: ActionCenterPerson
+    room: ActionCenterRoom
+  }>
+  openTickets: ActionCenterCollection<{
+    id: number
+    title: string
+    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+    status: 'OPEN' | 'IN_PROGRESS' | 'WAITING_RENTER'
+    createdAt: string
+    createdBy: ActionCenterPerson | null
+    room: ActionCenterRoom
+  }>
+}
+
 export interface Property {
   id: number
   name: string
@@ -38,16 +94,33 @@ export interface Property {
 
 export interface Room {
   id: number
+  tenantId?: number
   propertyId: number
+  floorId?: number | null
   roomCode: string
-  floor: number
-  area: number
+  title: string
+  floor?: number
+  area?: number | null
   basePrice: number
+  depositAmount?: number | null
+  electricityPrice?: number | null
+  waterPrice?: number | null
+  description?: string | null
   maxOccupants: number
-  status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE'
-  marketplaceStatus: 'UNPUBLISHED' | 'PUBLISHED'
+  status: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'MAINTENANCE' | 'INACTIVE'
+  marketplaceStatus: 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'REJECTED' | 'HIDDEN'
   createdAt: string
+  updatedAt: string
   property?: Property
+  amenities?: Array<{
+    amenity: {
+      id: number
+      name: string
+      icon?: string | null
+      category?: string
+      isActive?: boolean
+    }
+  }>
 }
 
 // Params

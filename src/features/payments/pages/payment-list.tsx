@@ -259,7 +259,7 @@ export function PaymentListPage() {
                     </TableCell>
                     <TableCell>
                       {payment.invoice ? (
-                        <Link to={`/app/hoa-don/${payment.invoice.id}`} className="text-primary hover:underline font-medium tabular-nums">
+                        <Link to={`/hoa-don/${payment.invoice.id}`} className="text-primary hover:underline font-medium tabular-nums">
                           {payment.invoice.invoiceCode}
                         </Link>
                       ) : (
@@ -294,7 +294,7 @@ export function PaymentListPage() {
                     <TableCell className="text-right">
                       {payment.status === PaymentStatus.PENDING ? (
                         <Button 
-                          onClick={() => navigate(`/app/thanh-toan/${payment.id}/duyet`)}
+                          onClick={() => navigate(`/thanh-toan/${payment.id}/duyet`)}
                           className="bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all h-8 px-3 text-xs"
                         >
                           Duyệt
@@ -302,7 +302,7 @@ export function PaymentListPage() {
                       ) : (
                         <Button 
                           variant="ghost" 
-                          onClick={() => navigate(`/app/thanh-toan/${payment.id}`)}
+                          onClick={() => navigate(`/thanh-toan/${payment.id}`)}
                           className="text-slate-500 hover:text-primary opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all h-8 px-3 text-xs"
                         >
                           Xem chi tiết

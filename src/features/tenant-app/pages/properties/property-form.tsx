@@ -18,6 +18,7 @@ import {
   DoorOpen,
   Wallet,
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function Component() {
   const { id } = useParams()

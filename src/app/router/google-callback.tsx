@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { apiClient } from '@/shared/api/axios-client'
 import { useAuth } from '@/shared/hooks/use-auth'
 import type { TokenPair, UserProfile } from '@/shared/types/auth'
+import { getPostLoginPath } from '@/shared/lib/auth-navigation'
 
 /**
  * Google OAuth callback handler.
@@ -45,10 +46,11 @@ export function GoogleCallbackPage() {
         })
 
         // Establish session
-        establishSession(tokenResponse.data, profileResponse.data)
+        const profile = profileResponse.data
+        establishSession(tokenResponse.data, profile)
 
         // Xóa sessionToken khỏi URL và redirect
-        navigate('/tai-khoan', { replace: true })
+        navigate(getPostLoginPath(profile), { replace: true })
       } catch {
         setError('Xác thực Google thất bại. Vui lòng thử lại.')
       }

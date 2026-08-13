@@ -11,8 +11,8 @@ test.describe.serial('Payment and Ticket Workflow E2E (UI)', () => {
 
   const ROUTES = {
     login: '/dang-nhap',
-    payments: '/app/thanh-toan',
-    tickets: '/app/ho-tro'
+    payments: '/thanh-toan',
+    tickets: '/ho-tro'
   };
 
   test('Tenant & Landlord: Báo cáo và Duyệt thanh toán thủ công', async ({ browser }) => {
@@ -26,7 +26,7 @@ test.describe.serial('Payment and Ticket Workflow E2E (UI)', () => {
     await tenantPage.getByLabel(/email/i).fill(USERS.tenant.email);
     await tenantPage.getByLabel(/mật khẩu|password/i).fill(USERS.tenant.pass);
     await tenantPage.getByRole('button', { name: /đăng nhập/i }).click();
-    await tenantPage.waitForURL(/.*\/(tai-khoan|app)/);
+    await tenantPage.waitForURL('/');
 
     // Vào danh sách thanh toán / hóa đơn
     await tenantPage.goto(ROUTES.payments);
@@ -57,7 +57,7 @@ test.describe.serial('Payment and Ticket Workflow E2E (UI)', () => {
     await landlordPage.getByLabel(/email/i).fill(USERS.landlord.email);
     await landlordPage.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await landlordPage.getByRole('button', { name: /đăng nhập/i }).click();
-    await landlordPage.waitForURL(/.*\/(tai-khoan|app)/);
+    await landlordPage.waitForURL('/');
 
     await landlordPage.goto(ROUTES.payments);
     
@@ -84,7 +84,7 @@ test.describe.serial('Payment and Ticket Workflow E2E (UI)', () => {
     await tenantPage.getByLabel(/email/i).fill(USERS.tenant.email);
     await tenantPage.getByLabel(/mật khẩu|password/i).fill(USERS.tenant.pass);
     await tenantPage.getByRole('button', { name: /đăng nhập/i }).click();
-    await tenantPage.waitForURL(/.*\/(tai-khoan|app)/);
+    await tenantPage.waitForURL('/');
 
     // Vào mục Hỗ trợ
     await tenantPage.goto(ROUTES.tickets);
@@ -113,7 +113,7 @@ test.describe.serial('Payment and Ticket Workflow E2E (UI)', () => {
     await landlordPage.getByLabel(/email/i).fill(USERS.landlord.email);
     await landlordPage.getByLabel(/mật khẩu|password/i).fill(USERS.landlord.pass);
     await landlordPage.getByRole('button', { name: /đăng nhập/i }).click();
-    await landlordPage.waitForURL(/.*\/(tai-khoan|app)/);
+    await landlordPage.waitForURL('/');
 
     await landlordPage.goto(ROUTES.tickets);
     

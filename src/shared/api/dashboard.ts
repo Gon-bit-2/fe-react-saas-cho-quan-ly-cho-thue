@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
-import type { DashboardSummary, RevenueTrend, RecentActivity } from '@/features/tenant-app/types'
+import type { ActionCenterResponse, DashboardSummary, RevenueTrend, RecentActivity } from '@/features/tenant-app/types'
 import { useAuth } from '../hooks/use-auth'
 
 const DASHBOARD_KEYS = {
@@ -10,6 +10,7 @@ const DASHBOARD_KEYS = {
     [...DASHBOARD_KEYS.all, 'revenue-trend', tenantId, params] as const,
   recentActivity: (tenantId: string, limit: number) =>
     [...DASHBOARD_KEYS.all, 'recent-activity', tenantId, limit] as const,
+  actionCenter: (tenantId: string) => [...DASHBOARD_KEYS.all, 'action-center', tenantId] as const,
 }
 
 
@@ -92,6 +93,22 @@ export const useRecentActivity = (limit = 10) => {
       })) as RecentActivity[]
 
       return items
+    },
+    enabled: !!tenantId,
+  })
+}
+
+export const useActionCenter = () => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+
+  return useQuery({
+    queryKey: DASHBOARD_KEYS.actionCenter(tenantId),
+    queryFn: async () => {
+      const { data } = await apiClient.get<ActionCenterResponse>('/dashboard/action-center', {
+        tenantId,
+      })
+      return data
     },
     enabled: !!tenantId,
   })

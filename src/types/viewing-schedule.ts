@@ -19,3 +19,33 @@ export interface ViewingSchedule {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ViewingScheduleDetail extends Omit<ViewingSchedule, 'scheduledAt'> {
+  scheduledAt: string;
+  note?: string | null;
+  room: {
+    id: number;
+    roomCode: string;
+    title: string;
+    basePrice: number;
+    depositAmount: number;
+    property: {
+      id: number;
+      name: string;
+      addressDetail: string;
+      ward: string;
+      district: string;
+      province: string;
+    };
+  };
+  renter: {
+    id: number;
+    fullName: string;
+    email?: string;
+    phone?: string | null;
+  };
+  assignedStaff?: {
+    id: number;
+    fullName: string;
+  } | null;
+}

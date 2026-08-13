@@ -8,6 +8,7 @@ import { useAuth } from '@/shared/hooks/use-auth'
 import { apiClient } from '@/shared/api/axios-client'
 import type { UserProfile } from '@/shared/types/auth'
 import { toAppError } from '@/shared/lib/errors'
+import { getPostLoginPath } from '@/shared/lib/auth-navigation'
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email là bắt buộc').email('Email không hợp lệ'),
@@ -66,11 +67,12 @@ export function Component() {
           },
         })
 
+        const profile = profileResponse.data
         establishSession(
           { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! },
-          profileResponse.data
+          profile,
         )
-        navigate('/')
+        navigate(getPostLoginPath(profile), { replace: true })
       }
     } catch (err) {
       const appErr = toAppError(err)

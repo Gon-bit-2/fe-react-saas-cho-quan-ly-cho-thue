@@ -28,11 +28,11 @@ test.describe('Authentication Workflow', () => {
     // Bấm nút đăng nhập
     await page.getByRole('button', { name: /đăng nhập/i }).click();
 
-    // Sau khi đăng nhập Landlord thường sẽ được chuyển đến /tai-khoan hoặc /app
+    // Sau khi đăng nhập thành công, người dùng được chuyển về trang chủ
     // Cần đợi URL thay đổi để xác nhận đăng nhập thành công
-    await page.waitForURL(/.*\/(tai-khoan|app)/, { timeout: 10000 });
+    await page.waitForURL('/', { timeout: 10000 });
     
     // Xác nhận đã vào trang bên trong
-    await expect(page.url()).toMatch(/.*\/(tai-khoan|app)/);
+    await expect(page).toHaveURL('/');
   });
 });

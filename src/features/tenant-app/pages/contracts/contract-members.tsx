@@ -40,7 +40,7 @@ export default function ContractMembersPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild className="shrink-0">
-          <Link to={`/app/hop-dong/${id}`}>
+          <Link to={`/hop-dong/${id}`}>
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
