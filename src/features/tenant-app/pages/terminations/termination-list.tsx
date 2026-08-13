@@ -71,7 +71,7 @@ function ApproveButton({ id, onApprove }: { id: number, onApprove: () => void })
   
   const handleApprove = async () => {
     try {
-      await approve()
+      await approve(undefined)
       onApprove()
     } catch (e) {
       console.error(e)

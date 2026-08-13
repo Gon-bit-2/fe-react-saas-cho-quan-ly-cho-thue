@@ -83,7 +83,7 @@ export function Component() {
               </div>
               <p className="font-body-md text-on-surface-variant mt-0.5 flex items-center gap-1.5">
                 <MapPin className="text-tertiary h-4 w-4 shrink-0" />
-                {property.address}, {property.ward}, {property.district}, {property.province}
+                {property.addressDetail}, {property.ward}, {property.district}, {property.province}
               </p>
             </div>
           </div>
@@ -115,7 +115,7 @@ export function Component() {
           </div>
           <div>
             <div className="font-label-sm text-on-surface-variant mb-1 tracking-wider uppercase">Tổng phòng</div>
-            <div className="font-display text-on-surface text-2xl font-bold">{property.roomsCount}</div>
+            <div className="font-display text-on-surface text-2xl font-bold">{property._count?.rooms || 0}</div>
           </div>
         </Card>
 
@@ -136,7 +136,7 @@ export function Component() {
           <div>
             <div className="font-label-sm text-on-surface-variant mb-1 tracking-wider uppercase">Người thuê</div>
             <div className="font-display text-on-surface text-2xl font-bold">
-              {property.roomsCount - availableRoomsCount}
+              {(property._count?.rooms || 0) - availableRoomsCount}
             </div>
           </div>
         </Card>

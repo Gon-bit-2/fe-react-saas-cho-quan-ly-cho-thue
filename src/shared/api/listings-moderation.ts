@@ -30,14 +30,17 @@ interface RawAdminRoom {
 
 export const listingsModerationApi = {
   list: async (params?: IListingsModerationQueryDTO) => {
-    const { data } = await apiClient.get<{ data: RawAdminRoom[]; meta: { total?: number; totalItems?: number } }>('/marketplace/admin/rooms', { params })
+    const { data } = await apiClient.get<{ data: RawAdminRoom[]; meta: { total?: number; totalItems?: number } }>(
+      '/marketplace/admin/rooms',
+      { params },
+    )
     const mapped = (data.data || []).map((r: RawAdminRoom) => ({
       id: r.id.toString(),
       roomName: r.title,
       tenantName: r.property?.name || 'N/A',
       submittedAt: r.updatedAt || r.createdAt || new Date().toISOString(),
       status: r.marketplaceStatus,
-      image: r.images?.[0]?.url || undefined
+      image: r.images?.[0]?.url || undefined,
     }))
     return { data: mapped, total: data.meta?.total || data.meta?.totalItems || 0 }
   },
@@ -50,7 +53,10 @@ export const listingsModerationApi = {
     return data?.data || []
   },
   updateStatus: async (id: string, payload: { status: TListingModerationStatus; note?: string }) => {
-    const { data } = await apiClient.patch(`/marketplace/admin/rooms/${id}/status`, { marketplaceStatus: payload.status, note: payload.note })
+    const { data } = await apiClient.patch(`/marketplace/admin/rooms/${id}/status`, {
+      marketplaceStatus: payload.status,
+      note: payload.note,
+    })
     return data
-  }
+  },
 }

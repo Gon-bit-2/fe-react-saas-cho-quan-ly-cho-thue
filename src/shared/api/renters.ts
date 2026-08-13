@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
-import type { Renter, RenterInvitation, ListRentersQuery, InviteRenterBody, UpdateRenterBody } from '@/types/renter'
+import type { Renter, RenterInvitation, ListRentersQuery, InviteRenterBody, UpdateRenterForLandlordBody } from '@/types/renter'
 
 const RENTER_KEYS = {
   all: ['renters'] as const,
@@ -77,7 +77,7 @@ export const useUpdateRenter = (id: number) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (payload: UpdateRenterBody) => {
+    mutationFn: async (payload: UpdateRenterForLandlordBody) => {
       const { data } = await apiClient.patch<Renter>(`/renters/${id}`, payload, { tenantId })
       return data
     },

@@ -94,6 +94,15 @@ export interface Property {
   createdAt: string
 }
 
+export interface Floor {
+  id: number
+  tenantId: number
+  propertyId: number
+  name: string
+  floorNumber: number
+  createdAt: string
+}
+
 export interface Room {
   id: number
   tenantId?: number
@@ -122,6 +131,13 @@ export interface Room {
       category?: string
       isActive?: boolean
     }
+  }>
+  images?: Array<{
+    id: number
+    url: string
+    caption?: string | null
+    sortOrder: number
+    isThumbnail: boolean
   }>
 }
 

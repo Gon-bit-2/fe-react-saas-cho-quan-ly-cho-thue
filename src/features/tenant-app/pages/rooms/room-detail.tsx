@@ -1,6 +1,7 @@
+import { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Edit, FileText, Image as ImageIcon, MapPin, Zap, Send } from 'lucide-react'
-import { useRoom, useUpdateRoomMarketplace } from '@/shared/api/properties'
+import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Edit, FileText, Image as ImageIcon, MapPin, Zap, Send, Trash2, Star, Loader2 } from 'lucide-react'
+import { useRoom, useUpdateRoomMarketplace, useUploadRoomImages, useDeleteRoomImage, useUpdateRoomImage } from '@/shared/api/properties'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -12,6 +13,24 @@ export function Component() {
   const navigate = useNavigate()
   const { data: room, isLoading } = useRoom(Number(id))
   const updateMarketplace = useUpdateRoomMarketplace(Number(id))
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadImages = useUploadRoomImages(Number(id))
+  const deleteImage = useDeleteRoomImage(Number(id))
+  const updateImage = useUpdateRoomImage(Number(id))
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return
+    const files = Array.from(e.target.files)
+    try {
+      await uploadImages.mutateAsync(files)
+      toast.success('Tải ảnh lên thành công!')
+    } catch {
+      toast.error('Có lỗi xảy ra khi tải ảnh!')
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   if (isLoading) {
     return (
@@ -178,16 +197,75 @@ export function Component() {
                 <CardTitle className="text-lg text-slate-800">Thư viện ảnh</CardTitle>
                 <CardDescription>Quản lý hình ảnh thực tế của phòng</CardDescription>
               </div>
-              <Button variant="outline" size="sm">
-                <ImageIcon className="mr-2 h-4 w-4" /> Thêm ảnh mới
+              <input
+                type="file"
+                ref={fileInputRef}
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadImages.isPending}
+              >
+                {uploadImages.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <ImageIcon className="mr-2 h-4 w-4" /> 
+                )}
+                Thêm ảnh mới
               </Button>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-slate-400">
-                <ImageIcon className="mb-3 h-12 w-12 text-slate-300" />
-                <p className="font-medium text-slate-600">Chưa có hình ảnh nào</p>
-                <p className="text-sm">Bấm "Thêm ảnh mới" để tải lên hình ảnh cho phòng này.</p>
-              </div>
+              {!room.images?.length ? (
+                <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-slate-400">
+                  <ImageIcon className="mb-3 h-12 w-12 text-slate-300" />
+                  <p className="font-medium text-slate-600">Chưa có hình ảnh nào</p>
+                  <p className="text-sm">Bấm "Thêm ảnh mới" để tải lên hình ảnh cho phòng này.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
+                  {room.images.map((img) => (
+                    <div key={img.id} className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                      <img src={img.url} alt={img.caption || 'Room image'} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      
+                      {/* Top badges */}
+                      {img.isThumbnail && (
+                        <div className="absolute top-2 left-2 rounded-md bg-emerald-500 px-2 py-1 text-xs font-medium text-white shadow-sm">
+                          Ảnh bìa
+                        </div>
+                      )}
+                      
+                      {/* Overlay actions */}
+                      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-slate-900/40 opacity-0 transition-opacity group-hover:opacity-100">
+                        {!img.isThumbnail && (
+                          <Button 
+                            variant="secondary" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-full bg-white/90 hover:bg-white text-slate-700 hover:text-emerald-600"
+                            title="Đặt làm ảnh bìa"
+                            onClick={() => updateImage.mutate({ imageId: img.id, data: { isThumbnail: true } })}
+                          >
+                            <Star className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button 
+                          variant="destructive" 
+                          size="icon" 
+                          className="h-8 w-8 rounded-full"
+                          title="Xóa ảnh"
+                          onClick={() => deleteImage.mutate(img.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

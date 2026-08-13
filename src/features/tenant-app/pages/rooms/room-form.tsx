@@ -3,14 +3,14 @@ import { useParams, useNavigate, useSearchParams } from 'react-router'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useRoom, useProperties, useCreateRoom, useUpdateRoom } from '@/shared/api/properties'
+import { useRoom, useProperties, useCreateRoom, useUpdateRoom, useFloors } from '@/shared/api/properties'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ArrowLeft, Save, Building2, MapPin, Loader2 } from 'lucide-react'
-import type { Property, CreateRoomDto, UpdateRoomDto } from '@/features/tenant-app/types'
+import type { Property, CreateRoomDto, UpdateRoomDto, Floor } from '@/features/tenant-app/types'
 import { toast } from 'sonner'
 
 const roomFormSchema = z.object({
@@ -50,13 +50,14 @@ export function Component() {
     handleSubmit,
     control,
     reset,
+    watch,
     formState: { errors },
   } = useForm<RoomFormInput, unknown, RoomFormValues>({
     resolver: zodResolver(roomFormSchema),
     defaultValues: {
       propertyId: defaultPropertyId || '',
       roomCode: '',
-      floorId: '',
+      floorId: 'none',
       title: '',
       area: 0,
       maxOccupants: 1,
@@ -70,12 +71,16 @@ export function Component() {
     },
   })
 
+  const selectedPropertyId = watch('propertyId')
+  const { data: floorsData } = useFloors(selectedPropertyId)
+  const floors = floorsData || []
+
   useEffect(() => {
     if (initialData) {
       reset({
         propertyId: initialData.propertyId?.toString() || '',
         roomCode: initialData.roomCode || '',
-        floorId: initialData.floorId?.toString() || '',
+        floorId: initialData.floorId?.toString() || 'none',
         title: initialData.title || '',
         area: initialData.area || 0,
         maxOccupants: initialData.maxOccupants || 1,
@@ -92,7 +97,7 @@ export function Component() {
 
   const onSubmit = async (data: RoomFormValues) => {
     try {
-      const floorId = data.floorId ? Number(data.floorId) : undefined
+      const floorId = data.floorId && data.floorId !== 'none' ? Number(data.floorId) : undefined
 
       if (isEditing) {
         const updatePayload: UpdateRoomDto = {
@@ -243,12 +248,24 @@ export function Component() {
                 <Label htmlFor="floorId" className="font-medium text-slate-700">
                   Tầng số (Tùy chọn)
                 </Label>
-                <Input
-                  {...register('floorId')}
-                  id="floorId"
-                  type="number"
-                  placeholder="VD: 1, 2, 3"
-                  className="border-slate-200 bg-slate-50 focus-visible:ring-indigo-500"
+                <Controller
+                  name="floorId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="border-slate-200 bg-slate-50">
+                        <SelectValue placeholder="Chọn tầng (Tùy chọn)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">-- Không chọn --</SelectItem>
+                        {floors.map((f: Floor) => (
+                          <SelectItem key={f.id} value={f.id.toString()}>
+                            {f.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
               </div>
             </div>
@@ -333,7 +350,7 @@ export function Component() {
             <CardTitle className="text-xl text-slate-800">Cấu hình trạng thái</CardTitle>
             <CardDescription>Trạng thái vật lý và trạng thái hiển thị trên marketplace</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-6 bg-white p-6 md:grid-cols-2">
+          <CardContent className="grid grid-cols-1 gap-6 bg-white p-6">
             <div className="space-y-2.5">
               <Label className="font-medium text-slate-700">Trạng thái phòng</Label>
               <Controller
@@ -350,26 +367,6 @@ export function Component() {
                       <SelectItem value="RESERVED">Đã được đặt (Cọc)</SelectItem>
                       <SelectItem value="MAINTENANCE">Đang bảo trì/Sửa chữa</SelectItem>
                       <SelectItem value="INACTIVE">Ngưng hoạt động</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-            <div className="space-y-2.5">
-              <Label className="font-medium text-slate-700">Trạng thái Marketplace</Label>
-              <Controller
-                name="marketplaceStatus"
-                control={control}
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="border-slate-200 bg-slate-50">
-                      <SelectValue placeholder="Đăng tin?" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="DRAFT">Chưa đăng (Nháp)</SelectItem>
-                      <SelectItem value="PENDING_REVIEW">Đang chờ duyệt</SelectItem>
-                      <SelectItem value="PUBLISHED">Đã đăng (Published)</SelectItem>
-                      <SelectItem value="HIDDEN">Đã ẩn</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

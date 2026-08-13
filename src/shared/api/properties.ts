@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
-import type { Property, Room, PropertyListParams, RoomListParams, PaginatedResponse, CreatePropertyDto, UpdatePropertyDto, CreateRoomDto, UpdateRoomDto } from '@/features/tenant-app/types'
+import type { Property, Room, PropertyListParams, RoomListParams, PaginatedResponse, CreatePropertyDto, UpdatePropertyDto, CreateRoomDto, UpdateRoomDto, Floor } from '@/features/tenant-app/types'
 import { useAuth } from '../hooks/use-auth'
 
 const PROPERTY_KEYS = {
@@ -9,6 +9,7 @@ const PROPERTY_KEYS = {
   list: (tenantId: string, params: PropertyListParams) => [...PROPERTY_KEYS.lists(tenantId), params] as const,
   details: (tenantId: string) => [...PROPERTY_KEYS.all, 'detail', tenantId] as const,
   detail: (tenantId: string, id: number) => [...PROPERTY_KEYS.details(tenantId), id] as const,
+  floors: (tenantId: string, id: number) => [...PROPERTY_KEYS.detail(tenantId, id), 'floors'] as const,
 }
 
 const ROOM_KEYS = {
@@ -48,6 +49,21 @@ export const useProperty = (id: number) => {
       return data
     },
     enabled: !!tenantId && !!id,
+  })
+}
+
+export const useFloors = (propertyId: number | string) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const numericId = Number(propertyId)
+
+  return useQuery({
+    queryKey: PROPERTY_KEYS.floors(tenantId, numericId),
+    queryFn: async () => {
+      const { data } = await apiClient.get<Floor[]>(`/properties/${numericId}/floors`, { tenantId })
+      return data
+    },
+    enabled: !!tenantId && !!numericId && !isNaN(numericId),
   })
 }
 
@@ -162,6 +178,59 @@ export const useUpdateRoomMarketplace = (id: number) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ROOM_KEYS.detail(tenantId, id) })
       queryClient.invalidateQueries({ queryKey: ROOM_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useUploadRoomImages = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (files: File[]) => {
+      const formData = new FormData()
+      files.forEach((file) => formData.append('files', file))
+
+      const response = await apiClient.post<Room>(`/rooms/${id}/images`, formData, {
+        tenantId,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ROOM_KEYS.detail(tenantId, id) })
+    },
+  })
+}
+
+export const useDeleteRoomImage = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (imageId: number) => {
+      await apiClient.delete(`/rooms/${id}/images/${imageId}`, { tenantId })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ROOM_KEYS.detail(tenantId, id) })
+    },
+  })
+}
+
+export const useUpdateRoomImage = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ imageId, data }: { imageId: number; data: { isThumbnail?: boolean; caption?: string } }) => {
+      const response = await apiClient.patch(`/rooms/${id}/images/${imageId}`, data, { tenantId })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ROOM_KEYS.detail(tenantId, id) })
     },
   })
 }

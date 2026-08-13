@@ -38,6 +38,7 @@ export function Component() {
       district: formData.get('district') as string,
       ward: formData.get('ward') as string,
       addressDetail: (formData.get('addressDetail') || formData.get('address')) as string,
+      floorsCount: formData.get('floorsCount') ? Number(formData.get('floorsCount')) : undefined,
     }
 
     try {
@@ -170,6 +171,21 @@ export function Component() {
                       <SelectItem value="CLOSED">Đóng cửa</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="floorsCount" className="font-label-md text-on-surface">
+                    Số lượng tầng (Tùy chọn)
+                  </Label>
+                  <Input
+                    id="floorsCount"
+                    name="floorsCount"
+                    type="number"
+                    defaultValue={initialData?._count?.floors}
+                    placeholder="VD: 3"
+                    min={1}
+                    max={50}
+                    className="bg-surface border-surface-border focus-visible:ring-primary/20 focus-visible:border-primary h-11 rounded-xl"
+                  />
                 </div>
               </div>
             </CardContent>

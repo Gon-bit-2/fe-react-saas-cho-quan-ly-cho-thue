@@ -84,8 +84,12 @@ export const useApproveTermination = (id: number) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ reviewNote }: { reviewNote: string }) => {
-      const { data } = await apiClient.patch<ContractTerminationRequest>(`/contract-terminations/${id}/approve`, { reviewNote }, { tenantId })
+    mutationFn: async (payload?: { reviewNote?: string }) => {
+      const { data } = await apiClient.patch<ContractTerminationRequest>(
+        `/contract-terminations/${id}/approve`,
+        payload || {},
+        { tenantId },
+      )
       return data
     },
     onSuccess: () => {
@@ -101,8 +105,12 @@ export const useRejectTermination = (id: number) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ reviewNote }: { reviewNote: string }) => {
-      const { data } = await apiClient.patch<ContractTerminationRequest>(`/contract-terminations/${id}/reject`, { reviewNote }, { tenantId })
+    mutationFn: async (payload?: { reviewNote?: string }) => {
+      const { data } = await apiClient.patch<ContractTerminationRequest>(
+        `/contract-terminations/${id}/reject`,
+        payload || {},
+        { tenantId },
+      )
       return data
     },
     onSuccess: () => {

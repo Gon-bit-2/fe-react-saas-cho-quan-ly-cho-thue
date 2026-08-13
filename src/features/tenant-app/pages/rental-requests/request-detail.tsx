@@ -16,7 +16,7 @@ export function Component() {
 
   const handleAction = async (action: 'APPROVED' | 'REJECTED') => {
     try {
-      await updateDecision({ id: Number(id), decision: action })
+      await updateDecision({ id: Number(id), status: action })
       toast.success(`Đã xử lý yêu cầu: ${action}`)
       setTimeout(() => {
         navigate('/quan-ly-nha-tro/yeu-cau-thue')
