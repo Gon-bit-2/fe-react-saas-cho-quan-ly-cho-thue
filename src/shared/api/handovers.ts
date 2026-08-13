@@ -1,9 +1,7 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
-import type { HandoverRecord } from '@/types/asset'
-
-
+import type { HandoverRecord, HandoverType, AssetCondition } from '@/types/asset'
 
 const HANDOVER_KEYS = {
   all: ['handovers'] as const,
@@ -21,6 +19,37 @@ interface PaginatedResponse<T> {
     total: number
     totalPages: number
   }
+}
+
+export interface HandoverItemPayload {
+  roomAssetId: number
+  actualQuantity: number
+  condition: AssetCondition
+  note?: string | null
+  imageUrl?: string | null
+}
+
+export interface CreateHandoverBody {
+  contractId: number
+  type: HandoverType
+  note?: string | null
+  items?: HandoverItemPayload[]
+}
+
+export interface ConfirmHandoverBody {
+  version: number
+}
+
+export interface DisputeHandoverBody {
+  version: number
+  reason: string
+}
+
+export interface ResolveHandoverBody {
+  version: number
+  resolutionNote: string
+  note?: string | null
+  items?: HandoverItemPayload[]
 }
 
 export const useHandovers = (params: Record<string, unknown> = {}) => {
@@ -51,24 +80,69 @@ export const useHandover = (id: number) => {
   })
 }
 
+export const useCreateHandover = () => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CreateHandoverBody) => {
+      const { data } = await apiClient.post<HandoverRecord>('/handovers', payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: HANDOVER_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useConfirmHandover = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: ConfirmHandoverBody) => {
+      const { data } = await apiClient.patch<HandoverRecord>(`/handovers/${id}/confirm`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: HANDOVER_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: HANDOVER_KEYS.lists(tenantId) })
+    },
+  })
+}
+
 export const useDisputeHandover = (id: number) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
   return useMutation({
-    mutationFn: async (payload: { notes: string }) => {
-      const { data } = await apiClient.patch(`/handovers/${id}/dispute`, payload, { tenantId })
+    mutationFn: async (payload: DisputeHandoverBody) => {
+      const { data } = await apiClient.patch<HandoverRecord>(`/handovers/${id}/dispute`, payload, { tenantId })
       return data
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: HANDOVER_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: HANDOVER_KEYS.lists(tenantId) })
+    },
   })
 }
 
 export const useResolveHandover = (id: number) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
   return useMutation({
-    mutationFn: async (payload: { notes: string }) => {
-      const { data } = await apiClient.patch(`/handovers/${id}/resolve`, payload, { tenantId })
+    mutationFn: async (payload: ResolveHandoverBody) => {
+      const { data } = await apiClient.patch<HandoverRecord>(`/handovers/${id}/resolve`, payload, { tenantId })
       return data
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: HANDOVER_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: HANDOVER_KEYS.lists(tenantId) })
+    },
   })
 }

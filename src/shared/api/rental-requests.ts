@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
 import type { ListRentalRequestsQuery, RentalRequest } from '@/types/rental-request'
@@ -24,12 +24,13 @@ interface PaginatedResponse<T> {
 export const useRentalRequests = (params: ListRentalRequestsQuery = {}) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const cleanParams = params.search ? params : { ...params, search: undefined }
 
   return useQuery({
-    queryKey: RENTAL_REQUEST_KEYS.list(tenantId, params),
+    queryKey: RENTAL_REQUEST_KEYS.list(tenantId, cleanParams),
     queryFn: async () => {
       const { data } = await apiClient.get<PaginatedResponse<RentalRequest>>('/rental-requests', {
-        params,
+        params: cleanParams,
         tenantId,
       })
       return data
@@ -55,11 +56,20 @@ export const useRentalRequest = (id: number) => {
 export const useUpdateRentalRequestDecision = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, decision, reason }: { id: number, decision: 'APPROVED' | 'REJECTED' | 'NEED_MORE_INFO', reason?: string }) => {
-      const { data } = await apiClient.patch(`/rental-requests/${id}/decision`, { decision, reason }, { tenantId })
+    mutationFn: async ({ id, status }: { id: number; status: 'APPROVED' | 'REJECTED' | 'NEED_MORE_INFO' }) => {
+      const { data } = await apiClient.patch<RentalRequest>(
+        `/rental-requests/${id}/decision`,
+        { status },
+        { tenantId },
+      )
       return data
-    }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: RENTAL_REQUEST_KEYS.detail(tenantId, variables.id) })
+      queryClient.invalidateQueries({ queryKey: RENTAL_REQUEST_KEYS.lists(tenantId) })
+    },
   })
 }

@@ -79,8 +79,11 @@ import type { ViewingScheduleDetail } from '@/types/viewing-schedule'
 
 export const marketplaceApi = {
   listRooms: async (filters: MarketplaceFilters): Promise<PaginatedResponse<MarketplaceRoom>> => {
+    const cleanFilters = Object.fromEntries(
+      Object.entries(filters).filter(([, v]) => v !== '' && v !== undefined && v !== null)
+    )
     const { data } = await apiClient.get<PaginatedResponse<MarketplaceRoomResponse>>('/marketplace/rooms', {
-      params: filters
+      params: cleanFilters
     })
     return { ...data, data: data.data.map(normalizeMarketplaceRoom) }
   },

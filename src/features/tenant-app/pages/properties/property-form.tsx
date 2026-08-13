@@ -1,45 +1,60 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { useProperty } from '@/shared/api/properties'
+import { useProperty, useCreateProperty, useUpdateProperty } from '@/shared/api/properties'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import {
-  ArrowLeft,
-  Save,
-  Building2,
-  MapPin,
-  Image as ImageIcon,
-  Trash2,
-  AlertTriangle,
-  Users,
-  DoorOpen,
-  Wallet,
-} from 'lucide-react'
+import { ArrowLeft, Building2, DoorOpen, ImageIcon, MapPin, Save, Trash2, Users, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
+import type { CreatePropertyDto } from '@/features/tenant-app/types'
 
 export function Component() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEditing = !!id
 
-  // Real implementation would use react-hook-form and zod
   const { data: initialData, isLoading } = useProperty(Number(id))
+  const createProperty = useCreateProperty()
+  const updateProperty = useUpdateProperty(Number(id))
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [propertyTypeState, setPropertyType] = useState<string | null>(null)
+  const [statusState, setStatus] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const propertyType = (propertyTypeState ?? initialData?.type ?? 'MINI_APARTMENT') as CreatePropertyDto['type']
+  const status = (statusState ?? initialData?.status ?? 'ACTIVE') as NonNullable<CreatePropertyDto['status']>
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setIsSubmitting(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
-      toast.success(isEditing ? 'Cập nhật thành công!' : 'Tạo mới thành công!')
+
+    const formData = new FormData(e.currentTarget)
+    const payload: CreatePropertyDto = {
+      name: formData.get('name') as string,
+      type: propertyType,
+      status: status,
+
+      province: formData.get('province') as string,
+      district: formData.get('district') as string,
+      ward: formData.get('ward') as string,
+      addressDetail: (formData.get('addressDetail') || formData.get('address')) as string,
+    }
+
+    try {
+      if (isEditing) {
+        await updateProperty.mutateAsync(payload)
+        toast.success('Cập nhật thành công!')
+      } else {
+        await createProperty.mutateAsync(payload)
+        toast.success('Tạo mới thành công!')
+      }
       navigate('/khu-tro')
-    }, 1000)
+    } catch {
+      toast.error('Có lỗi xảy ra, vui lòng kiểm tra lại thông tin!')
+    }
   }
+
+  const isSubmitting = createProperty.isPending || updateProperty.isPending
 
   if (isEditing && isLoading) {
     return (
@@ -54,6 +69,7 @@ export function Component() {
       {/* Header */}
       <div className="bg-surface-container-lowest border-surface-border flex items-center gap-4 rounded-2xl border p-6 shadow-sm">
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           onClick={() => navigate(-1)}
@@ -79,6 +95,7 @@ export function Component() {
         </div>
         {isEditing && (
           <Button
+            type="button"
             variant="outline"
             className="text-error border-error/50 hover:bg-error/10 hover:text-error bg-error/5 hidden sm:flex"
           >
@@ -86,21 +103,6 @@ export function Component() {
           </Button>
         )}
       </div>
-
-      {isEditing && (
-        <div className="bg-status-warning/10 border-status-warning/30 flex items-start gap-4 rounded-2xl border p-4 shadow-sm">
-          <div className="bg-status-warning/20 text-status-warning flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-            <AlertTriangle className="h-5 w-5" />
-          </div>
-          <div>
-            <h4 className="font-label-lg text-on-surface">Lưu ý khi chỉnh sửa</h4>
-            <p className="font-body-md text-on-surface-variant mt-1">
-              Thay đổi cấu trúc số tầng sẽ không xóa các phòng hiện có, nhưng có thể ảnh hưởng đến việc hiển thị sơ đồ
-              nhà trọ.
-            </p>
-          </div>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6 lg:flex-row">
         {/* Main Form Area */}
@@ -128,6 +130,7 @@ export function Component() {
                   <Building2 className="text-on-surface-variant absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
                   <Input
                     id="name"
+                    name="name"
                     placeholder="VD: Chung cư mini Tôn Thất Thuyết"
                     defaultValue={initialData?.name}
                     className="bg-surface border-surface-border focus-visible:ring-primary/20 focus-visible:border-primary h-11 rounded-xl pl-10"
@@ -141,14 +144,15 @@ export function Component() {
                   <Label htmlFor="type" className="font-label-md text-on-surface">
                     Loại hình
                   </Label>
-                  <Select defaultValue={initialData?.propertyType || 'ROOM'}>
+                  <Select value={propertyType} onValueChange={setPropertyType}>
                     <SelectTrigger id="type" className="bg-surface border-surface-border h-11 rounded-xl">
                       <SelectValue placeholder="Chọn loại hình" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ROOM">Phòng trọ</SelectItem>
-                      <SelectItem value="APARTMENT">Chung cư mini</SelectItem>
-                      <SelectItem value="WHOLE_HOUSE">Nhà nguyên căn</SelectItem>
+                      <SelectItem value="DORM">Phòng trọ / Ký túc xá</SelectItem>
+                      <SelectItem value="MINI_APARTMENT">Chung cư mini</SelectItem>
+                      <SelectItem value="HOUSE">Nhà nguyên căn</SelectItem>
+                      <SelectItem value="APARTMENT">Chung cư</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -156,7 +160,7 @@ export function Component() {
                   <Label htmlFor="status" className="font-label-md text-on-surface">
                     Trạng thái
                   </Label>
-                  <Select defaultValue={initialData?.status || 'ACTIVE'}>
+                  <Select value={status} onValueChange={setStatus}>
                     <SelectTrigger id="status" className="bg-surface border-surface-border h-11 rounded-xl">
                       <SelectValue placeholder="Chọn trạng thái" />
                     </SelectTrigger>
@@ -167,20 +171,6 @@ export function Component() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="floors" className="font-label-md text-on-surface">
-                  Số tầng
-                </Label>
-                <Input
-                  id="floors"
-                  type="number"
-                  min={1}
-                  defaultValue={initialData?.floorsCount || 1}
-                  className="bg-surface border-surface-border focus-visible:ring-primary/20 focus-visible:border-primary h-11 w-full rounded-xl sm:w-1/2"
-                  required
-                />
               </div>
             </CardContent>
           </Card>
@@ -205,19 +195,31 @@ export function Component() {
                   <Label htmlFor="province" className="font-label-md text-on-surface">
                     Tỉnh/Thành phố
                   </Label>
-                  <Input id="province" defaultValue={initialData?.province} className="h-11 rounded-xl" required />
+                  <Input
+                    id="province"
+                    name="province"
+                    defaultValue={initialData?.province}
+                    className="h-11 rounded-xl"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="district" className="font-label-md text-on-surface">
                     Quận/Huyện
                   </Label>
-                  <Input id="district" defaultValue={initialData?.district} className="h-11 rounded-xl" required />
+                  <Input
+                    id="district"
+                    name="district"
+                    defaultValue={initialData?.district}
+                    className="h-11 rounded-xl"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="ward" className="font-label-md text-on-surface">
                     Phường/Xã
                   </Label>
-                  <Input id="ward" defaultValue={initialData?.ward} className="h-11 rounded-xl" required />
+                  <Input id="ward" name="ward" defaultValue={initialData?.ward} className="h-11 rounded-xl" required />
                 </div>
               </div>
               <div className="space-y-2">
@@ -226,7 +228,13 @@ export function Component() {
                 </Label>
                 <div className="relative">
                   <MapPin className="text-on-surface-variant absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
-                  <Input id="address" defaultValue={initialData?.address} className="h-11 rounded-xl pl-10" required />
+                  <Input
+                    id="address"
+                    name="addressDetail"
+                    defaultValue={initialData?.addressDetail}
+                    className="h-11 rounded-xl pl-10"
+                    required
+                  />
                 </div>
               </div>
             </CardContent>
@@ -249,16 +257,14 @@ export function Component() {
                         <DoorOpen className="text-tertiary h-5 w-5" />
                         <span className="font-label-md text-on-surface-variant">Tổng số phòng</span>
                       </div>
-                      <span className="font-headline-sm text-on-surface">{initialData?.roomsCount || 0}</span>
+                      <span className="font-headline-sm text-on-surface">{initialData?._count?.rooms || 0}</span>
                     </div>
                     <div className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-2">
                         <Users className="text-primary h-5 w-5" />
                         <span className="font-label-md text-on-surface-variant">Đang thuê</span>
                       </div>
-                      <span className="font-headline-sm text-on-surface">
-                        0 {/* Placeholder for occupied rooms */}
-                      </span>
+                      <span className="font-headline-sm text-on-surface">0 {/* Placeholder for occupied rooms */}</span>
                     </div>
                     <div className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-2">

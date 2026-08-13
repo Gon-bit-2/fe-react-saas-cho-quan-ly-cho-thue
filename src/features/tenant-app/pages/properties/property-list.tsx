@@ -19,7 +19,7 @@ export function Component() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
-  const { data, isLoading } = useProperties({ search: searchTerm })
+  const { data, isLoading } = useProperties(searchTerm ? { search: searchTerm } : {})
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -33,9 +33,13 @@ export function Component() {
   }
 
   const getTypeBadge = (type: string) => {
-    if (type === 'APARTMENT') return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">Chung cư mini</Badge>
-    if (type === 'ROOM') return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">Phòng trọ</Badge>
-    return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">{type}</Badge>
+    switch (type) {
+      case 'MINI_APARTMENT': return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">Chung cư mini</Badge>
+      case 'DORM': return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">Phòng trọ / KTX</Badge>
+      case 'HOUSE': return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">Nhà nguyên căn</Badge>
+      case 'APARTMENT': return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">Chung cư</Badge>
+      default: return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">{type}</Badge>
+    }
   }
 
   return (
@@ -134,7 +138,7 @@ export function Component() {
                             {property.name}
                           </div>
                           <div>
-                            {getTypeBadge(property.propertyType)}
+                            {getTypeBadge(property.type)}
                           </div>
                         </div>
                       </div>
@@ -143,16 +147,16 @@ export function Component() {
                       <div className="flex items-start gap-2 text-on-surface-variant max-w-sm">
                         <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-tertiary" />
                         <span className="font-body-sm line-clamp-2 leading-relaxed">
-                          {property.address}, {property.ward}, {property.district}, {property.province}
+                          {property.addressDetail}, {property.ward}, {property.district}, {property.province}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell className="text-center font-body-md text-on-surface">
-                      {property.floorsCount}
+                      {property._count?.floors || 0}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface border border-surface-border font-label-md text-on-surface shadow-sm">
-                        {property.roomsCount}
+                        {property._count?.rooms || 0}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -177,7 +181,7 @@ export function Component() {
         
         {/* Pagination placeholder - to be implemented if needed */}
         <div className="p-4 border-t border-surface-border bg-surface-container-low/30 flex items-center justify-between text-on-surface-variant font-body-sm">
-          <span>Hiển thị {data?.data.length || 0} trên tổng số {data?.data.length || 0} kết quả</span>
+          <span>Hiển thị {data?.data?.length || 0} trên tổng số {data?.meta?.total || 0} kết quả</span>
         </div>
       </div>
     </div>

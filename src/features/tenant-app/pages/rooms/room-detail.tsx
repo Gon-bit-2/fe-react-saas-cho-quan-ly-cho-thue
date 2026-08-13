@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router'
-import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Edit, FileText, Image as ImageIcon, MapPin, Zap } from 'lucide-react'
-import { useRoom } from '@/shared/api/properties'
+import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Edit, FileText, Image as ImageIcon, MapPin, Zap, Send } from 'lucide-react'
+import { useRoom, useUpdateRoomMarketplace } from '@/shared/api/properties'
+import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +11,7 @@ export function Component() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { data: room, isLoading } = useRoom(Number(id))
+  const updateMarketplace = useUpdateRoomMarketplace(Number(id))
 
   if (isLoading) {
     return (
@@ -79,9 +81,25 @@ export function Component() {
           </div>
 
           <div className="flex gap-3">
-            <Button onClick={() => navigate(`/quan-ly-phong/${room.id}/chinh-sua`)}>
+            <Button variant="outline" onClick={() => navigate(`/quan-ly-phong/${room.id}/chinh-sua`)}>
               <Edit className="mr-2 h-4 w-4" /> Chỉnh sửa
             </Button>
+            {room.marketplaceStatus === 'DRAFT' && (
+              <Button 
+                onClick={async () => {
+                  try {
+                    await updateMarketplace.mutateAsync('PENDING_REVIEW')
+                    toast.success('Đã gửi yêu cầu xét duyệt thành công!')
+                  } catch {
+                    toast.error('Có lỗi xảy ra khi gửi yêu cầu')
+                  }
+                }}
+                disabled={updateMarketplace.isPending}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                <Send className="mr-2 h-4 w-4" /> Gửi kiểm duyệt
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -120,7 +138,11 @@ export function Component() {
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-50 py-2">
                   <span className="text-slate-500">Marketplace</span>
-                  <Badge variant={room.marketplaceStatus === 'PUBLISHED' ? 'default' : 'outline'}>
+                  <Badge variant={
+                    room.marketplaceStatus === 'PUBLISHED' ? 'default' : 
+                    room.marketplaceStatus === 'REJECTED' ? 'destructive' : 
+                    room.marketplaceStatus === 'PENDING_REVIEW' ? 'secondary' : 'outline'
+                  }>
                     {room.marketplaceStatus}
                   </Badge>
                 </div>

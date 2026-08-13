@@ -1,8 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
-import type { AssetCategory, RoomAsset } from '@/types/asset'
-
+import type { AssetCategory, RoomAsset, AssetCondition } from '@/types/asset'
 
 const ASSET_KEYS = {
   allCategories: ['asset-categories'] as const,
@@ -21,15 +20,34 @@ interface PaginatedResponse<T> {
   }
 }
 
-export const useAssetCategories = (params: Record<string, unknown> = {}) => {
+export interface CreateAssetCategoryDto {
+  name: string
+  description?: string | null
+}
+
+export type UpdateAssetCategoryDto = Partial<CreateAssetCategoryDto>
+
+export interface CreateRoomAssetDto {
+  categoryId: number
+  name: string
+  quantity: number
+  condition?: AssetCondition
+  description?: string | null
+  imageUrl?: string | null
+}
+
+export type UpdateRoomAssetDto = Partial<CreateRoomAssetDto>
+
+export const useAssetCategories = (params: { page?: number; limit?: number; search?: string } = {}) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const cleanParams = params.search ? params : { ...params, search: undefined }
 
   return useQuery({
-    queryKey: [...ASSET_KEYS.categories(tenantId), params],
+    queryKey: [...ASSET_KEYS.categories(tenantId), cleanParams],
     queryFn: async () => {
       const { data } = await apiClient.get<PaginatedResponse<AssetCategory>>('/asset-categories', {
-        params,
+        params: cleanParams,
         tenantId,
       })
       return data
@@ -38,19 +56,52 @@ export const useAssetCategories = (params: Record<string, unknown> = {}) => {
   })
 }
 
-export const useRoomAssets = (roomId: number, params: Record<string, unknown> = {}) => {
+export const useCreateAssetCategory = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CreateAssetCategoryDto) => {
+      const { data } = await apiClient.post<AssetCategory>('/asset-categories', payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.categories(tenantId) })
+    },
+  })
+}
+
+export const useRoomAssets = (roomId: number, params: { page?: number; limit?: number; search?: string; condition?: AssetCondition; categoryId?: number } = {}) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const cleanParams = params.search ? params : { ...params, search: undefined }
 
   return useQuery({
-    queryKey: [...ASSET_KEYS.roomAssets(tenantId, roomId), params],
+    queryKey: [...ASSET_KEYS.roomAssets(tenantId, roomId), cleanParams],
     queryFn: async () => {
       const { data } = await apiClient.get<PaginatedResponse<RoomAsset>>(`/rooms/${roomId}/assets`, {
-        params,
+        params: cleanParams,
         tenantId,
       })
       return data
     },
     enabled: !!tenantId && !!roomId,
+  })
+}
+
+export const useCreateRoomAsset = (roomId: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CreateRoomAssetDto) => {
+      const { data } = await apiClient.post<RoomAsset>(`/rooms/${roomId}/assets`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.roomAssets(tenantId, roomId) })
+    },
   })
 }

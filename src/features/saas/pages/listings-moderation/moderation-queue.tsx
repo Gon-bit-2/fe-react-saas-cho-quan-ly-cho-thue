@@ -1,36 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { listingsModerationApi, type IListingModerationDTO } from '@/shared/api/listings-moderation'
+import { useAdminModerationRooms } from '@/shared/api/admin'
 
 export function ModerationQueuePage() {
-  const [listings, setListings] = useState<IListingModerationDTO[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const response = await listingsModerationApi.list()
-        setListings(response.data)
-      } catch (error) {
-        console.error('Lỗi khi tải hàng chờ kiểm duyệt', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchListings()
-  }, [])
+  const [params] = useState({ page: 1, limit: 12 })
+  const { data: response, isLoading: loading } = useAdminModerationRooms(params)
+  
+  const listings = response?.data || []
 
   const getStatusDisplay = (status: string) => {
     switch (status) {
-      case 'PENDING':
+      case 'PENDING_REVIEW':
         return (
           <span className="bg-primary-container/10 text-primary inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold">
             Chờ duyệt
           </span>
         )
-      case 'APPROVED':
+      case 'PUBLISHED':
         return (
           <span className="bg-tertiary-container/10 text-tertiary inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold">
             Đã duyệt
@@ -49,7 +37,11 @@ export function ModerationQueuePage() {
           </span>
         )
       default:
-        return <span>{status}</span>
+        return (
+          <span className="bg-surface-variant text-on-surface-variant inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold">
+            Bản nháp
+          </span>
+        )
     }
   }
 
@@ -163,8 +155,8 @@ export function ModerationQueuePage() {
                   <tr key={listing.id} className="hover:bg-surface-container-low/50 group transition-colors">
                     <td className="px-6 py-4">
                       <div className="bg-surface-variant h-12 w-16 overflow-hidden rounded-md">
-                        {listing.image ? (
-                          <img className="h-full w-full object-cover" src={listing.image} alt="Room thumbnail" />
+                        {listing.images?.[0]?.url ? (
+                          <img className="h-full w-full object-cover" src={listing.images[0].url} alt="Room thumbnail" />
                         ) : (
                           <span className="material-symbols-outlined text-on-surface-variant flex h-full w-full items-center justify-center opacity-50">
                             image
@@ -172,12 +164,12 @@ export function ModerationQueuePage() {
                         )}
                       </div>
                     </td>
-                    <td className="font-label-md text-text-main px-6 py-4">{listing.roomName}</td>
-                    <td className="text-on-surface-variant px-6 py-4">{listing.tenantName}</td>
+                    <td className="font-label-md text-text-main px-6 py-4">{listing.title}</td>
+                    <td className="text-on-surface-variant px-6 py-4">{listing.property?.name || 'N/A'}</td>
                     <td className="text-on-surface-variant px-6 py-4 tabular-nums">
-                      {formatDistanceToNow(new Date(listing.submittedAt), { addSuffix: true, locale: vi })}
+                      {formatDistanceToNow(new Date(listing.createdAt || new Date()), { addSuffix: true, locale: vi })}
                     </td>
-                    <td className="px-6 py-4">{getStatusDisplay(listing.status)}</td>
+                    <td className="px-6 py-4">{getStatusDisplay(listing.marketplaceStatus || 'DRAFT')}</td>
                     <td className="px-6 py-4 text-right">
                       <Link
                         to={`/admin/kiem-duyet/chi-tiet/${listing.id}`}

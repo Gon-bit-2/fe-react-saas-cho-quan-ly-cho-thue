@@ -81,13 +81,15 @@ export interface ActionCenterResponse {
 export interface Property {
   id: number
   name: string
-  address: string
+  addressDetail: string
   province: string
   district: string
   ward: string
-  propertyType: string
-  floorsCount: number
-  roomsCount: number
+  type: string
+  _count?: {
+    floors: number
+    rooms: number
+  }
   status: 'ACTIVE' | 'MAINTENANCE' | 'CLOSED'
   createdAt: string
 }
@@ -138,6 +140,38 @@ export interface RoomListParams extends PaginationParams {
   propertyId?: number
   status?: string
 }
+
+export interface CreatePropertyDto {
+  name: string
+  type: 'HOUSE' | 'MINI_APARTMENT' | 'DORM' | 'APARTMENT'
+  province: string
+  district: string
+  ward: string
+  addressDetail: string
+  description?: string
+  status?: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
+  floorsCount?: number
+}
+
+export type UpdatePropertyDto = Partial<CreatePropertyDto>
+
+export interface CreateRoomDto {
+  propertyId: number
+  floorId?: number | null
+  roomCode: string
+  title: string
+  area: number
+  maxOccupants: number
+  basePrice: number
+  depositAmount: number
+  electricityPrice: number
+  waterPrice: number
+  description?: string
+  status?: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'MAINTENANCE' | 'INACTIVE'
+  amenityIds?: number[]
+}
+
+export type UpdateRoomDto = Partial<Omit<CreateRoomDto, 'propertyId' | 'amenityIds' | 'status'>>
 
 export interface PaginatedResponse<T> {
   data: T[]

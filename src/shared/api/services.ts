@@ -81,12 +81,13 @@ const toServicePayload = (payload: Partial<ServiceInput>) => ({
 export const useServices = (params: Record<string, unknown> = {}) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const cleanParams = params.search ? params : { ...params, search: undefined }
 
   return useQuery({
-    queryKey: SERVICE_KEYS.services(tenantId, params),
+    queryKey: SERVICE_KEYS.services(tenantId, cleanParams),
     queryFn: async () => {
       const { data } = await apiClient.get<PaginatedResponse<ServiceCatalogItemDto>>('/service-catalog', {
-        params,
+        params: cleanParams,
         tenantId,
       })
       return { ...data, data: data.data.map(mapService) }

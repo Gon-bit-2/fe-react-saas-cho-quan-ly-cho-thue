@@ -1,9 +1,7 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
-import type { Renter, RenterInvitation, ListRentersQuery, InviteRenterBody } from '@/types/renter'
-
-
+import type { Renter, RenterInvitation, ListRentersQuery, InviteRenterBody, UpdateRenterBody } from '@/types/renter'
 
 const RENTER_KEYS = {
   all: ['renters'] as const,
@@ -28,12 +26,13 @@ interface PaginatedResponse<T> {
 export const useRenters = (params: ListRentersQuery = {}) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const cleanParams = params.search ? params : { ...params, search: undefined }
 
   return useQuery({
-    queryKey: RENTER_KEYS.list(tenantId, params),
+    queryKey: RENTER_KEYS.list(tenantId, cleanParams),
     queryFn: async () => {
       const { data } = await apiClient.get<PaginatedResponse<Renter>>('/renters', {
-        params,
+        params: cleanParams,
         tenantId,
       })
       return data
@@ -59,12 +58,33 @@ export const useRenter = (id: number) => {
 export const useCreateRenterInvite = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (payload: InviteRenterBody) => {
       const { data } = await apiClient.post<RenterInvitation>('/renters/invitations', payload, { tenantId })
       return data
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RENTER_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useUpdateRenter = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: UpdateRenterBody) => {
+      const { data } = await apiClient.patch<Renter>(`/renters/${id}`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RENTER_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: RENTER_KEYS.lists(tenantId) })
+    },
   })
 }
 

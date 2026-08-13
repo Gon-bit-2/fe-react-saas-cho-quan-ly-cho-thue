@@ -1,9 +1,7 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
 import type { ContractTerminationRequest } from '@/types/termination'
-
-
 
 const TERMINATION_KEYS = {
   all: ['terminations'] as const,
@@ -21,6 +19,19 @@ interface PaginatedResponse<T> {
     total: number
     totalPages: number
   }
+}
+
+export interface CreateTerminationBody {
+  contractId: number
+  reason: string
+  expectedMoveOutDate: string // YYYY-MM-DD
+}
+
+export interface CompleteTerminationBody {
+  checkoutHandoverId: number
+  actualMoveOutDate: string // YYYY-MM-DD
+  acknowledgeOutstandingDebt?: boolean
+  completionNote?: string | null
 }
 
 export const useTerminations = (params: Record<string, unknown> = {}) => {
@@ -51,13 +62,69 @@ export const useTermination = (id: number) => {
   })
 }
 
+export const useCreateTermination = () => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CreateTerminationBody) => {
+      const { data } = await apiClient.post<ContractTerminationRequest>('/contract-terminations', payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.lists(tenantId) })
+    },
+  })
+}
+
 export const useApproveTermination = (id: number) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
   return useMutation({
-    mutationFn: async () => {
-      const { data } = await apiClient.patch(`/contract-terminations/${id}/approve`, {}, { tenantId })
+    mutationFn: async ({ reviewNote }: { reviewNote: string }) => {
+      const { data } = await apiClient.patch<ContractTerminationRequest>(`/contract-terminations/${id}/approve`, { reviewNote }, { tenantId })
       return data
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useRejectTermination = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ reviewNote }: { reviewNote: string }) => {
+      const { data } = await apiClient.patch<ContractTerminationRequest>(`/contract-terminations/${id}/reject`, { reviewNote }, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useCompleteTermination = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CompleteTerminationBody) => {
+      const { data } = await apiClient.patch<ContractTerminationRequest>(`/contract-terminations/${id}/complete`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.lists(tenantId) })
+    },
   })
 }

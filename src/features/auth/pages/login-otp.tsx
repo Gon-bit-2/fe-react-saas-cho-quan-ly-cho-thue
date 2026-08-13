@@ -6,6 +6,7 @@ import { authApi } from '@/shared/api/auth'
 import { useAuth } from '@/shared/hooks/use-auth'
 import { toAppError } from '@/shared/lib/errors'
 import type { UserProfile } from '@/shared/types/auth'
+import { getPostLoginPath } from '@/shared/lib/auth-navigation'
 
 export function Component() {
   const navigate = useNavigate()
@@ -98,7 +99,7 @@ export function Component() {
             { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! }, 
             profileResponse.data
           )
-          navigate('/')
+          navigate(getPostLoginPath(profileResponse.data), { replace: true })
         }
       } else if (actionType === 'REGISTER') {
         if (!state?.registerData) throw new Error('Thiếu thông tin đăng ký')

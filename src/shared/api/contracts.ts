@@ -1,9 +1,7 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
 import type { Contract, ListContractsQuery, CreateContractBody, UpdateContractBody } from '@/types/contract'
-
-
 
 const CONTRACT_KEYS = {
   all: ['contracts'] as const,
@@ -26,12 +24,13 @@ interface PaginatedResponse<T> {
 export const useContracts = (params: ListContractsQuery = {}) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const cleanParams = params.search ? params : { ...params, search: undefined }
 
   return useQuery({
-    queryKey: CONTRACT_KEYS.list(tenantId, params),
+    queryKey: CONTRACT_KEYS.list(tenantId, cleanParams),
     queryFn: async () => {
       const { data } = await apiClient.get<PaginatedResponse<Contract>>('/contracts', {
-        params,
+        params: cleanParams,
         tenantId,
       })
       return data
@@ -57,23 +56,66 @@ export const useContract = (id: number) => {
 export const useCreateContract = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (payload: CreateContractBody) => {
-      const { data } = await apiClient.post('/contracts', payload, { tenantId })
+      const { data } = await apiClient.post<Contract>('/contracts', payload, { tenantId })
       return data
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.lists(tenantId) })
+    },
   })
 }
 
 export const useUpdateContract = (id: number) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (payload: UpdateContractBody) => {
-      const { data } = await apiClient.patch(`/contracts/${id}`, payload, { tenantId })
+      const { data } = await apiClient.patch<Contract>(`/contracts/${id}`, payload, { tenantId })
       return data
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useActivateContract = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await apiClient.patch<Contract>(`/contracts/${id}/activate`, {}, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useCancelContract = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await apiClient.patch<Contract>(`/contracts/${id}/cancel`, {}, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.lists(tenantId) })
+    },
   })
 }
