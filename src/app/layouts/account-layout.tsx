@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { profileApi } from '@/features/auth/api/profile.api'
+import { useAuth } from '@/shared/hooks/use-auth'
 
 /**
  * Layout cho trang account (profile, chọn tenant).
@@ -14,6 +15,7 @@ export function Component() {
     queryFn: () => profileApi.getProfile()
   })
   const user = profileResponse?.data
+  const { logout } = useAuth()
 
   const navItems = [
     { name: 'Tổng quan', path: '/tong-quan', icon: 'grid_view' },
@@ -34,8 +36,10 @@ export function Component() {
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-sidebar-width bg-surface-container-lowest z-50 flex flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all">
         <div className="h-topbar-height px-6 flex items-center gap-3 border-b border-surface-border">
-          <img alt="Rental SaaS Logo" className="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLu4TznyUBEtVnawD_HqEbeRssuo-WwEl3eP1yeXjhoM4pAwx-RtbSHvFViYRROUpnCb5g_VUY1nj6_CvzBh1Jo99bQAkFGcuhQZpAEt9q7Fp9lSRasW1rdyrsbWD769q-HN_LOKHqC65BOwad9q5DEQ8wPtSxV7fy270YJGpcLD2qNO0jiMmAPB6wrEvm641B5o0JuhxjA8CleZCKr2fp3Lzh1D5n4YCa6RpHJlmGn7gIB1Ml5A-ZWMLew"/>
-          <span className="font-headline-sm text-headline-sm text-primary tracking-tight">RentalSaaS</span>
+          <Link to="/" className="flex items-center gap-3">
+            <img alt="Rental SaaS Logo" className="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLu4TznyUBEtVnawD_HqEbeRssuo-WwEl3eP1yeXjhoM4pAwx-RtbSHvFViYRROUpnCb5g_VUY1nj6_CvzBh1Jo99bQAkFGcuhQZpAEt9q7Fp9lSRasW1rdyrsbWD769q-HN_LOKHqC65BOwad9q5DEQ8wPtSxV7fy270YJGpcLD2qNO0jiMmAPB6wrEvm641B5o0JuhxjA8CleZCKr2fp3Lzh1D5n4YCa6RpHJlmGn7gIB1Ml5A-ZWMLew"/>
+            <span className="font-headline-sm text-headline-sm text-primary tracking-tight">RentalSaaS</span>
+          </Link>
         </div>
         <nav className="flex-1 px-3 py-6 overflow-y-auto space-y-1">
           {navItems.map((item) => {
@@ -55,6 +59,17 @@ export function Component() {
               </Link>
             )
           })}
+          
+          <button
+            onClick={async () => {
+              await logout();
+              window.location.href = '/dang-nhap';
+            }}
+            className="flex items-center w-full px-4 py-2.5 rounded-lg transition-all gap-3 text-on-surface-variant hover:bg-error-container hover:text-on-error-container mt-4"
+          >
+            <span className="material-symbols-outlined text-[20px]">logout</span>
+            Đăng xuất
+          </button>
         </nav>
       </aside>
 

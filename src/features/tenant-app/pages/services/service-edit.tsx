@@ -24,8 +24,8 @@ function ServiceEditForm({ service }: { service: Service }) {
   const [formData, setFormData] = useState({
     code: service.code,
     name: service.name,
-    price: service.price,
-    unit: service.unit,
+    defaultUnitPrice: service.defaultUnitPrice,
+    unitLabel: service.unitLabel,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,21 +70,21 @@ function ServiceEditForm({ service }: { service: Service }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Đơn giá (VND)</Label>
+                <Label htmlFor="defaultUnitPrice">Đơn giá (VND)</Label>
                 <Input 
-                  id="price" 
+                  id="defaultUnitPrice" 
                   type="number" 
-                  value={formData.price} 
-                  onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} 
+                  value={formData.defaultUnitPrice} 
+                  onChange={(e) => setFormData({...formData, defaultUnitPrice: Number(e.target.value)})} 
                   required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="unit">Đơn vị tính</Label>
+                <Label htmlFor="unitLabel">Đơn vị tính</Label>
                 <Input 
-                  id="unit" 
-                  value={formData.unit} 
-                  onChange={(e) => setFormData({...formData, unit: e.target.value})} 
+                  id="unitLabel" 
+                  value={formData.unitLabel} 
+                  onChange={(e) => setFormData({...formData, unitLabel: e.target.value})} 
                   required 
                 />
               </div>

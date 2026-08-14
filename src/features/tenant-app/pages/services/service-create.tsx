@@ -11,12 +11,13 @@ export default function ServiceCreate() {
   const navigate = useNavigate()
   const { mutateAsync: createService, isPending } = useCreateService()
   
-  const [formData, setFormData] = useState<Pick<Service, 'code' | 'name' | 'price' | 'unit' | 'type'>>({
+  const [formData, setFormData] = useState<Partial<Service>>({
     code: '',
     name: '',
-    price: 0,
-    unit: '',
-    type: ServiceType.SERVICE
+    defaultUnitPrice: 0,
+    unitLabel: '',
+    itemType: ServiceType.SERVICE,
+    isActive: true
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,22 +63,22 @@ export default function ServiceCreate() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Đơn giá (VND)</Label>
+                <Label htmlFor="defaultUnitPrice">Đơn giá (VND)</Label>
                 <Input 
-                  id="price" 
+                  id="defaultUnitPrice" 
                   type="number" 
-                  value={formData.price} 
-                  onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} 
+                  value={formData.defaultUnitPrice} 
+                  onChange={(e) => setFormData({...formData, defaultUnitPrice: Number(e.target.value)})} 
                   required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="unit">Đơn vị tính</Label>
+                <Label htmlFor="unitLabel">Đơn vị tính</Label>
                 <Input 
-                  id="unit" 
+                  id="unitLabel" 
                   placeholder="Ví dụ: phòng, người, xe..." 
-                  value={formData.unit} 
-                  onChange={(e) => setFormData({...formData, unit: e.target.value})} 
+                  value={formData.unitLabel} 
+                  onChange={(e) => setFormData({...formData, unitLabel: e.target.value})} 
                   required 
                 />
               </div>

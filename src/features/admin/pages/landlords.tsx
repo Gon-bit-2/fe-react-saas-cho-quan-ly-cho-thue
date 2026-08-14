@@ -28,8 +28,8 @@ export const LandlordsPage = () => {
     const fetchTenants = async () => {
       try {
         const response = await adminTenantApi.getTenants()
-        if (response?.data) {
-          setTenants(response.data)
+        if (response?.data?.data) {
+          setTenants(response.data.data)
         } else {
           setTenants([])
         }

@@ -225,8 +225,8 @@ export function DebtListPage() {
                 debts.map((debt, index) => {
                   const invoice = debt.invoice
                   if (!invoice) return null
-                  const isOverdue = debt.status === 'OVERDUE'
-                  const isWarning = invoice.status === InvoiceStatus.UNPAID && index % 2 === 1 // mock logic
+                  const isOverdue = debt.status === 'OVERDUE' || (debt.dueDate && new Date(debt.dueDate).getTime() < Date.now())
+                  const isWarning = !isOverdue && debt.dueDate && (new Date(debt.dueDate).getTime() - Date.now()) < 3 * 24 * 60 * 60 * 1000 // Sắp hết hạn trong 3 ngày
 
                   return (
                     <TableRow

@@ -28,6 +28,14 @@ export interface ContractRenter {
   fullName: string
   email: string
   phone?: string | null
+  renterProfile?: {
+    id: number
+    verificationStatus: string
+    identityNumber?: string | null
+    identityFrontUrl?: string | null
+    identityBackUrl?: string | null
+    permanentAddress?: string | null
+  } | null
 }
 
 export interface Contract {
@@ -46,6 +54,7 @@ export interface Contract {
   contentSnapshot: string
   status: ContractStatus
   createdAt: string
+
   updatedAt: string
   members?: ContractMember[]
   room?: ContractRoom
@@ -62,6 +71,14 @@ export interface ListContractsQuery {
   search?: string
 }
 
+export interface RenterInfo {
+  phone?: string | null
+  identityNumber?: string | null
+  permanentAddress?: string | null
+  identityFrontUrl?: string | null
+  identityBackUrl?: string | null
+}
+
 export interface CreateContractBody {
   roomId: number
   renterId: number
@@ -76,6 +93,7 @@ export interface CreateContractBody {
   paymentDueDay: number
   contentSnapshot: string
   coRenterIds?: number[]
+  renterInfo?: RenterInfo
 }
 
 export interface UpdateContractBody {
@@ -87,6 +105,7 @@ export interface UpdateContractBody {
   paymentDueDay?: number
   contentSnapshot?: string
   coRenterIds?: number[]
+  renterInfo?: RenterInfo
 }
 
 export type EmptyContractBody = Record<string, never>

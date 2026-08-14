@@ -5,11 +5,13 @@ import type { Service, ServiceAssignment } from '@/types/service'
 
 const SERVICE_KEYS = {
   allServices: ['services'] as const,
-  services: (tenantId: string, params: Record<string, unknown>) => [...SERVICE_KEYS.allServices, tenantId, params] as const,
+  services: (tenantId: string, params: Record<string, unknown>) =>
+    [...SERVICE_KEYS.allServices, tenantId, params] as const,
   serviceDetail: (tenantId: string, id: number) => [...SERVICE_KEYS.allServices, 'detail', tenantId, id] as const,
-  
+
   allAssignments: ['service-assignments'] as const,
-  assignments: (tenantId: string, params: Record<string, unknown>) => [...SERVICE_KEYS.allAssignments, tenantId, params] as const,
+  assignments: (tenantId: string, params: Record<string, unknown>) =>
+    [...SERVICE_KEYS.allAssignments, tenantId, params] as const,
 }
 
 interface PaginatedResponse<T> {
@@ -28,7 +30,7 @@ interface ServiceCatalogItemDto {
   code: string
   name: string
   description?: string | null
-  itemType: Service['type']
+  itemType: Service['itemType']
   defaultUnitPrice: number | string
   unitLabel: string
   isActive: boolean
@@ -48,8 +50,8 @@ interface ServiceAssignmentDto {
   updatedAt: string
 }
 
-type ServiceInput = Pick<Service, 'code' | 'name' | 'price' | 'unit' | 'type'> &
-  Partial<Pick<Service, 'description' | 'status'>>
+type ServiceInput = Pick<Service, 'code' | 'name' | 'defaultUnitPrice' | 'unitLabel' | 'itemType'> &
+  Partial<Pick<Service, 'description' | 'isActive'>>
 
 type ServiceAssignmentInput = Pick<ServiceAssignment, 'serviceId' | 'quantity'> &
   Partial<Pick<ServiceAssignment, 'roomId' | 'contractId'>>
@@ -60,10 +62,10 @@ const mapService = (item: ServiceCatalogItemDto): Service => ({
   code: item.code,
   name: item.name,
   description: item.description ?? undefined,
-  price: Number(item.defaultUnitPrice),
-  unit: item.unitLabel,
-  type: item.itemType,
-  status: item.isActive ? 'ACTIVE' : 'INACTIVE',
+  defaultUnitPrice: Number(item.defaultUnitPrice),
+  unitLabel: item.unitLabel,
+  itemType: item.itemType,
+  isActive: item.isActive,
   createdAt: item.createdAt,
   updatedAt: item.updatedAt,
 })
@@ -72,10 +74,10 @@ const toServicePayload = (payload: Partial<ServiceInput>) => ({
   ...(payload.code === undefined ? {} : { code: payload.code }),
   ...(payload.name === undefined ? {} : { name: payload.name }),
   ...(payload.description === undefined ? {} : { description: payload.description }),
-  ...(payload.type === undefined ? {} : { itemType: payload.type }),
-  ...(payload.price === undefined ? {} : { defaultUnitPrice: payload.price }),
-  ...(payload.unit === undefined ? {} : { unitLabel: payload.unit }),
-  ...(payload.status === undefined ? {} : { isActive: payload.status === 'ACTIVE' }),
+  ...(payload.itemType === undefined ? {} : { itemType: payload.itemType }),
+  ...(payload.defaultUnitPrice === undefined ? {} : { defaultUnitPrice: payload.defaultUnitPrice }),
+  ...(payload.unitLabel === undefined ? {} : { unitLabel: payload.unitLabel }),
+  ...(payload.isActive === undefined ? {} : { isActive: payload.isActive }),
 })
 
 export const useServices = (params: Record<string, unknown> = {}) => {

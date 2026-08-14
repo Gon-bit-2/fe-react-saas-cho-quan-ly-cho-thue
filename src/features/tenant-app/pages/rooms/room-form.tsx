@@ -342,6 +342,39 @@ export function Component() {
                 )}
               </div>
             </div>
+            
+            <div className="grid grid-cols-1 gap-6 border-t border-slate-100 pt-4 md:grid-cols-2">
+              <div className="space-y-2.5">
+                <Label htmlFor="electricityPrice" className="font-medium text-slate-700">
+                  Giá điện (VND/kWh) <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  {...register('electricityPrice')}
+                  id="electricityPrice"
+                  type="number"
+                  step={500}
+                  className="border-slate-200 bg-slate-50 focus-visible:ring-emerald-500"
+                />
+                {errors.electricityPrice && (
+                  <p className="mt-1 text-sm font-medium text-red-500">{errors.electricityPrice.message}</p>
+                )}
+              </div>
+              <div className="space-y-2.5">
+                <Label htmlFor="waterPrice" className="font-medium text-slate-700">
+                  Giá nước (VND/khối) <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  {...register('waterPrice')}
+                  id="waterPrice"
+                  type="number"
+                  step={1000}
+                  className="border-slate-200 bg-slate-50 focus-visible:ring-emerald-500"
+                />
+                {errors.waterPrice && (
+                  <p className="mt-1 text-sm font-medium text-red-500">{errors.waterPrice.message}</p>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
 

@@ -26,7 +26,7 @@ export default function AssetList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Mã danh mục</TableHead>
+                <TableHead>Mã (ID)</TableHead>
                 <TableHead>Tên danh mục</TableHead>
                 <TableHead>Ngày tạo</TableHead>
                 <TableHead className="text-right">Hành động</TableHead>
@@ -35,7 +35,7 @@ export default function AssetList() {
             <TableBody>
               {data?.data.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.code}</TableCell>
+                  <TableCell className="font-medium">CAT-{item.id.toString().padStart(4, '0')}</TableCell>
                   <TableCell>{item.name}</TableCell>
                   <TableCell>{new Date(item.createdAt).toLocaleDateString('vi-VN')}</TableCell>
                   <TableCell className="text-right">

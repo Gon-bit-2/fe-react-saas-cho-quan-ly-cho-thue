@@ -52,9 +52,11 @@ export function Component() {
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-sidebar-width bg-surface-container-lowest z-50 flex flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all">
         {/* Logo & Brand */}
-        <div className="h-topbar-height px-6 flex items-center gap-3 border-b border-surface-border">
-          <span className="material-symbols-outlined text-primary text-[28px]">admin_panel_settings</span>
-          <span className="font-headline-sm text-headline-sm text-primary tracking-tight">Admin Panel</span>
+        <div className="h-topbar-height px-6 flex items-center border-b border-surface-border">
+          <Link to="/" className="flex items-center gap-3">
+            <img alt="Rental SaaS Logo" className="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLu4TznyUBEtVnawD_HqEbeRssuo-WwEl3eP1yeXjhoM4pAwx-RtbSHvFViYRROUpnCb5g_VUY1nj6_CvzBh1Jo99bQAkFGcuhQZpAEt9q7Fp9lSRasW1rdyrsbWD769q-HN_LOKHqC65BOwad9q5DEQ8wPtSxV7fy270YJGpcLD2qNO0jiMmAPB6wrEvm641B5o0JuhxjA8CleZCKr2fp3Lzh1D5n4YCa6RpHJlmGn7gIB1Ml5A-ZWMLew"/>
+            <span className="font-headline-sm text-headline-sm text-primary tracking-tight">RentalSaaS</span>
+          </Link>
         </div>
 
         {/* Navigation */}

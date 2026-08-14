@@ -12,12 +12,14 @@ export interface Tenant {
   updatedAt: string
 }
 
+import type { PaginatedResponse } from '@/features/tenant-app/types'
+
 export const adminTenantApi = {
   getTenants: (params?: Record<string, unknown>) => {
-    return apiClient.get<Tenant[]>('/admin/tenants', { params })
+    return apiClient.get<PaginatedResponse<Tenant>>('/tenants', { params })
   },
   getTenantDetails: (id: number) => {
-    return apiClient.get<Tenant>(`/admin/tenants/${id}`)
+    return apiClient.get<Tenant>(`/tenants/${id}`)
   },
 }
 

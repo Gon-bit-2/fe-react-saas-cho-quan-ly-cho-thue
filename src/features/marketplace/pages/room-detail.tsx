@@ -159,6 +159,95 @@ export function Component() {
               ))}
             </div>
           </section>
+
+          <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
+            <h2 className="font-headline-sm text-text-main mb-4">Mô tả chi tiết</h2>
+            <div className="prose prose-slate max-w-none">
+              {room.description ? (
+                <p className="whitespace-pre-line font-body-md text-on-surface">{room.description}</p>
+              ) : (
+                <p className="font-body-md italic text-on-surface-variant">Chưa có mô tả chi tiết cho phòng này.</p>
+              )}
+            </div>
+          </section>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
+              <h2 className="font-headline-sm text-text-main mb-4">Vị trí</h2>
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-[20px] text-on-surface-variant mt-0.5">location_on</span>
+                <div>
+                  <p className="font-label-lg text-text-main">{room.property?.name}</p>
+                  <p className="font-body-md mt-1 text-on-surface-variant">
+                    {room.property?.addressDetail}, {location}
+                  </p>
+                </div>
+              </div>
+              <div className="bg-surface-container mt-4 flex h-48 w-full items-center justify-center rounded-lg">
+                <p className="font-label-md text-on-surface-variant">Bản đồ (Chưa khả dụng)</p>
+              </div>
+            </section>
+
+            <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
+              <div className="mb-4 flex items-center gap-2">
+                <h2 className="font-headline-sm text-text-main">Đánh giá</h2>
+                <div className="flex items-center gap-1 font-label-md">
+                  <span className="material-symbols-outlined text-[16px] text-yellow-400">star</span>
+                  <span className="text-text-main">4.8</span>
+                  <span className="text-on-surface-variant font-body-md">(12 đánh giá)</span>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Sample Review 1 */}
+                <div className="bg-surface-container-low rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary text-on-primary flex h-10 w-10 items-center justify-center rounded-full font-label-md font-bold">
+                      NH
+                    </div>
+                    <div>
+                      <p className="font-label-md text-text-main">Nguyễn Văn Hải</p>
+                      <p className="font-body-sm text-on-surface-variant">12/05/2024</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <span key={i} className="material-symbols-outlined text-[14px] text-yellow-400">star</span>
+                    ))}
+                  </div>
+                  <p className="font-body-md mt-2 text-on-surface">
+                    Phòng rất mới và sạch sẽ. Đầy đủ tiện nghi như mô tả. Chủ nhà thân thiện, hỗ trợ nhiệt tình.
+                  </p>
+                </div>
+
+                {/* Sample Review 2 */}
+                <div className="bg-surface-container-low rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-surface-container-highest text-on-surface flex h-10 w-10 items-center justify-center rounded-full font-label-md font-bold">
+                      LT
+                    </div>
+                    <div>
+                      <p className="font-label-md text-text-main">Lê Thị Thu</p>
+                      <p className="font-body-sm text-on-surface-variant">28/04/2024</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center gap-0.5">
+                    {[1, 2, 3, 4].map((i) => (
+                      <span key={i} className="material-symbols-outlined text-[14px] text-yellow-400">star</span>
+                    ))}
+                    <span className="material-symbols-outlined text-[14px] text-surface-variant">star</span>
+                  </div>
+                  <p className="font-body-md mt-2 text-on-surface">
+                    Vị trí thuận tiện đi lại, gần trạm xe buýt. Nhìn chung là đáng giá tiền.
+                  </p>
+                </div>
+
+                <button className="text-primary font-label-md w-full py-2 hover:underline">
+                  Xem thêm đánh giá
+                </button>
+              </div>
+            </section>
+          </div>
         </div>
 
         {/* Sidebar / CTA */}

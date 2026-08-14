@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import type { Property, Room, PropertyListParams, RoomListParams, PaginatedResponse, CreatePropertyDto, UpdatePropertyDto, CreateRoomDto, UpdateRoomDto, Floor } from '@/features/tenant-app/types'
 import { useAuth } from '../hooks/use-auth'
+import { amenitiesApi } from './amenities'
+import type { IListAmenitiesQueryDTO } from './amenities'
 
 const PROPERTY_KEYS = {
   all: ['properties'] as const,
@@ -18,6 +20,11 @@ const ROOM_KEYS = {
   list: (tenantId: string, params: RoomListParams) => [...ROOM_KEYS.lists(tenantId), params] as const,
   details: (tenantId: string) => [...ROOM_KEYS.all, 'detail', tenantId] as const,
   detail: (tenantId: string, id: number) => [...ROOM_KEYS.details(tenantId), id] as const,
+}
+
+const AMENITY_KEYS = {
+  all: ['amenities'] as const,
+  lists: () => [...AMENITY_KEYS.all, 'list'] as const,
 }
 
 export const useProperties = (params: PropertyListParams = {}) => {
@@ -234,3 +241,27 @@ export const useUpdateRoomImage = (id: number) => {
     },
   })
 }
+
+export const useAmenities = (params?: IListAmenitiesQueryDTO) => {
+  return useQuery({
+    queryKey: [...AMENITY_KEYS.lists(), params],
+    queryFn: () => amenitiesApi.list(params),
+  })
+}
+
+export const useReplaceRoomAmenities = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (amenityIds: number[]) => {
+      const response = await apiClient.patch(`/rooms/${id}/amenities`, { amenityIds }, { tenantId })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ROOM_KEYS.detail(tenantId, id) })
+    },
+  })
+}
+

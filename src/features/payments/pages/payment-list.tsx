@@ -16,11 +16,11 @@ export function PaymentListPage() {
   });
   const [total, setTotal] = useState(0);
 
-  // Mock stats
+  // Calculate stats from current page (approximate for demo since real backend lacks stats API yet)
   const stats = {
-    pendingReview: 42,
-    processedToday: 128,
-    totalReconciled: 485250000
+    pendingReview: payments.filter(p => p.status === PaymentStatus.PENDING).length,
+    processedToday: payments.filter(p => p.status === PaymentStatus.SUCCESS && new Date(p.updatedAt).toDateString() === new Date().toDateString()).length,
+    totalReconciled: payments.filter(p => p.status === PaymentStatus.SUCCESS).reduce((sum, p) => sum + p.amount, 0)
   };
 
   useEffect(() => {

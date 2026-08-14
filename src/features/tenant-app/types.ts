@@ -110,7 +110,7 @@ export interface Room {
   floorId?: number | null
   roomCode: string
   title: string
-  floor?: number
+  floor?: { id: number; name: string; floorNumber: number } | null
   area?: number | null
   basePrice: number
   depositAmount?: number | null

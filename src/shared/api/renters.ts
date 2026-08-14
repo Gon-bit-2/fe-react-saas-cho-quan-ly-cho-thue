@@ -105,3 +105,29 @@ export const useRenterInvitation = (id: number | string) => {
     enabled: !!tenantId && !!id,
   })
 }
+
+/**
+ * Hook upload ảnh CCCD (mặt trước, mặt sau) của người thuê lên Cloudinary.
+ * Trả về mảng { url, publicId } cho mỗi file đã upload.
+ */
+export const useUploadRenterImages = () => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+
+  return useMutation({
+    mutationFn: async ({ renterId, files }: { renterId: number; files: File[] }) => {
+      const formData = new FormData()
+      files.forEach((file) => formData.append('files', file))
+
+      const { data } = await apiClient.post<{ url: string; publicId: string }[]>(
+        `/renters/${renterId}/images`,
+        formData,
+        {
+          tenantId,
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
+      )
+      return data
+    },
+  })
+}

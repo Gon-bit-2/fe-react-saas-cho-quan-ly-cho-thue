@@ -42,12 +42,12 @@ export default function ServiceList() {
               {data?.data.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>{item.type}</TableCell>
-                  <TableCell>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</TableCell>
-                  <TableCell>{item.unit}</TableCell>
+                  <TableCell>{item.itemType}</TableCell>
+                  <TableCell>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.defaultUnitPrice)}</TableCell>
+                  <TableCell>{item.unitLabel}</TableCell>
                   <TableCell>
-                    <Badge variant={item.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                      {item.status}
+                    <Badge variant={item.isActive ? 'default' : 'secondary'}>
+                      {item.isActive ? 'ACTIVE' : 'INACTIVE'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

@@ -18,16 +18,15 @@ export interface Service {
   code: string
   name: string
   description?: string
-  price: number
-  unit: string
-  type: ServiceType
-  status: ServiceStatus
+  defaultUnitPrice: number
+  unitLabel: string
+  itemType: ServiceType
+  isActive: boolean
   createdAt: string
   updatedAt: string
 }
 
 export interface ServiceAssignment {
-  id: number
   serviceId: number
   service?: Service
   roomId?: number

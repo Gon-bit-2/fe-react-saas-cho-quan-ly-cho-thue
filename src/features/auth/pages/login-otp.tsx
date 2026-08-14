@@ -111,10 +111,25 @@ export function Component() {
           phone: state.registerData.phone,
           confirmPassword: state.registerData.confirm_password,
           code,
-          roleCode: 'LANDLORD',
+          roleCode: 'TENANT', // Tạm thời hardcode, có thể tuỳ chọn trên UI
         })
         
-        navigate('/dang-nhap', { state: { message: 'Đăng ký thành công, vui lòng đăng nhập!' } })
+        // Tự động đăng nhập sau khi đăng ký thành công
+        const loginRes = await authApi.login({ 
+          email: state.registerData.email, 
+          password: state.registerData.password 
+        })
+        
+        if (loginRes.accessToken) {
+          const profileResponse = await apiClient.get<UserProfile>('/auth/profile', {
+            headers: { Authorization: `Bearer ${loginRes.accessToken}` },
+          })
+          establishSession(
+            { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! }, 
+            profileResponse.data
+          )
+          navigate(getPostLoginPath(profileResponse.data), { replace: true })
+        }
       }
     } catch (err) {
       const appErr = toAppError(err)

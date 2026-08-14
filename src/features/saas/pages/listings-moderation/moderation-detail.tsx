@@ -22,7 +22,7 @@ export function ModerationDetailPage() {
    * Khi trạng thái là phê duyệt (PUBLISHED), thuộc tính reason sẽ không được đính kèm vào payload
    * để tránh lỗi Zod validation ở backend (do Zod bắt buộc min 3 ký tự nếu gửi chuỗi rỗng).
    * Đồng thời thực hiện chuyển hướng người dùng khi cập nhật trạng thái thành công.
-   * 
+   *
    * @param status Trạng thái kiểm duyệt đích từ giao diện kiểm duyệt ('APPROVED' | 'REJECTED' | 'HIDDEN').
    */
   const handleUpdateStatus = async (status: 'APPROVED' | 'REJECTED' | 'HIDDEN') => {
@@ -34,7 +34,7 @@ export function ModerationDetailPage() {
 
     try {
       const marketplaceStatus = (status === 'APPROVED' ? 'PUBLISHED' : status) as 'PUBLISHED' | 'REJECTED' | 'HIDDEN'
-      
+
       // Chuẩn bị dữ liệu gửi lên backend: Chỉ đính kèm reason khi không phải là PUBLISHED và reason có giá trị
       const payload: { marketplaceStatus: 'PUBLISHED' | 'REJECTED' | 'HIDDEN'; reason?: string } = {
         marketplaceStatus,
