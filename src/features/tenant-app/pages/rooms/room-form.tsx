@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+
 import { useParams, useNavigate, useSearchParams } from 'react-router'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -49,7 +49,6 @@ export function Component() {
     register,
     handleSubmit,
     control,
-    reset,
     watch,
     formState: { errors },
   } = useForm<RoomFormInput, unknown, RoomFormValues>({
@@ -69,31 +68,29 @@ export function Component() {
       status: 'AVAILABLE',
       marketplaceStatus: 'DRAFT',
     },
+    values: initialData ? {
+      propertyId: initialData.propertyId?.toString() || '',
+      roomCode: initialData.roomCode || '',
+      floorId: initialData.floorId?.toString() || 'none',
+      title: initialData.title || '',
+      area: initialData.area || 0,
+      maxOccupants: initialData.maxOccupants || 1,
+      basePrice: initialData.basePrice || 0,
+      depositAmount: initialData.depositAmount || 0,
+      electricityPrice: initialData.electricityPrice || 0,
+      waterPrice: initialData.waterPrice || 0,
+      description: initialData.description || '',
+      status: initialData.status || 'AVAILABLE',
+      marketplaceStatus: initialData.marketplaceStatus || 'DRAFT',
+    } : undefined,
   })
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedPropertyId = watch('propertyId')
   const { data: floorsData } = useFloors(selectedPropertyId)
   const floors = floorsData || []
 
-  useEffect(() => {
-    if (initialData) {
-      reset({
-        propertyId: initialData.propertyId?.toString() || '',
-        roomCode: initialData.roomCode || '',
-        floorId: initialData.floorId?.toString() || 'none',
-        title: initialData.title || '',
-        area: initialData.area || 0,
-        maxOccupants: initialData.maxOccupants || 1,
-        basePrice: initialData.basePrice || 0,
-        depositAmount: initialData.depositAmount || 0,
-        electricityPrice: initialData.electricityPrice || 0,
-        waterPrice: initialData.waterPrice || 0,
-        description: initialData.description || '',
-        status: initialData.status || 'AVAILABLE',
-        marketplaceStatus: initialData.marketplaceStatus || 'DRAFT',
-      })
-    }
-  }, [initialData, reset])
+  // Using `values` prop in useForm replaces the need for useEffect and reset
 
   const onSubmit = async (data: RoomFormValues) => {
     try {

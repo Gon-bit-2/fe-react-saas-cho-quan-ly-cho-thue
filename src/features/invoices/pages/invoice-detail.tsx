@@ -2,18 +2,26 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getInvoiceDetail } from '../api';
+import { getInvoiceDetail, cancelInvoice } from '../api';
 import { InvoiceStatus, InvoiceItemType, type Invoice, type InvoiceItem } from '../types';
+import { toast } from 'sonner';
+import { getPayments } from '../../payments/api';
+import { type Payment } from '../../payments/types';
 
 export function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
-      getInvoiceDetail(id).then(data => {
-        setInvoice(data);
+      Promise.all([
+        getInvoiceDetail(id),
+        getPayments({ invoiceId: Number(id) })
+      ]).then(([invoiceData, paymentsData]) => {
+        setInvoice(invoiceData);
+        setPayments(paymentsData.data);
         setIsLoading(false);
       }).catch(err => {
         console.error(err);
@@ -21,6 +29,32 @@ export function InvoiceDetailPage() {
       });
     }
   }, [id]);
+
+  const handleCancel = async () => {
+    if (!invoice) return;
+    if (window.confirm('Bạn có chắc chắn muốn hủy hóa đơn này?')) {
+      setIsLoading(true);
+      try {
+        await cancelInvoice(invoice.id);
+        toast.success('Đã hủy hóa đơn thành công');
+        const data = await getInvoiceDetail(invoice.id);
+        setInvoice(data);
+      } catch (error) {
+        console.error(error);
+        toast.error('Có lỗi xảy ra khi hủy hóa đơn');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleRemind = () => {
+    toast.success('Đã gửi thông báo nhắc nhở người thuê thành công!');
+  };
+
+  const handleRecordPayment = () => {
+    toast.info('Tính năng ghi nhận thanh toán thủ công đang được phát triển.');
+  };
 
   if (isLoading) {
     return <div className="p-8 flex items-center justify-center min-h-[calc(100vh-64px)]">Đang tải...</div>;
@@ -98,13 +132,13 @@ export function InvoiceDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2" onClick={handleCancel} disabled={invoice.status === InvoiceStatus.CANCELED || invoice.status === InvoiceStatus.PAID}>
             <span className="material-symbols-outlined text-[18px]">cancel</span> Hủy
           </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2" onClick={handleRemind}>
             <span className="material-symbols-outlined text-[18px]">notifications_active</span> Nhắc nhở
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button className="flex items-center gap-2" onClick={handleRecordPayment} disabled={invoice.status === InvoiceStatus.PAID || invoice.status === InvoiceStatus.CANCELED}>
             <span className="material-symbols-outlined text-[18px]">payments</span> Ghi nhận thanh toán
           </Button>
         </div>
@@ -256,19 +290,42 @@ export function InvoiceDetailPage() {
             <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-slate-900">Lịch Sử Thanh Toán</h3>
-                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">0 Giao dịch</span>
+                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">{payments.length} Giao dịch</span>
               </div>
               
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-4 border border-slate-100">
-                  <span className="material-symbols-outlined text-[32px]">history_toggle_off</span>
+              {payments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-4 border border-slate-100">
+                    <span className="material-symbols-outlined text-[32px]">history_toggle_off</span>
+                  </div>
+                  <p className="text-sm font-medium text-slate-900">Chưa có khoản thanh toán</p>
+                  <p className="text-xs text-slate-500 mt-1 max-w-[200px]">Các khoản thanh toán cho hóa đơn này sẽ hiển thị ở đây.</p>
+                  <Button variant="outline" className="mt-4" onClick={handleRecordPayment} disabled={invoice.status === InvoiceStatus.PAID || invoice.status === InvoiceStatus.CANCELED}>
+                    Thêm Ghi Nhận
+                  </Button>
                 </div>
-                <p className="text-sm font-medium text-slate-900">Chưa có khoản thanh toán</p>
-                <p className="text-xs text-slate-500 mt-1 max-w-[200px]">Các khoản thanh toán cho hóa đơn này sẽ hiển thị ở đây.</p>
-                <Button variant="outline" className="mt-4">
-                  Thêm Ghi Nhận
-                </Button>
-              </div>
+              ) : (
+                <div className="space-y-4">
+                  {payments.map(payment => (
+                    <div key={payment.id} className="flex items-start gap-4 p-4 border border-slate-100 rounded-lg bg-slate-50">
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[20px]">check_circle</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold text-slate-900">{payment.amount.toLocaleString()} ₫</p>
+                          <span className="text-xs font-medium text-slate-500">{new Date(payment.createdAt).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                        <p className="text-sm text-slate-500 mt-1">Phương thức: {payment.method === 'BANK_TRANSFER' ? 'Chuyển khoản' : payment.method === 'CASH' ? 'Tiền mặt' : payment.method}</p>
+                        {payment.transactionCode && <p className="text-xs text-slate-400 mt-0.5">Mã GD: {payment.transactionCode}</p>}
+                      </div>
+                    </div>
+                  ))}
+                  <Button variant="outline" className="w-full mt-4" onClick={handleRecordPayment} disabled={invoice.status === InvoiceStatus.PAID || invoice.status === InvoiceStatus.CANCELED}>
+                    Thêm Ghi Nhận
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>

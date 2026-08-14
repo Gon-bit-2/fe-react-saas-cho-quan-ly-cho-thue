@@ -297,6 +297,19 @@ export const router = createBrowserRouter([
                     Component: m.default,
                   })),
               },
+              // Quản lý điện nước
+              {
+                path: 'dien-nuoc/chi-so',
+                lazy: () =>
+                  import('@/features/utilities/pages/meter-readings-list').then((m) => ({
+                    Component: m.MeterReadingsListPage,
+                  })),
+              },
+              {
+                path: 'dien-nuoc/cong-to/:id',
+                lazy: () =>
+                  import('@/features/utilities/pages/meter-detail').then((m) => ({ Component: m.MeterDetailPage })),
+              },
               // Quản lý dịch vụ (W11)
               {
                 path: 'dich-vu',

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -22,6 +22,7 @@ export function PlanFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEditing = !!id
+  const [initialData, setInitialData] = useState<PlanFormValues | null>(null)
 
   const form = useForm<PlanFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,6 +37,7 @@ export function PlanFormPage() {
       maxStorageGb: null,
       status: 'ACTIVE',
     },
+    values: initialData || undefined,
   })
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -46,9 +48,9 @@ export function PlanFormPage() {
       const fetchPlan = async () => {
         try {
           const data = await plansApi.getById(Number(id))
-          form.reset({
+          setInitialData({
             name: data.name,
-            price: data.price,
+            price: data.priceMonthly,
             billingCycle: data.billingCycle,
             maxProperties: data.maxProperties,
             maxRooms: data.maxRooms,
@@ -62,7 +64,7 @@ export function PlanFormPage() {
       }
       fetchPlan()
     }
-  }, [id, isEditing, form])
+  }, [id, isEditing])
 
   const onSubmit = async (values: PlanFormValues) => {
     const apiValues = {

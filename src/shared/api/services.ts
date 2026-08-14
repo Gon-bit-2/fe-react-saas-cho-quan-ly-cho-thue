@@ -195,3 +195,24 @@ export const useAssignService = () => {
     },
   })
 }
+
+export const useUpdateServiceAssignment = () => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: number; payload: Partial<ServiceAssignmentInput & { isActive: boolean }> }) => {
+      const { data } = await apiClient.patch(
+        `/service-assignments/${id}`,
+        {
+          ...(payload.serviceId ? { serviceItemId: payload.serviceId } : {}),
+          roomId: payload.roomId,
+          contractId: payload.contractId,
+          quantity: payload.quantity,
+          isActive: payload.isActive,
+        },
+        { tenantId },
+      )
+      return data
+    },
+  })
+}

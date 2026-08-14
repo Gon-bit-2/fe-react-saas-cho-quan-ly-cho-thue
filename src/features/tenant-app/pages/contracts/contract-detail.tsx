@@ -5,13 +5,21 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useContract, useCancelContract, useActivateContract } from '@/shared/api/contracts'
+import { useContract, useCancelContract, useActivateContract, useRemoveContractMember } from '@/shared/api/contracts'
+import { AddMemberDialog } from './components/add-member-dialog'
 
 export default function ContractDetailPage() {
   const { id } = useParams()
   const { data: contract, isLoading } = useContract(Number(id))
   const { mutate: cancelContract, isPending: isCanceling } = useCancelContract(Number(id))
   const { mutate: activateContract, isPending: isActivating } = useActivateContract(Number(id))
+  const { mutate: removeMember, isPending: isRemoving } = useRemoveContractMember(Number(id))
+
+  const handleRemoveMember = (memberUserId: number) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa thành viên này khỏi hợp đồng?')) {
+      removeMember(memberUserId)
+    }
+  }
 
   const { durationMonths, monthsLeft, progressPercent } = useMemo(() => {
     if (!contract) return { durationMonths: 0, monthsLeft: 0, progressPercent: 0 }
@@ -264,13 +272,15 @@ export default function ContractDetailPage() {
                       Thành viên thuê ({contract.members?.length || 1})
                     </h2>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-transparent bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
-                  >
-                    + Thêm
-                  </Button>
+                  <AddMemberDialog contractId={contract.id}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-transparent bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
+                    >
+                      + Thêm
+                    </Button>
+                  </AddMemberDialog>
                 </div>
 
                 <div className="space-y-3">
@@ -327,6 +337,15 @@ export default function ContractDetailPage() {
                             </div>
                           </div>
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveMember(member.userId)}
+                          disabled={isRemoving}
+                          className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <XCircle className="h-5 w-5" />
+                        </Button>
                       </div>
                     ))}
                 </div>

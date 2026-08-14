@@ -32,36 +32,46 @@ export interface AssetCategory {
 
 export interface RoomAsset {
   id: number
+  tenantId: number
   roomId: number
   categoryId: number
   category?: AssetCategory
+  name: string
   quantity: number
   condition: AssetCondition
-  notes?: string
+  description?: string
+  imageUrl?: string
   createdAt: string
   updatedAt: string
 }
 
 export interface HandoverAssetItem {
   id: number
-  handoverId: number
-  categoryId: number
-  category?: AssetCategory
-  quantity: number
+  handoverRecordId: number
+  roomAssetId: number
+  assetName: string
+  categoryName: string
+  expectedQuantity: number
+  actualQuantity: number
   condition: AssetCondition
-  notes?: string
+  note?: string | null
+  imageUrl?: string | null
 }
 
 export interface HandoverRecord {
   id: number
   version: number
+  tenantId: number
   contractId: number
   roomId: number
   type: HandoverType
   status: HandoverStatus
   handoverDate: string
-  notes?: string
-  createdById?: number
+  note?: string | null
+  signedByLandlordAt?: string | null
+  signedByRenterAt?: string | null
+  signedByLandlordId?: number | null
+  signedByRenterId?: number | null
   items: HandoverAssetItem[]
   createdAt: string
   updatedAt: string

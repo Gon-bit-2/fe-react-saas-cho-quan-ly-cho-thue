@@ -72,6 +72,38 @@ export const useCreateAssetCategory = () => {
   })
 }
 
+export const useUpdateAssetCategory = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: UpdateAssetCategoryDto) => {
+      const { data } = await apiClient.patch<AssetCategory>(`/asset-categories/${id}`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.categories(tenantId) })
+    },
+  })
+}
+
+export const useDeleteAssetCategory = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await apiClient.delete(`/asset-categories/${id}`, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.categories(tenantId) })
+    },
+  })
+}
+
 export const useRoomAssets = (roomId: number, params: { page?: number; limit?: number; search?: string; condition?: AssetCondition; categoryId?: number } = {}) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
@@ -98,6 +130,38 @@ export const useCreateRoomAsset = (roomId: number) => {
   return useMutation({
     mutationFn: async (payload: CreateRoomAssetDto) => {
       const { data } = await apiClient.post<RoomAsset>(`/rooms/${roomId}/assets`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.roomAssets(tenantId, roomId) })
+    },
+  })
+}
+
+export const useUpdateRoomAsset = (roomId: number, assetId: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: UpdateRoomAssetDto) => {
+      const { data } = await apiClient.patch<RoomAsset>(`/rooms/${roomId}/assets/${assetId}`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.roomAssets(tenantId, roomId) })
+    },
+  })
+}
+
+export const useDeleteRoomAsset = (roomId: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (assetId: number) => {
+      const { data } = await apiClient.delete(`/rooms/${roomId}/assets/${assetId}`, { tenantId })
       return data
     },
     onSuccess: () => {

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -19,6 +19,7 @@ export function AmenityFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEditing = !!id
+  const [initialData, setInitialData] = useState<AmenityFormValues | null>(null)
 
   const form = useForm<AmenityFormValues>({
     resolver: zodResolver(amenityFormSchema),
@@ -27,6 +28,7 @@ export function AmenityFormPage() {
       category: 'Chung',
       icon: 'ac_unit',
     },
+    values: initialData || undefined,
   })
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export function AmenityFormPage() {
           const response = await amenitiesApi.list()
           const data = response.data.find((a: IAmenityDTO) => a.id === Number(id))
           if (data) {
-            form.reset({
+            setInitialData({
               name: data.name,
               category: data.category,
               icon: data.icon || 'ac_unit',
@@ -49,7 +51,7 @@ export function AmenityFormPage() {
       }
       fetchAmenity()
     }
-  }, [id, isEditing, form])
+  }, [id, isEditing])
 
   const onSubmit = async (values: AmenityFormValues) => {
     try {

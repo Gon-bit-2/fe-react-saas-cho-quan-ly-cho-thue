@@ -18,11 +18,13 @@ export function InvoiceEditPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [initialValues, setInitialValues] = useState<InvoiceEditFormValues | null>(null);
 
-  const { register, control, handleSubmit, watch, setValue, reset } = useForm<InvoiceEditFormValues>({
+  const { register, control, handleSubmit, watch, setValue } = useForm<InvoiceEditFormValues>({
     defaultValues: {
       extraItems: []
-    }
+    },
+    values: initialValues || undefined,
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -48,19 +50,19 @@ export function InvoiceEditPage() {
             unitPrice: i.unitPrice
           }));
         
-        reset({
+        setInitialValues({
           issueDate: data.issueDate ? data.issueDate.substring(0, 10) : undefined,
           dueDate: data.dueDate ? data.dueDate.substring(0, 10) : undefined,
           note: data.note || '',
           extraItems
-        });
+        } as InvoiceEditFormValues);
         setIsLoading(false);
       }).catch(err => {
         console.error(err);
         setIsLoading(false);
       });
     }
-  }, [id, reset]);
+  }, [id]);
 
   const baseRent = invoice?.items?.find((i: InvoiceItem) => i.itemType === InvoiceItemType.RENT)?.amount || 0;
   const electricity = invoice?.items?.find((i: InvoiceItem) => i.itemType === InvoiceItemType.ELECTRICITY)?.amount || 0;

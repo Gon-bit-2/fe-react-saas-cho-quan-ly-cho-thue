@@ -119,3 +119,37 @@ export const useCancelContract = (id: number) => {
     },
   })
 }
+
+export const useAddContractMember = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (userId: number) => {
+      const { data } = await apiClient.post<Contract>(`/contracts/${id}/members`, { userId }, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useRemoveContractMember = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (userId: number) => {
+      const { data } = await apiClient.delete<Contract>(`/contracts/${id}/members/${userId}`, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.lists(tenantId) })
+    },
+  })
+}

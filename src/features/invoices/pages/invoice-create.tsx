@@ -35,7 +35,7 @@ export function InvoiceCreatePage() {
     control,
     name: "extraItems"
   });
-
+  // eslint-disable-next-line react-hooks/incompatible-library
   const extraItems = watch("extraItems") || [];
   
   const additions = extraItems

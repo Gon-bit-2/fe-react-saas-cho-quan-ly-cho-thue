@@ -14,6 +14,7 @@ import {
   Trash2,
   Star,
   Loader2,
+  Settings,
 } from 'lucide-react'
 import {
   useRoom,
@@ -24,6 +25,8 @@ import {
   useAmenities,
   useReplaceRoomAmenities,
 } from '@/shared/api/properties'
+import { RoomServices } from './components/room-services'
+import { RoomAssets } from './components/room-assets'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -197,6 +200,18 @@ export function Component() {
             className="rounded-lg px-4 data-[state=active]:bg-slate-100 data-[state=active]:shadow-none"
           >
             <Zap className="mr-2 h-4 w-4" /> Tiện ích
+          </TabsTrigger>
+          <TabsTrigger
+            value="services"
+            className="rounded-lg px-4 data-[state=active]:bg-slate-100 data-[state=active]:shadow-none"
+          >
+            <Settings className="mr-2 h-4 w-4" /> Dịch vụ
+          </TabsTrigger>
+          <TabsTrigger
+            value="assets"
+            className="rounded-lg px-4 data-[state=active]:bg-slate-100 data-[state=active]:shadow-none"
+          >
+            <Settings className="mr-2 h-4 w-4" /> Tài sản
           </TabsTrigger>
         </TabsList>
 
@@ -427,6 +442,14 @@ export function Component() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="services" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <RoomServices roomId={Number(id)} />
+        </TabsContent>
+
+        <TabsContent value="assets" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <RoomAssets roomId={Number(id)} />
         </TabsContent>
       </Tabs>
     </div>

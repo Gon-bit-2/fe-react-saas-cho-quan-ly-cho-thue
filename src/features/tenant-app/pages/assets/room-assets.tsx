@@ -41,14 +41,14 @@ export default function RoomAssets() {
             <TableBody>
               {data?.data.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.category?.name || item.categoryId}</TableCell>
+                  <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
                   <TableCell>
                     <Badge variant={item.condition === 'DAMAGED' || item.condition === 'LOST' ? 'destructive' : 'default'}>
                       {conditionMap[item.condition] || item.condition}
                     </Badge>
                   </TableCell>
-                  <TableCell>{item.notes || '-'}</TableCell>
+                  <TableCell>{item.description || '-'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -13,6 +13,7 @@ import {
   setTokenPair,
   clearSession,
   emitSessionExpired,
+  getSelectedTenantId,
 } from '@/app/config/session.store'
 import type { TokenPair } from '@/shared/types/auth'
 import type { ApiErrorResponse } from '@/shared/types/errors'
@@ -87,6 +88,11 @@ apiClient.interceptors.request.use((config) => {
   const extendedConfig = config as InternalAxiosRequestConfig & { tenantId?: string | number }
   if (extendedConfig.tenantId) {
     config.headers['x-tenant-id'] = extendedConfig.tenantId
+  } else {
+    const tenantId = getSelectedTenantId()
+    if (tenantId) {
+      config.headers['x-tenant-id'] = tenantId
+    }
   }
 
   return config

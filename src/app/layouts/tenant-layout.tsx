@@ -10,6 +10,7 @@ const navItems = [
   { name: 'Hợp đồng', path: '/hop-dong', icon: 'description' },
   { name: 'Yêu cầu kết thúc', path: '/yeu-cau-ket-thuc-hop-dong', icon: 'assignment_late' },
   { name: 'Tài sản', path: '/quan-ly-tai-san', icon: 'inventory_2' },
+  { name: 'Điện nước', path: '/dien-nuoc/chi-so', icon: 'water_ec' },
   { name: 'Dịch vụ', path: '/dich-vu', icon: 'electric_bolt' },
   { name: 'Hóa đơn', path: '/hoa-don', icon: 'receipt_long' },
   { name: 'Thanh toán', path: '/thanh-toan', icon: 'payments' },

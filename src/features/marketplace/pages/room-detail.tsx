@@ -2,7 +2,6 @@ import { useParams, Link } from 'react-router'
 import { useState } from 'react'
 import { useMarketplaceRoom } from '@/shared/api/marketplace'
 
-
 import { useAuth } from '@/shared/hooks/use-auth'
 import { BookViewingDrawer } from '../components/book-viewing-drawer'
 import { RentalRequestDrawer } from '../components/rental-request-drawer'
@@ -77,7 +76,6 @@ export function Component() {
     )
   }
 
-
   const formattedPrice = new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
@@ -150,7 +148,9 @@ export function Component() {
               </div>
               <div>
                 <p className="font-label-sm text-on-surface-variant mb-1 uppercase">Diện tích</p>
-                <p className="font-headline-sm text-text-main">{room.area !== null ? `${room.area}m²` : 'Chưa cập nhật'}</p>
+                <p className="font-headline-sm text-text-main">
+                  {room.area !== null ? `${room.area}m²` : 'Chưa cập nhật'}
+                </p>
               </div>
               <div>
                 <p className="font-label-sm text-on-surface-variant mb-1 uppercase">Sức chứa</p>
@@ -177,9 +177,9 @@ export function Component() {
             <h2 className="font-headline-sm text-text-main mb-4">Mô tả chi tiết</h2>
             <div className="prose prose-slate max-w-none">
               {room.description ? (
-                <p className="whitespace-pre-line font-body-md text-on-surface">{room.description}</p>
+                <p className="font-body-md text-on-surface whitespace-pre-line">{room.description}</p>
               ) : (
-                <p className="font-body-md italic text-on-surface-variant">Chưa có mô tả chi tiết cho phòng này.</p>
+                <p className="font-body-md text-on-surface-variant italic">Chưa có mô tả chi tiết cho phòng này.</p>
               )}
             </div>
           </section>
@@ -188,17 +188,19 @@ export function Component() {
             <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
               <h2 className="font-headline-sm text-text-main mb-4">Vị trí</h2>
               <div className="flex items-start gap-3">
-                <span className="material-symbols-outlined text-[20px] text-on-surface-variant mt-0.5">location_on</span>
+                <span className="material-symbols-outlined text-on-surface-variant mt-0.5 text-[20px]">
+                  location_on
+                </span>
                 <div>
                   <p className="font-label-lg text-text-main">{room.property?.name}</p>
-                  <p className="font-body-md mt-1 text-on-surface-variant">
-                    {room.property.addressDetail || location}
-                  </p>
+                  <p className="font-body-md text-on-surface-variant mt-1">{room.property.addressDetail || location}</p>
                 </div>
               </div>
               <div className="mt-4">
-                {room.property.latitude !== null && room.property.latitude !== undefined &&
-                room.property.longitude !== null && room.property.longitude !== undefined ? (
+                {room.property.latitude !== null &&
+                room.property.latitude !== undefined &&
+                room.property.longitude !== null &&
+                room.property.longitude !== undefined ? (
                   <GoongMap latitude={room.property.latitude} longitude={room.property.longitude} className="h-48" />
                 ) : (
                   <div className="bg-surface-container text-on-surface-variant flex h-48 items-center justify-center rounded-lg">
@@ -211,28 +213,41 @@ export function Component() {
             <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
               <div className="mb-4 flex items-center gap-2">
                 <h2 className="font-headline-sm text-text-main">Đánh giá</h2>
-                <div className="flex items-center gap-1 font-label-md">
+                <div className="font-label-md flex items-center gap-1">
                   <span className="material-symbols-outlined text-[16px] text-yellow-400">star</span>
-                  <span className="text-text-main">{reviewSummary?.averageRating.toFixed(1) ?? '0.0'}</span>
-                  <span className="text-on-surface-variant font-body-md">({reviewSummary?.totalReviews ?? 0} đánh giá)</span>
+                  <span className="text-text-main">{Number(reviewSummary?.averageRating || 0).toFixed(1)}</span>
+                  <span className="text-on-surface-variant font-body-md">
+                    ({reviewSummary?.totalReviews ?? 0} đánh giá)
+                  </span>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
-                {reviews?.data.length ? reviews.data.map((review) => (
-                  <div key={review.id} className="bg-surface-container-low rounded-xl p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="font-label-md text-text-main">Người thuê #{review.reviewerId}</p>
-                      <p className="font-body-sm text-on-surface-variant">{new Intl.DateTimeFormat('vi-VN').format(new Date(review.createdAt))}</p>
+                {reviews?.data?.length ? (
+                  reviews.data.map((review) => (
+                    <div key={review.id} className="bg-surface-container-low rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="font-label-md text-text-main">Người thuê #{review.reviewerId}</p>
+                        <p className="font-body-sm text-on-surface-variant">
+                          {new Intl.DateTimeFormat('vi-VN').format(new Date(review.createdAt))}
+                        </p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            className={`material-symbols-outlined text-[14px] ${star <= review.rating ? 'text-yellow-400' : 'text-surface-variant'}`}
+                          >
+                            star
+                          </span>
+                        ))}
+                      </div>
+                      <p className="font-body-md text-on-surface mt-2">
+                        {review.comment || 'Người thuê không để lại nhận xét.'}
+                      </p>
                     </div>
-                    <div className="mt-2 flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className={`material-symbols-outlined text-[14px] ${star <= review.rating ? 'text-yellow-400' : 'text-surface-variant'}`}>star</span>
-                      ))}
-                    </div>
-                    <p className="font-body-md mt-2 text-on-surface">{review.comment || 'Người thuê không để lại nhận xét.'}</p>
-                  </div>
-                )) : (
+                  ))
+                ) : (
                   <p className="font-body-md text-on-surface-variant">Phòng chưa có đánh giá đã được duyệt.</p>
                 )}
               </div>
