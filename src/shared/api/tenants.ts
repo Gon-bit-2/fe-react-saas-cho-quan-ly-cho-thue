@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
-import type { ApiErrorResponse } from '@/shared/types/api'
+import type { ApiErrorResponse } from '@/shared/types/errors'
 import { apiClient } from './axios-client'
 
 export interface RegisterTenantBody {

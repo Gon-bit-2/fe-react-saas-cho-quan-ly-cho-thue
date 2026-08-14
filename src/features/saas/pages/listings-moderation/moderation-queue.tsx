@@ -5,8 +5,11 @@ import { vi } from 'date-fns/locale'
 import { useAdminModerationRooms } from '@/shared/api/admin'
 
 export function ModerationQueuePage() {
-  const [params] = useState({ page: 1, limit: 12 })
+  const [params, setParams] = useState({ page: 1, limit: 12 })
   const { data: response, isLoading: loading } = useAdminModerationRooms(params)
+  const pending = useAdminModerationRooms({ page: 1, limit: 1, marketplaceStatus: 'PENDING_REVIEW' })
+  const published = useAdminModerationRooms({ page: 1, limit: 1, marketplaceStatus: 'PUBLISHED' })
+  const rejected = useAdminModerationRooms({ page: 1, limit: 1, marketplaceStatus: 'REJECTED' })
   
   const listings = response?.data || []
 
@@ -60,7 +63,7 @@ export function ModerationQueuePage() {
             <p className="font-label-md text-label-md text-on-surface-variant mb-1 tracking-wider uppercase">
               Chờ duyệt (Pending)
             </p>
-            <p className="font-headline-lg text-headline-lg text-text-main tabular-nums">12</p>
+            <p className="font-headline-lg text-headline-lg text-text-main tabular-nums">{pending.data?.meta.total ?? '—'}</p>
           </div>
           <div className="bg-status-warning/10 text-status-warning flex h-12 w-12 items-center justify-center rounded-full">
             <span className="material-symbols-outlined text-2xl">hourglass_empty</span>
@@ -69,9 +72,9 @@ export function ModerationQueuePage() {
         <div className="bg-surface-container flex items-center justify-between rounded-xl p-6 shadow-sm">
           <div>
             <p className="font-label-md text-label-md text-on-surface-variant mb-1 tracking-wider uppercase">
-              Đã duyệt hôm nay
+              Đã duyệt
             </p>
-            <p className="font-headline-lg text-headline-lg text-text-main tabular-nums">45</p>
+            <p className="font-headline-lg text-headline-lg text-text-main tabular-nums">{published.data?.meta.total ?? '—'}</p>
           </div>
           <div className="bg-tertiary-container/10 text-tertiary flex h-12 w-12 items-center justify-center rounded-full">
             <span className="material-symbols-outlined text-2xl">check_circle</span>
@@ -82,7 +85,7 @@ export function ModerationQueuePage() {
             <p className="font-label-md text-label-md text-on-surface-variant mb-1 tracking-wider uppercase">
               Từ chối (Rejected)
             </p>
-            <p className="font-headline-lg text-headline-lg text-text-main tabular-nums">3</p>
+            <p className="font-headline-lg text-headline-lg text-text-main tabular-nums">{rejected.data?.meta.total ?? '—'}</p>
           </div>
           <div className="bg-error-container/20 text-error flex h-12 w-12 items-center justify-center rounded-full">
             <span className="material-symbols-outlined text-2xl">cancel</span>
@@ -128,7 +131,7 @@ export function ModerationQueuePage() {
               <tr className="bg-surface-container-low border-surface-border text-on-surface-variant font-label-md border-y">
                 <th className="px-6 py-4 font-semibold tracking-wider whitespace-nowrap uppercase">Hình ảnh</th>
                 <th className="min-w-[250px] px-6 py-4 font-semibold tracking-wider uppercase">Tên phòng</th>
-                <th className="px-6 py-4 font-semibold tracking-wider uppercase">Tenant (Chủ trọ)</th>
+                <th className="px-6 py-4 font-semibold tracking-wider uppercase">Khu trọ</th>
                 <th className="px-6 py-4 font-semibold tracking-wider whitespace-nowrap uppercase">Ngày gửi</th>
                 <th className="px-6 py-4 font-semibold tracking-wider uppercase">Trạng thái</th>
                 <th className="px-6 py-4 text-right font-semibold tracking-wider uppercase">Thao tác</th>
@@ -186,24 +189,26 @@ export function ModerationQueuePage() {
         </div>
 
         <div className="border-surface-border text-on-surface-variant font-label-sm flex items-center justify-between border-t p-4">
-          <span>Hiển thị 1 đến 3 của 12 mục</span>
+          <span>
+            Hiển thị {listings.length === 0 ? 0 : (params.page - 1) * params.limit + 1} đến{' '}
+            {(params.page - 1) * params.limit + listings.length} trong {response?.meta.total ?? 0} mục
+          </span>
           <div className="flex items-center gap-1">
             <button
               className="hover:bg-surface-container-highest flex h-8 w-8 items-center justify-center rounded transition-colors disabled:opacity-50"
-              disabled
+              disabled={params.page <= 1}
+              onClick={() => setParams(current => ({ ...current, page: current.page - 1 }))}
             >
               <span className="material-symbols-outlined text-sm">chevron_left</span>
             </button>
             <button className="bg-primary text-on-primary flex h-8 w-8 items-center justify-center rounded font-medium">
-              1
+              {params.page}
             </button>
-            <button className="hover:bg-surface-container-highest flex h-8 w-8 items-center justify-center rounded transition-colors">
-              2
-            </button>
-            <button className="hover:bg-surface-container-highest flex h-8 w-8 items-center justify-center rounded transition-colors">
-              3
-            </button>
-            <button className="hover:bg-surface-container-highest flex h-8 w-8 items-center justify-center rounded transition-colors">
+            <button
+              className="hover:bg-surface-container-highest flex h-8 w-8 items-center justify-center rounded transition-colors disabled:opacity-50"
+              disabled={params.page >= (response?.meta.totalPages ?? 1)}
+              onClick={() => setParams(current => ({ ...current, page: current.page + 1 }))}
+            >
               <span className="material-symbols-outlined text-sm">chevron_right</span>
             </button>
           </div>

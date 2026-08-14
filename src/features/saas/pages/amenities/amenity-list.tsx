@@ -112,11 +112,7 @@ export function AmenityListPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-body-md text-body-md text-on-surface font-semibold">{amenity.name}</div>
-                      {amenity.description && (
-                        <div className="font-label-sm text-label-sm text-on-surface-variant mt-1">
-                          {amenity.description}
-                        </div>
-                      )}
+                      <div className="font-label-sm text-label-sm text-on-surface-variant mt-1">{amenity.category}</div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="bg-tertiary-container/10 text-tertiary font-label-sm text-label-sm inline-flex items-center gap-1.5 rounded-full px-2.5 py-1">

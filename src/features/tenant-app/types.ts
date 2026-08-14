@@ -83,14 +83,18 @@ export interface Property {
   name: string
   addressDetail: string
   province: string
-  district: string
+  provinceCode?: string | null
+  district: string | null
   ward: string
+  wardCode?: string | null
+  latitude?: number | null
+  longitude?: number | null
   type: string
   _count?: {
     floors: number
     rooms: number
   }
-  status: 'ACTIVE' | 'MAINTENANCE' | 'CLOSED'
+  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
   createdAt: string
 }
 
@@ -154,16 +158,23 @@ export interface PropertyListParams extends PaginationParams {
 
 export interface RoomListParams extends PaginationParams {
   propertyId?: number
+  floorId?: number
   status?: string
 }
 
 export interface CreatePropertyDto {
   name: string
   type: 'HOUSE' | 'MINI_APARTMENT' | 'DORM' | 'APARTMENT'
-  province: string
-  district: string
-  ward: string
+  province?: string
+  district?: string | null
+  ward?: string
   addressDetail: string
+  location?: {
+    provinceCode: string
+    wardCode: string
+    placeId: string
+    sessionToken?: string
+  }
   description?: string
   status?: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
   floorsCount?: number

@@ -22,7 +22,7 @@ test.describe('Flow 3: Khởi Tạo Khu Trọ & Phòng Trọ', () => {
     const roomNumber = `P101-${uniqueId}`;
     
     // 1. Tạo khu trọ
-    await propertyPage.createProperty(propName, '123 Đường Test, Quận 1');
+    await propertyPage.createProperty(propName, '1 Phan Đình Phùng');
     
     // Kiểm tra danh sách hiển thị khu trọ mới
     await expect(page.getByText(propName).first()).toBeVisible({ timeout: 10000 });

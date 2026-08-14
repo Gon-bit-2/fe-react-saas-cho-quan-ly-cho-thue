@@ -23,12 +23,18 @@ interface MarketplaceRoomResponse {
   maxOccupants: number
   status: string
   marketplaceStatus: string
+  description?: string | null
   property: {
     id: number
     name: string
     province: string
-    district: string
+    provinceCode?: string | null
+    district: string | null
     ward: string
+    wardCode?: string | null
+    addressDetail?: string
+    latitude?: DecimalValue
+    longitude?: DecimalValue
     type?: string
     propertyType?: string
   }
@@ -61,12 +67,18 @@ export function normalizeMarketplaceRoom(room: MarketplaceRoomResponse): Marketp
     maxOccupants: room.maxOccupants,
     status: room.status,
     marketplaceStatus: room.marketplaceStatus,
+    description: room.description ?? null,
     property: {
       id: room.property.id,
       name: room.property.name,
       province: room.property.province,
+      provinceCode: room.property.provinceCode ?? null,
       district: room.property.district,
       ward: room.property.ward,
+      wardCode: room.property.wardCode ?? null,
+      addressDetail: room.property.addressDetail,
+      latitude: toNullableNumber(room.property.latitude),
+      longitude: toNullableNumber(room.property.longitude),
       type: room.property.type ?? room.property.propertyType ?? '',
     },
     images: room.images ?? [],

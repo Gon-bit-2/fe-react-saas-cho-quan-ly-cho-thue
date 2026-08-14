@@ -59,7 +59,7 @@ test.describe.serial('CRUD: Viewing schedules & Rental requests', () => {
     await context.close();
   });
 
-  test.skip('Delete: Tenant hủy Lịch xem phòng (chưa có màn self-service)', async ({ browser }) => {
+  test('Delete: Tenant hủy Lịch xem phòng trong self-service', async ({ browser }) => {
     // Tương tự, nếu có lịch xem phòng, Tenant có thể vào hủy
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -69,13 +69,12 @@ test.describe.serial('CRUD: Viewing schedules & Rental requests', () => {
     await page.getByLabel(/mật khẩu|password/i).fill(USERS.tenant.pass);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
     
-    await page.goto('/quan-ly-nha-tro/lich-xem-phong');
-    const appointmentRow = page.locator('tr, .card', { hasText: 'Chờ xác nhận' }).first();
-    if (await appointmentRow.isVisible()) {
-      await appointmentRow.getByRole('button', { name: /hủy/i }).click();
-      await page.getByRole('button', { name: /đồng ý/i }).click();
-      
-      await expect(appointmentRow).not.toBeVisible();
+    await page.goto('/tai-khoan/lich-xem-phong');
+    const cancelButton = page.getByRole('button', { name: /^hủy$/i }).first();
+    if (await cancelButton.isVisible()) {
+      page.once('dialog', dialog => dialog.accept());
+      await cancelButton.click();
+      await expect(cancelButton).not.toBeVisible();
     }
     await context.close();
   });

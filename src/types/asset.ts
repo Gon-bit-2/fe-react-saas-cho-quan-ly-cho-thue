@@ -54,6 +54,7 @@ export interface HandoverAssetItem {
 
 export interface HandoverRecord {
   id: number
+  version: number
   contractId: number
   roomId: number
   type: HandoverType

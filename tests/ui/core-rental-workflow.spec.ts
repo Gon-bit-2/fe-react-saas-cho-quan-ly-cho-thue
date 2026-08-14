@@ -13,6 +13,7 @@ test.describe.serial('Core Rental Workflow E2E (UI)', () => {
   const runId = `E2E-UI-${Date.now()}`;
   const propertyName = `${runId} Khu Trọ Test`;
   const roomName = `${runId} Phòng Test`;
+  const addressDetail = '1 Phan Đình Phùng';
   
   // Các URL tĩnh của hệ thống theo routes.tsx
   const ROUTES = {
@@ -39,9 +40,15 @@ test.describe.serial('Core Rental Workflow E2E (UI)', () => {
 
     // 2. Tạo Khu trọ
     await page.goto(`${ROUTES.landlordProperty}/tao-moi`);
-    // Giả định các trường input cơ bản
     await page.getByLabel(/tên khu trọ/i).fill(propertyName);
-    await page.getByLabel(/địa chỉ/i).fill('123 Đường Test, Quận Test');
+    const propertySelects = page.getByRole('combobox');
+    await propertySelects.nth(2).click();
+    await page.getByRole('option', { name: /Thành phố Hà Nội/i }).click();
+    await propertySelects.nth(3).click();
+    await page.getByRole('option', { name: /Phường Ba Đình/i }).click();
+    await page.getByLabel(/số nhà, tên đường/i).fill(addressDetail);
+    await page.getByRole('listbox').getByRole('button').first().click();
+    await expect(page.getByTestId('goong-map')).toBeVisible();
     await page.getByRole('button', { name: /lưu|tạo mới/i }).click();
     await page.waitForURL(ROUTES.landlordProperty);
     await expect(page.getByText(propertyName)).toBeVisible();
@@ -109,6 +116,8 @@ test.describe.serial('Core Rental Workflow E2E (UI)', () => {
     // Click vào phòng
     await page.getByText(roomName).click();
     await page.waitForURL(/.*\/phong\/\d+/);
+    await expect(page.getByText(new RegExp(addressDetail, 'i'))).toBeVisible();
+    await expect(page.getByTestId('goong-map')).toBeVisible();
 
     // 3. Đặt lịch xem phòng
     await page.getByRole('button', { name: /đặt lịch xem/i }).click();

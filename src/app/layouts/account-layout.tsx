@@ -18,17 +18,15 @@ export function Component() {
   const { logout } = useAuth()
 
   const navItems = [
-    { name: 'Tổng quan', path: '/tong-quan', icon: 'grid_view' },
-    { name: 'Khu trọ', path: '/khu-tro', icon: 'apartment' },
-    { name: 'Quản lý phòng', path: '/quan-ly-phong/danh-sach', icon: 'door_open' },
-    { name: 'Người thuê', path: '/nguoi-thue', icon: 'group' },
-    { name: 'Hợp đồng', path: '/hop-dong', icon: 'description' },
-    { name: 'Tài sản', path: '/quan-ly-tai-san', icon: 'inventory_2' },
-    { name: 'Dịch vụ', path: '/dich-vu', icon: 'electric_bolt' },
-    { name: 'Hóa đơn', path: '/hoa-don', icon: 'receipt_long' },
-    { name: 'Thanh toán', path: '/thanh-toan', icon: 'payments' },
-    { name: 'Hỗ trợ', path: '/ho-tro', icon: 'confirmation_number' },
-    { name: 'Thông báo', path: '/thong-bao', icon: 'notifications' },
+    { name: 'Hồ sơ', path: '/tai-khoan', icon: 'person', exact: true },
+    { name: 'Lịch xem phòng', path: '/tai-khoan/lich-xem-phong', icon: 'event' },
+    { name: 'Yêu cầu thuê', path: '/tai-khoan/yeu-cau-thue', icon: 'send' },
+    { name: 'Hợp đồng', path: '/tai-khoan/hop-dong', icon: 'description' },
+    { name: 'Bàn giao', path: '/tai-khoan/ban-giao', icon: 'inventory_2' },
+    { name: 'Hóa đơn', path: '/tai-khoan/hoa-don', icon: 'receipt_long' },
+    { name: 'Thanh toán', path: '/tai-khoan/thanh-toan', icon: 'payments' },
+    { name: 'Hỗ trợ', path: '/tai-khoan/ho-tro', icon: 'confirmation_number' },
+    { name: 'Chọn khu trọ quản lý', path: '/tai-khoan/chon-nha-tro', icon: 'corporate_fare' },
   ]
 
   return (
@@ -43,7 +41,9 @@ export function Component() {
         </div>
         <nav className="flex-1 px-3 py-6 overflow-y-auto space-y-1">
           {navItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path)
+            const isActive = item.exact
+              ? location.pathname === item.path
+              : location.pathname.startsWith(item.path)
             return (
               <Link
                 key={item.name}

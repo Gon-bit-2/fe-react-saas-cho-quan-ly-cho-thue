@@ -10,6 +10,7 @@ import type { CreateInvoiceDto } from '../types';
 import { createInvoice } from '../api';
 import { useContracts } from '@/shared/api/contracts';
 import { toast } from 'sonner';
+import { isAxiosError } from 'axios';
 
 type InvoiceCreateFormValues = CreateInvoiceDto & {
   extraItems: NonNullable<CreateInvoiceDto['extraItems']>
@@ -58,9 +59,10 @@ export function InvoiceCreatePage() {
       });
       toast.success('Đã tạo hóa đơn thành công!');
       navigate('/hoa-don'); 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create invoice:', error);
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo hóa đơn');
+      const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined;
+      toast.error(message || 'Có lỗi xảy ra khi tạo hóa đơn');
     } finally {
       setIsSubmitting(false);
     }

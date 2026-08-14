@@ -12,7 +12,7 @@ describe('Marketplace Home Page', () => {
     renderWithProviders(<Home />)
     
     expect(screen.getByText(/Tìm kiếm không gian sống/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/Thành phố, Quận/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Tỉnh \/ Thành phố/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Tìm kiếm/i })).toBeInTheDocument()
   })
 
@@ -30,8 +30,8 @@ describe('Marketplace Home Page', () => {
   it('navigates to search page when clicking search', async () => {
     const { user } = renderWithProviders(<Home />)
     
-    const searchInput = screen.getByPlaceholderText(/Thành phố, Quận/i)
-    await user.type(searchInput, 'Hà Nội')
+    const provinceSelect = screen.getByLabelText(/Tỉnh \/ Thành phố/i)
+    expect(provinceSelect).toBeInTheDocument()
     
     // Can't easily assert navigation in this setup unless we mock useNavigate
     // We will just verify it doesn't crash

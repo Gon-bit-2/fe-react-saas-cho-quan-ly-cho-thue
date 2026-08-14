@@ -4,13 +4,16 @@ import { Badge } from '@/components/ui/badge'
 import { planApi } from '../api/plan.api'
 import type { Plan, Subscription } from '../api/plan.api'
 import { useAuth } from '@/shared/hooks/use-auth'
+import { useNavigate } from 'react-router'
 
 
 
 export const CurrentPlanPage = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [plan, setPlan] = useState<Plan | null>(null)
+  const [usageLimits, setUsageLimits] = useState<{ currentProperties: number; currentStorageGb: number; currentStaff: number } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const navigate = useNavigate()
 
   const { selectedMembership } = useAuth()
   const tenantId = Number(selectedMembership?.tenantId || 0)
@@ -20,10 +23,11 @@ export const CurrentPlanPage = () => {
 
     const fetchData = async () => {
       try {
-        const { data: sub } = await planApi.getCurrentSubscription(tenantId)
-        setSubscription(sub)
-        if (sub?.plan) {
-          setPlan(sub.plan)
+        const { data } = await planApi.getCurrentSubscription(tenantId)
+        setSubscription(data.subscription)
+        setUsageLimits(data.usageLimits)
+        if (data.subscription?.plan) {
+          setPlan(data.subscription.plan)
         }
       } catch (error) {
         console.error('Failed to fetch subscription', error)
@@ -42,10 +46,10 @@ export const CurrentPlanPage = () => {
     return <div className="text-destructive p-8">Không tìm thấy thông tin gói.</div>
   }
 
-  // Calculate limits (Mocked current usage)
-  const currentProperties = 12
-  const currentStorageGb = 2.1
-  const currentStaff = 5
+  // Use real data from API or fallback to 0
+  const currentProperties = usageLimits?.currentProperties ?? 0
+  const currentStorageGb = usageLimits?.currentStorageGb ?? 0
+  const currentStaff = usageLimits?.currentStaff ?? 0
 
   const propertyUsage = Math.min((currentProperties / plan.maxProperties) * 100, 100)
   const storageUsage = plan.storageLimitGb ? Math.min((currentStorageGb / plan.storageLimitGb) * 100, 100) : 0
@@ -109,11 +113,11 @@ export const CurrentPlanPage = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2" onClick={() => navigate('/goi-dich-vu/so-sanh')}>
               <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
               Đổi gói
             </Button>
-            <Button variant="outline" className="bg-background flex items-center gap-2">
+            <Button variant="outline" className="bg-background flex items-center gap-2" onClick={() => navigate('/goi-dich-vu/lich-su-thanh-toan')}>
               <span className="material-symbols-outlined text-[18px]">credit_card</span>
               Quản lý thanh toán
             </Button>
@@ -232,7 +236,7 @@ export const CurrentPlanPage = () => {
               </div>
               <div className="bg-secondary/30 mt-4 rounded-xl p-4 text-center">
                 <span className="text-muted-foreground mb-2 block text-sm">Cần thêm tài nguyên?</span>
-                <button className="text-primary text-sm font-medium hover:underline">Xem các gói nâng cấp</button>
+                <button className="text-primary text-sm font-medium hover:underline" onClick={() => navigate('/goi-dich-vu/so-sanh')}>Xem các gói nâng cấp</button>
               </div>
             </div>
           </div>

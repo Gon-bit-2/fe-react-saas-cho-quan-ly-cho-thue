@@ -3,17 +3,20 @@ import { useMarketplaceRooms } from '@/shared/api/marketplace'
 import { RoomCard } from '../components/room-card'
 import { MarketStatsCard } from '../components/market-stats-card'
 import { useState } from 'react'
+import { AdministrativeAreaSelect } from '@/shared/components/administrative-area-select'
 
 export function Component() {
   const navigate = useNavigate()
   const { data, isLoading } = useMarketplaceRooms({ limit: 6 })
   
-  const [province, setProvince] = useState('')
+  const [provinceCode, setProvinceCode] = useState('')
+  const [wardCode, setWardCode] = useState('')
   const [priceRange, setPriceRange] = useState('')
 
   const handleSearch = () => {
     const params = new URLSearchParams()
-    if (province) params.set('province', province)
+    if (provinceCode) params.set('provinceCode', provinceCode)
+    if (wardCode) params.set('wardCode', wardCode)
     if (priceRange) {
       if (priceRange === 'under-3m') params.set('maxPrice', '3000000')
       if (priceRange === '3m-5m') { params.set('minPrice', '3000000'); params.set('maxPrice', '5000000') }
@@ -42,16 +45,16 @@ export function Component() {
             
             {/* Search Bar Component */}
             <div className="mt-6 bg-white p-3 rounded-2xl shadow-xl shadow-slate-200/50 flex flex-col md:flex-row items-center gap-3 w-full border border-slate-100">
-              <div className="flex-1 w-full relative h-12">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">location_on</span>
-                <input 
-                  className="w-full h-full pl-12 pr-4 bg-slate-50/50 border border-slate-200 hover:border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl font-body-md text-slate-900 outline-none transition-all placeholder:text-slate-400" 
-                  placeholder="Thành phố, Quận..." 
-                  type="text"
-                  value={province}
-                  onChange={(e) => setProvince(e.target.value)}
+              <div className="flex-[1.4] w-full relative">
+                <AdministrativeAreaSelect
+                  compact
+                  provinceCode={provinceCode}
+                  wardCode={wardCode}
+                  onChange={(area) => {
+                    setProvinceCode(area.provinceCode)
+                    setWardCode(area.wardCode)
+                  }}
                 />
-                <span className="absolute left-4 top-[-10px] bg-white px-1 text-[10px] font-medium text-slate-500 uppercase tracking-wider hidden md:block">Khu vực</span>
               </div>
               
               <div className="flex-1 w-full relative h-12">

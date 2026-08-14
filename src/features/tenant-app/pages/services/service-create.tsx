@@ -7,11 +7,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ServiceType, type Service } from '@/types/service'
 
+type ServiceFormData = Pick<Service, 'code' | 'name' | 'defaultUnitPrice' | 'unitLabel' | 'itemType' | 'isActive'>
+
 export default function ServiceCreate() {
   const navigate = useNavigate()
   const { mutateAsync: createService, isPending } = useCreateService()
   
-  const [formData, setFormData] = useState<Partial<Service>>({
+  const [formData, setFormData] = useState<ServiceFormData>({
     code: '',
     name: '',
     defaultUnitPrice: 0,

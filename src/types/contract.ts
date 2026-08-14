@@ -28,6 +28,7 @@ export interface ContractRenter {
   fullName: string
   email: string
   phone?: string | null
+  dateOfBirth?: string | null
   renterProfile?: {
     id: number
     verificationStatus: string
@@ -72,6 +73,8 @@ export interface ListContractsQuery {
 }
 
 export interface RenterInfo {
+  fullName?: string
+  dateOfBirth?: string | null
   phone?: string | null
   identityNumber?: string | null
   permanentAddress?: string | null

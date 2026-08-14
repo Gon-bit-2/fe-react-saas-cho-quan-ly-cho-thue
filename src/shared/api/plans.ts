@@ -15,7 +15,25 @@ export interface IPlanDTO {
   isActive: boolean
   createdAt: string
   updatedAt: string
+  price: number
+  billingCycle: 'MONTHLY'
+  maxProperties: number
+  maxManagers: number
+  maxStorageGb: number
+  status: 'ACTIVE' | 'INACTIVE'
 }
+
+type PlanApiDTO = Omit<IPlanDTO, 'price' | 'billingCycle' | 'maxProperties' | 'maxManagers' | 'maxStorageGb' | 'status'>
+
+const normalizePlan = (plan: PlanApiDTO): IPlanDTO => ({
+  ...plan,
+  price: plan.priceMonthly,
+  billingCycle: 'MONTHLY',
+  maxProperties: plan.maxRooms,
+  maxManagers: plan.maxStaff,
+  maxStorageGb: 0,
+  status: plan.isActive ? 'ACTIVE' : 'INACTIVE',
+})
 
 export interface IListPlansQueryDTO {
   page?: number
@@ -42,16 +60,16 @@ export type IUpdatePlanBodyDTO = Partial<Omit<ICreatePlanBodyDTO, 'code'>>
 export const plansApi = {
   list: async (params?: IListPlansQueryDTO) => {
     const cleanParams = params?.search ? params : params ? { ...params, search: undefined } : undefined
-    const response = await apiClient.get<PaginatedResponse<IPlanDTO>>('/plans', { params: cleanParams })
-    return response.data
+    const response = await apiClient.get<PaginatedResponse<PlanApiDTO>>('/plans', { params: cleanParams })
+    return { ...response.data, data: response.data.data.map(normalizePlan) }
   },
   listAvailable: async () => {
-    const response = await apiClient.get<IPlanDTO[]>('/plans/available')
-    return response.data
+    const response = await apiClient.get<PlanApiDTO[]>('/plans/available')
+    return response.data.map(normalizePlan)
   },
   getById: async (id: number) => {
-    const response = await apiClient.get<IPlanDTO>(`/plans/${id}`)
-    return response.data
+    const response = await apiClient.get<PlanApiDTO>(`/plans/${id}`)
+    return normalizePlan(response.data)
   },
   create: async (body: ICreatePlanBodyDTO) => {
     const response = await apiClient.post<IPlanDTO>('/plans', body)

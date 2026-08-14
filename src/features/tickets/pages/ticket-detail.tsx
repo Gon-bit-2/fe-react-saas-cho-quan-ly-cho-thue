@@ -19,7 +19,6 @@ export function TicketDetailPage() {
       if (!id) return;
       setIsLoading(true);
       try {
-        // Mock data loading or real API
         const ticketRes = await ticketApi.getTicketById(Number(id));
         setTicket(ticketRes);
         

@@ -6,6 +6,11 @@ import { useMarketplaceRoom } from '@/shared/api/marketplace'
 import { useAuth } from '@/shared/hooks/use-auth'
 import { BookViewingDrawer } from '../components/book-viewing-drawer'
 import { RentalRequestDrawer } from '../components/rental-request-drawer'
+import { GoongMap } from '@/shared/components/goong-map'
+import {
+  useReviewsPublicControllerGetSummary,
+  useReviewsPublicControllerListPublic,
+} from '@/shared/api/generated/reviews-public/reviews-public'
 
 export function Component() {
   const { roomId } = useParams()
@@ -15,6 +20,14 @@ export function Component() {
   const isAuthenticated = state === 'authenticated'
 
   const { data, isLoading, isError, refetch } = useMarketplaceRoom(id)
+  const { data: reviewSummary } = useReviewsPublicControllerGetSummary(id, {
+    query: { enabled: isValidRoomId },
+  })
+  const { data: reviews } = useReviewsPublicControllerListPublic(
+    id,
+    { page: 1, limit: 5 },
+    { query: { enabled: isValidRoomId } },
+  )
 
   const [isViewingOpen, setIsViewingOpen] = useState(false)
   const [isRequestOpen, setIsRequestOpen] = useState(false)
@@ -179,12 +192,19 @@ export function Component() {
                 <div>
                   <p className="font-label-lg text-text-main">{room.property?.name}</p>
                   <p className="font-body-md mt-1 text-on-surface-variant">
-                    {room.property?.addressDetail}, {location}
+                    {room.property.addressDetail || location}
                   </p>
                 </div>
               </div>
-              <div className="bg-surface-container mt-4 flex h-48 w-full items-center justify-center rounded-lg">
-                <p className="font-label-md text-on-surface-variant">Bản đồ (Chưa khả dụng)</p>
+              <div className="mt-4">
+                {room.property.latitude !== null && room.property.latitude !== undefined &&
+                room.property.longitude !== null && room.property.longitude !== undefined ? (
+                  <GoongMap latitude={room.property.latitude} longitude={room.property.longitude} className="h-48" />
+                ) : (
+                  <div className="bg-surface-container text-on-surface-variant flex h-48 items-center justify-center rounded-lg">
+                    Chưa có tọa độ bản đồ.
+                  </div>
+                )}
               </div>
             </section>
 
@@ -193,58 +213,28 @@ export function Component() {
                 <h2 className="font-headline-sm text-text-main">Đánh giá</h2>
                 <div className="flex items-center gap-1 font-label-md">
                   <span className="material-symbols-outlined text-[16px] text-yellow-400">star</span>
-                  <span className="text-text-main">4.8</span>
-                  <span className="text-on-surface-variant font-body-md">(12 đánh giá)</span>
+                  <span className="text-text-main">{reviewSummary?.averageRating.toFixed(1) ?? '0.0'}</span>
+                  <span className="text-on-surface-variant font-body-md">({reviewSummary?.totalReviews ?? 0} đánh giá)</span>
                 </div>
               </div>
               
               <div className="space-y-4">
-                {/* Sample Review 1 */}
-                <div className="bg-surface-container-low rounded-xl p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-primary text-on-primary flex h-10 w-10 items-center justify-center rounded-full font-label-md font-bold">
-                      NH
+                {reviews?.data.length ? reviews.data.map((review) => (
+                  <div key={review.id} className="bg-surface-container-low rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-label-md text-text-main">Người thuê #{review.reviewerId}</p>
+                      <p className="font-body-sm text-on-surface-variant">{new Intl.DateTimeFormat('vi-VN').format(new Date(review.createdAt))}</p>
                     </div>
-                    <div>
-                      <p className="font-label-md text-text-main">Nguyễn Văn Hải</p>
-                      <p className="font-body-sm text-on-surface-variant">12/05/2024</p>
+                    <div className="mt-2 flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={star} className={`material-symbols-outlined text-[14px] ${star <= review.rating ? 'text-yellow-400' : 'text-surface-variant'}`}>star</span>
+                      ))}
                     </div>
+                    <p className="font-body-md mt-2 text-on-surface">{review.comment || 'Người thuê không để lại nhận xét.'}</p>
                   </div>
-                  <div className="mt-2 flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <span key={i} className="material-symbols-outlined text-[14px] text-yellow-400">star</span>
-                    ))}
-                  </div>
-                  <p className="font-body-md mt-2 text-on-surface">
-                    Phòng rất mới và sạch sẽ. Đầy đủ tiện nghi như mô tả. Chủ nhà thân thiện, hỗ trợ nhiệt tình.
-                  </p>
-                </div>
-
-                {/* Sample Review 2 */}
-                <div className="bg-surface-container-low rounded-xl p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-surface-container-highest text-on-surface flex h-10 w-10 items-center justify-center rounded-full font-label-md font-bold">
-                      LT
-                    </div>
-                    <div>
-                      <p className="font-label-md text-text-main">Lê Thị Thu</p>
-                      <p className="font-body-sm text-on-surface-variant">28/04/2024</p>
-                    </div>
-                  </div>
-                  <div className="mt-2 flex items-center gap-0.5">
-                    {[1, 2, 3, 4].map((i) => (
-                      <span key={i} className="material-symbols-outlined text-[14px] text-yellow-400">star</span>
-                    ))}
-                    <span className="material-symbols-outlined text-[14px] text-surface-variant">star</span>
-                  </div>
-                  <p className="font-body-md mt-2 text-on-surface">
-                    Vị trí thuận tiện đi lại, gần trạm xe buýt. Nhìn chung là đáng giá tiền.
-                  </p>
-                </div>
-
-                <button className="text-primary font-label-md w-full py-2 hover:underline">
-                  Xem thêm đánh giá
-                </button>
+                )) : (
+                  <p className="font-body-md text-on-surface-variant">Phòng chưa có đánh giá đã được duyệt.</p>
+                )}
               </div>
             </section>
           </div>

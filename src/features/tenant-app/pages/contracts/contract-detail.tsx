@@ -1,43 +1,11 @@
-import React, { useMemo } from 'react'
-import { Link, useParams } from 'react-router'
+import { useMemo } from 'react'
+import { useParams } from 'react-router'
 import { FileText, Printer, XCircle, User, Users, Phone, CheckCircle2, CalendarDays, Building } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useContract, useCancelContract, useActivateContract } from '@/shared/api/contracts'
-
-// --- Mock History Data ---
-const MOCK_HISTORY = [
-  {
-    id: 1,
-    time: 'Hôm nay, 10:23 AM',
-    title: 'Đã gửi thông báo đóng tiền',
-    desc: 'Gửi tự động qua Zalo cho Nguyễn Văn A.',
-    active: true,
-  },
-  {
-    id: 2,
-    time: '15/09/2023, 14:00 PM',
-    title: 'Kích hoạt hợp đồng',
-    desc: 'Admin đã chuyển trạng thái từ Nháp sang Đang hoạt động.',
-    active: false,
-  },
-  {
-    id: 3,
-    time: '15/09/2023, 09:15 AM',
-    title: 'Thêm thành viên',
-    desc: 'Admin đã thêm Trần Thị B vào hợp đồng.',
-    active: false,
-  },
-  {
-    id: 4,
-    time: '14/09/2023, 16:30 PM',
-    title: 'Tạo hợp đồng (Nháp)',
-    desc: 'Khởi tạo hợp đồng cho Phòng A302.',
-    active: false,
-  },
-]
 
 export default function ContractDetailPage() {
   const { id } = useParams()
@@ -353,7 +321,8 @@ export default function ContractDetailPage() {
                                 <Phone className="h-3 w-3" /> {member.user.phone || 'Chưa có SĐT'}
                               </span>
                               <span className="flex items-center gap-1">
-                                <FileText className="h-3 w-3" /> 079198054321 (Mock)
+                                <FileText className="h-3 w-3" />
+                                {member.user.email || 'Chưa cập nhật email'}
                               </span>
                             </div>
                           </div>
@@ -397,7 +366,22 @@ export default function ContractDetailPage() {
             </h3>
 
             <div className="relative space-y-6 before:absolute before:inset-0 before:ml-[11px] before:h-full before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent md:before:mx-auto md:before:translate-x-0">
-              {MOCK_HISTORY.map((item, index) => (
+              {[
+                {
+                  id: 'updated',
+                  time: new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(contract.updatedAt)),
+                  title: 'Cập nhật hợp đồng',
+                  desc: `Trạng thái hiện tại: ${contract.status}`,
+                  active: true,
+                },
+                {
+                  id: 'created',
+                  time: new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(contract.createdAt)),
+                  title: 'Tạo hợp đồng',
+                  desc: `Hợp đồng ${contract.contractCode ?? `#${contract.id}`} được khởi tạo.`,
+                  active: false,
+                },
+              ].map((item) => (
                 <div key={item.id} className="relative flex items-start gap-4">
                   <div
                     className={`z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-[3px] border-white shadow-sm ${item.active ? 'bg-blue-600' : 'bg-slate-300'}`}

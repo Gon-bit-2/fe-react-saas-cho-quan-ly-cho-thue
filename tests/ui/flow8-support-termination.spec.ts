@@ -3,7 +3,7 @@ import { LoginPage } from './pages/LoginPage';
 
 test.describe('Flow 8: Hỗ Trợ & Yêu Cầu Trả Phòng', () => {
 
-  test('Người thuê gửi ticket hỗ trợ và yêu cầu kết thúc hợp đồng', async ({ page, context }) => {
+  test('Người thuê gửi ticket hỗ trợ và yêu cầu kết thúc hợp đồng', async ({ context }) => {
     // === PHẦN 1: NGƯỜI THUÊ GỬI TICKET ===
     const renterPage = await context.newPage();
     const renterLogin = new LoginPage(renterPage);

@@ -12,6 +12,36 @@ export interface Tenant {
   updatedAt: string
 }
 
+export interface LandlordTenant {
+  id: number
+  name: string
+  slug: string
+  status: 'ACTIVE' | 'INACTIVE'
+  verificationStatus: string
+}
+
+export interface Landlord {
+  id: number
+  fullName: string
+  email: string | null
+  phone: string | null
+  avatarUrl: string | null
+  status: 'ACTIVE' | 'INACTIVE' | 'BANNED'
+  emailVerifiedAt: string | null
+  phoneVerifiedAt: string | null
+  lastLoginAt: string | null
+  createdAt: string
+  updatedAt: string
+  ownedTenants: LandlordTenant[]
+  tenantMembers: Array<{
+    id: number
+    tenantId: number
+    status: string
+    joinedAt: string | null
+    tenant: LandlordTenant
+  }>
+}
+
 import type { PaginatedResponse } from '@/features/tenant-app/types'
 
 export const adminTenantApi = {
@@ -21,6 +51,14 @@ export const adminTenantApi = {
   getTenantDetails: (id: number) => {
     return apiClient.get<Tenant>(`/tenants/${id}`)
   },
+}
+
+export const adminLandlordApi = {
+  list: (params?: Record<string, unknown>) =>
+    apiClient.get<PaginatedResponse<Landlord>>('/users/landlords', { params }),
+  get: (id: number) => apiClient.get<Landlord>(`/users/${id}`),
+  updateStatus: (id: number, data: { status: Landlord['status']; reason: string }) =>
+    apiClient.patch<Landlord>(`/users/${id}/status`, data),
 }
 
 export const adminRenterApi = {

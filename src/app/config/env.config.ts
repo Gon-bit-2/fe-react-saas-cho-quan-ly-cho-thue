@@ -13,6 +13,7 @@ const envSchema = z.object({
     .transform((url) => url.replace(/\/+$/, '')),
   VITE_APP_NAME: z.string().min(1, 'VITE_APP_NAME không được để trống'),
   VITE_API_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
+  VITE_GOONG_MAPTILES_KEY: z.string().trim().optional(),
 })
 
 const parsed = envSchema.safeParse(import.meta.env)
@@ -33,6 +34,7 @@ export type EnvConfig = {
   readonly apiUrl: string
   readonly appName: string
   readonly apiTimeoutMs: number
+  readonly goongMaptilesKey?: string
 }
 
 /**
@@ -43,4 +45,5 @@ export const env: EnvConfig = {
   apiUrl: parsed.data.VITE_API_URL,
   appName: parsed.data.VITE_APP_NAME,
   apiTimeoutMs: parsed.data.VITE_API_TIMEOUT_MS,
+  goongMaptilesKey: parsed.data.VITE_GOONG_MAPTILES_KEY,
 } as const

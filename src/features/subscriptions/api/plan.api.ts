@@ -45,12 +45,22 @@ export interface PaymentTransaction {
   updatedAt: string
 }
 
+export interface SubscriptionResponse {
+  subscription: Subscription
+  pendingPayment: PaymentTransaction | null
+  usageLimits: {
+    currentProperties: number
+    currentStorageGb: number
+    currentStaff: number
+  }
+}
+
 export const planApi = {
   getPlans: () => {
     return apiClient.get<Plan[]>('/plans')
   },
   getCurrentSubscription: (tenantId: number) => {
-    return apiClient.get<Subscription>(`/subscriptions/me`, { headers: { 'x-tenant-id': tenantId } })
+    return apiClient.get<SubscriptionResponse>(`/subscriptions/me`, { headers: { 'x-tenant-id': tenantId } })
   },
   checkoutPlan: (tenantId: number, data: { planId: number; billingCycle: string }) => {
     return apiClient.post<{ checkoutUrl: string }>(`/subscriptions/checkout`, data, { headers: { 'x-tenant-id': tenantId } })

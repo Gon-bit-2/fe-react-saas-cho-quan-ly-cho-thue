@@ -10,12 +10,18 @@ export interface MarketplaceRoom {
   maxOccupants: number
   status: string
   marketplaceStatus: string
+  description?: string | null
   property: {
     id: number
     name: string
     province: string
-    district: string
+    provinceCode?: string | null
+    district: string | null
     ward: string
+    wardCode?: string | null
+    addressDetail?: string
+    latitude?: number | null
+    longitude?: number | null
     type: string
   }
   images: Array<{
@@ -36,8 +42,10 @@ export interface MarketplaceFilters {
   limit?: number
   search?: string
   province?: string
+  provinceCode?: string
   district?: string
   ward?: string
+  wardCode?: string
   propertyType?: string
   minPrice?: number
   maxPrice?: number

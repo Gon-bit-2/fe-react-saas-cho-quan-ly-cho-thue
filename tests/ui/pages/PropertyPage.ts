@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 export class PropertyPage {
   readonly page: Page;
@@ -10,14 +10,15 @@ export class PropertyPage {
   async createProperty(name: string, address: string) {
     await this.page.goto('/khu-tro/tao-moi');
     
-    // Form tạo khu trọ
     await this.page.getByLabel(/tên khu trọ/i).fill(name);
-    await this.page.getByLabel(/địa chỉ/i).fill(address);
-    // Có thể có các trường khác như mô tả
-    const desc = this.page.getByLabel(/mô tả/i);
-    if (await desc.isVisible()) {
-        await desc.fill(`Mô tả cho ${name}`);
-    }
+    const selects = this.page.getByRole('combobox');
+    await selects.nth(2).click();
+    await this.page.getByRole('option', { name: /Thành phố Hà Nội/i }).click();
+    await selects.nth(3).click();
+    await this.page.getByRole('option', { name: /Phường Ba Đình/i }).click();
+    await this.page.getByLabel(/số nhà, tên đường/i).fill(address);
+    await this.page.getByRole('listbox').getByRole('button').first().click();
+    await this.page.getByTestId('goong-map').waitFor();
 
     await this.page.getByRole('button', { name: /lưu|tạo mới/i }).click();
     

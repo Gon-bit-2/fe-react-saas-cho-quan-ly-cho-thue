@@ -20,7 +20,7 @@ export default function HandoverDispute() {
 
   const handleResolve = async () => {
     try {
-      await resolveHandover({ notes })
+      await resolveHandover({ version: handover.version, resolutionNote: notes })
       navigate(`/ban-giao/${id}`)
     } catch (error) {
       console.error(error)

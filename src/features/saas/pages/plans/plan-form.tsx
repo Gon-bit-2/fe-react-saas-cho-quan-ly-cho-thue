@@ -65,11 +65,22 @@ export function PlanFormPage() {
   }, [id, isEditing, form])
 
   const onSubmit = async (values: PlanFormValues) => {
+    const apiValues = {
+      name: values.name,
+      priceMonthly: values.price,
+      priceYearly: values.billingCycle === 'YEARLY' ? values.price : values.price * 12,
+      maxRooms: values.maxRooms ?? values.maxProperties ?? 1,
+      maxStaff: values.maxManagers ?? 1,
+      isActive: values.status === 'ACTIVE',
+    }
     try {
       if (isEditing) {
-        await plansApi.update(Number(id), values)
+        await plansApi.update(Number(id), apiValues)
       } else {
-        await plansApi.create({ ...values, currency: 'VND' })
+        await plansApi.create({
+          code: values.name.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]+/g, '_'),
+          ...apiValues,
+        })
       }
       navigate('/admin/goi-dich-vu')
     } catch (error) {

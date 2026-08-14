@@ -15,6 +15,8 @@ export interface ISubscriptionPaymentDTO {
   billingCycle: TBillingCycle
   payosOrderCode?: number | null
   checkoutUrl?: string | null
+  transactionCode?: string | null
+  paymentMethod: string
   createdAt: string
   updatedAt: string
 }

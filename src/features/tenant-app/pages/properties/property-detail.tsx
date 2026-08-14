@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, MapPin, Building2, DoorOpen, Edit, Plus, Users, Wallet, Settings2 } from 'lucide-react'
+import { GoongMap } from '@/shared/components/goong-map'
 import type { Room } from '@/features/tenant-app/types'
 
 export function Component() {
@@ -83,7 +84,7 @@ export function Component() {
               </div>
               <p className="font-body-md text-on-surface-variant mt-0.5 flex items-center gap-1.5">
                 <MapPin className="text-tertiary h-4 w-4 shrink-0" />
-                {property.addressDetail}, {property.ward}, {property.district}, {property.province}
+                {property.addressDetail}
               </p>
             </div>
           </div>
@@ -178,6 +179,10 @@ export function Component() {
                 </div>
                 <CardTitle className="font-headline-sm text-on-surface">Quản lý các phòng</CardTitle>
               </div>
+              {property.latitude !== null && property.latitude !== undefined &&
+              property.longitude !== null && property.longitude !== undefined && (
+                <GoongMap latitude={property.latitude} longitude={property.longitude} className="mt-4 h-56" />
+              )}
               <Button
                 size="sm"
                 onClick={() => navigate(`/quan-ly-phong/tao-moi?propertyId=${property.id}`)}
@@ -236,7 +241,7 @@ export function Component() {
                           <div className="font-display text-on-surface group-hover:text-primary text-2xl leading-none font-bold transition-colors">
                             {room.roomCode}
                           </div>
-                          <div className="font-label-md text-on-surface-variant mt-1">Tầng {room.floor}</div>
+                          <div className="font-label-md text-on-surface-variant mt-1">{room.floor?.name ?? 'Chưa xếp tầng'}</div>
                         </div>
                         {room.status === 'AVAILABLE' ? (
                           <Badge className="font-label-sm border-none bg-emerald-500/10 text-emerald-600 shadow-none hover:bg-emerald-500/20">

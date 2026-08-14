@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, Building2, DoorOpen, ImageIcon, MapPin, Save, Trash2, Users, Wallet } from 'lucide-react'
+import { ArrowLeft, Building2, DoorOpen, ImageIcon, Save, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { CreatePropertyDto } from '@/features/tenant-app/types'
+import { AddressPicker, type AddressSelection } from '@/shared/components/address-picker'
 
 export function Component() {
   const { id } = useParams()
@@ -21,6 +22,7 @@ export function Component() {
 
   const [propertyTypeState, setPropertyType] = useState<string | null>(null)
   const [statusState, setStatus] = useState<string | null>(null)
+  const [addressSelection, setAddressSelection] = useState<AddressSelection | null>(null)
 
   const propertyType = (propertyTypeState ?? initialData?.type ?? 'MINI_APARTMENT') as CreatePropertyDto['type']
   const status = (statusState ?? initialData?.status ?? 'ACTIVE') as NonNullable<CreatePropertyDto['status']>
@@ -28,16 +30,29 @@ export function Component() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
+    if (!addressSelection && (!isEditing || !initialData?.provinceCode)) {
+      toast.error('Vui lòng chọn một địa chỉ chuẩn từ danh sách gợi ý.')
+      return
+    }
+
     const formData = new FormData(e.currentTarget)
     const payload: CreatePropertyDto = {
       name: formData.get('name') as string,
       type: propertyType,
       status: status,
 
-      province: formData.get('province') as string,
-      district: formData.get('district') as string,
-      ward: formData.get('ward') as string,
-      addressDetail: (formData.get('addressDetail') || formData.get('address')) as string,
+      province: addressSelection ? undefined : initialData?.province,
+      district: addressSelection ? undefined : initialData?.district,
+      ward: addressSelection ? undefined : initialData?.ward,
+      addressDetail: addressSelection?.addressDetail ?? initialData?.addressDetail ?? '',
+      location: addressSelection
+        ? {
+            provinceCode: addressSelection.provinceCode,
+            wardCode: addressSelection.wardCode,
+            placeId: addressSelection.placeId,
+            sessionToken: addressSelection.sessionToken,
+          }
+        : undefined,
       floorsCount: formData.get('floorsCount') ? Number(formData.get('floorsCount')) : undefined,
     }
 
@@ -168,7 +183,7 @@ export function Component() {
                     <SelectContent>
                       <SelectItem value="ACTIVE">Hoạt động</SelectItem>
                       <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
-                      <SelectItem value="CLOSED">Đóng cửa</SelectItem>
+                      <SelectItem value="INACTIVE">Ngừng hoạt động</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -206,58 +221,23 @@ export function Component() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="province" className="font-label-md text-on-surface">
-                    Tỉnh/Thành phố
-                  </Label>
-                  <Input
-                    id="province"
-                    name="province"
-                    defaultValue={initialData?.province}
-                    className="h-11 rounded-xl"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="district" className="font-label-md text-on-surface">
-                    Quận/Huyện
-                  </Label>
-                  <Input
-                    id="district"
-                    name="district"
-                    defaultValue={initialData?.district}
-                    className="h-11 rounded-xl"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ward" className="font-label-md text-on-surface">
-                    Phường/Xã
-                  </Label>
-                  <Input id="ward" name="ward" defaultValue={initialData?.ward} className="h-11 rounded-xl" required />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address" className="font-label-md text-on-surface">
-                  Địa chỉ chi tiết (Số nhà, đường)
-                </Label>
-                <div className="relative">
-                  <MapPin className="text-on-surface-variant absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
-                  <Input
-                    id="address"
-                    name="addressDetail"
-                    defaultValue={initialData?.addressDetail}
-                    className="h-11 rounded-xl pl-10"
-                    required
-                  />
-                </div>
-              </div>
+              <AddressPicker
+                initial={{
+                  provinceCode: initialData?.provinceCode,
+                  province: initialData?.province,
+                  wardCode: initialData?.wardCode,
+                  ward: initialData?.ward,
+                  addressDetail: initialData?.addressDetail,
+                  latitude: initialData?.latitude,
+                  longitude: initialData?.longitude,
+                }}
+                onChange={setAddressSelection}
+              />
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar / Stats Area (Only visible in Edit Mode, or placeholder in Create mode) */}
+        {/* Sidebar / Stats Area */}
         <div className="w-full space-y-6 lg:w-80">
           {isEditing ? (
             <>
@@ -275,25 +255,11 @@ export function Component() {
                       </div>
                       <span className="font-headline-sm text-on-surface">{initialData?._count?.rooms || 0}</span>
                     </div>
-                    <div className="flex items-center justify-between p-4">
-                      <div className="flex items-center gap-2">
-                        <Users className="text-primary h-5 w-5" />
-                        <span className="font-label-md text-on-surface-variant">Đang thuê</span>
-                      </div>
-                      <span className="font-headline-sm text-on-surface">0 {/* Placeholder for occupied rooms */}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-4">
-                      <div className="flex items-center gap-2">
-                        <Wallet className="h-5 w-5 text-emerald-600" />
-                        <span className="font-label-md text-on-surface-variant">Doanh thu/tháng</span>
-                      </div>
-                      <span className="font-headline-sm text-on-surface">~120M</span>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Image / Map Card Placeholder */}
+              {/* Image card */}
               <Card className="bg-surface-container-lowest border-surface-border overflow-hidden rounded-2xl shadow-sm">
                 <div className="bg-surface-container text-on-surface-variant group relative flex h-40 cursor-pointer flex-col items-center justify-center gap-2">
                   <ImageIcon className="h-8 w-8 opacity-50 transition-opacity group-hover:opacity-100" />

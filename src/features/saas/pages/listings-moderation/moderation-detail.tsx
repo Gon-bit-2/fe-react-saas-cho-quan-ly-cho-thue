@@ -79,9 +79,6 @@ export function ModerationDetailPage() {
                     <span className="bg-primary/20 text-primary-fixed-dim font-label-sm rounded px-2 py-1 tracking-wider uppercase backdrop-blur-md">
                       Phòng trọ
                     </span>
-                    <span className="bg-surface-container-lowest/80 text-on-surface font-label-sm rounded px-2 py-1 backdrop-blur-md">
-                      Tin mới
-                    </span>
                   </div>
                   <h1 className="font-headline-md text-on-surface mb-1 drop-shadow-md">{listing.title}</h1>
                   <p className="text-on-surface-variant font-body-md flex items-center gap-1 drop-shadow-md">
@@ -92,7 +89,9 @@ export function ModerationDetailPage() {
               </div>
               <div className="bg-surface-container-lowest/90 absolute top-4 right-4 flex items-center gap-2 rounded-lg px-3 py-1.5 shadow-sm backdrop-blur-md">
                 <span className="material-symbols-outlined text-primary text-[20px]">photo_library</span>
-                <span className="font-label-md text-on-surface">1/1</span>
+                <span className="font-label-md text-on-surface">
+                  {listing.images?.length ? `1/${listing.images.length}` : '0 ảnh'}
+                </span>
               </div>
             </div>
 
@@ -118,14 +117,16 @@ export function ModerationDetailPage() {
                       <span className="material-symbols-outlined text-on-surface-variant">bed</span>
                       <div>
                         <p className="font-label-sm text-on-surface-variant">Tình trạng</p>
-                        <p className="font-label-md text-on-surface">Trống</p>
+                        <p className="font-label-md text-on-surface">{listing.status}</p>
                       </div>
                     </div>
                     <div className="bg-surface-container-low flex items-center gap-3 rounded-lg px-4 py-3">
                       <span className="material-symbols-outlined text-on-surface-variant">monetization_on</span>
                       <div>
                         <p className="font-label-sm text-on-surface-variant">Cọc</p>
-                        <p className="font-label-md text-on-surface">1 tháng</p>
+                        <p className="font-label-md text-on-surface">
+                          {new Intl.NumberFormat('vi-VN').format(Number(listing.depositAmount || 0))} VNĐ
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -153,7 +154,7 @@ export function ModerationDetailPage() {
                 <div className="col-span-1 flex flex-col gap-6">
                   <div className="bg-surface-container-low flex flex-col gap-4 rounded-xl p-4">
                     <h3 className="font-label-md text-on-surface-variant tracking-wider uppercase">
-                      Thông tin chủ trọ
+                      Thông tin khu trọ
                     </h3>
                     <div className="flex items-center gap-3">
                       <div className="bg-primary-container text-on-primary-container flex h-12 w-12 items-center justify-center rounded-full font-bold">
@@ -163,15 +164,6 @@ export function ModerationDetailPage() {
                         <p className="font-headline-sm text-on-surface">
                           {listing.property?.name || listing.landlordName || 'Chủ trọ'}
                         </p>
-                        <div className="text-primary flex items-center gap-1">
-                          <span
-                            className="material-symbols-outlined text-[16px]"
-                            style={{ fontVariationSettings: "'FILL' 1" }}
-                          >
-                            verified
-                          </span>
-                          <span className="font-label-sm">Đã xác thực</span>
-                        </div>
                       </div>
                     </div>
                   </div>

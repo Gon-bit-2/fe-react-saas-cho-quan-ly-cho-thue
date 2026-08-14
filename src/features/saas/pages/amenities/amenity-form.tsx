@@ -7,7 +7,7 @@ import { amenitiesApi, type IAmenityDTO } from '@/shared/api/amenities'
 
 const amenityFormSchema = z.object({
   name: z.string().min(1, 'Vui lòng nhập tên tiện ích'),
-  description: z.string().optional(),
+  category: z.string().min(2, 'Vui lòng nhập nhóm tiện ích'),
   icon: z.string().optional(),
 })
 
@@ -24,15 +24,14 @@ export function AmenityFormPage() {
     resolver: zodResolver(amenityFormSchema),
     defaultValues: {
       name: '',
-      description: '',
+      category: 'Chung',
       icon: 'ac_unit',
     },
   })
 
   useEffect(() => {
     if (isEditing) {
-      // For now, since the API doesn't have a getById for amenities, we'll fetch list and find it.
-      // Or we can just mock it or assume there's a getById. Let's assume list fetching.
+      // Amenities currently exposes list/update, so edit resolves the selected row from the list.
       const fetchAmenity = async () => {
         try {
           const response = await amenitiesApi.list()
@@ -40,7 +39,7 @@ export function AmenityFormPage() {
           if (data) {
             form.reset({
               name: data.name,
-              description: data.description || '',
+              category: data.category,
               icon: data.icon || 'ac_unit',
             })
           }
@@ -122,15 +121,13 @@ export function AmenityFormPage() {
 
               <div className="flex flex-col gap-3">
                 <label className="font-label-md text-label-md text-on-surface-variant flex items-center justify-between tracking-wider uppercase">
-                  <span>Mô tả chi tiết</span>
-                  <span className="text-outline-variant font-label-sm">Tuỳ chọn</span>
+                  <span>Nhóm tiện ích</span>
                 </label>
-                <textarea
-                  {...form.register('description')}
+                <input
+                  {...form.register('category')}
                   className="bg-surface-container font-body-md text-body-md text-on-surface focus:bg-surface-container-highest placeholder:text-outline w-full resize-none rounded-xl p-5 transition-all outline-none focus:shadow-md"
-                  placeholder="Giải thích thêm về chất lượng hoặc quy định sử dụng tiện ích này..."
-                  rows={3}
-                ></textarea>
+                  placeholder="VD: Nội thất, An ninh, Tiện nghi chung"
+                />
               </div>
             </div>
 

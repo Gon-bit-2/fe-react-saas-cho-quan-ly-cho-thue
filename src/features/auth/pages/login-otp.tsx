@@ -111,7 +111,7 @@ export function Component() {
           phone: state.registerData.phone,
           confirmPassword: state.registerData.confirm_password,
           code,
-          roleCode: 'TENANT', // Tạm thời hardcode, có thể tuỳ chọn trên UI
+          roleCode: 'TENANT', // Public registration creates a renter account by business rule.
         })
         
         // Tự động đăng nhập sau khi đăng ký thành công

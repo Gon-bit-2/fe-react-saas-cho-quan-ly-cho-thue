@@ -71,18 +71,6 @@ export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
             />
           </div>
 
-          {/* Department (Mock) */}
-          <div className="flex flex-col gap-2 col-span-1">
-            <label className="font-label-sm text-label-sm text-outline uppercase tracking-wider" htmlFor="dept">Phòng ban</label>
-            <input 
-              id="dept" 
-              type="text" 
-              value="Quản lý tài sản" 
-              disabled 
-              className="w-full h-10 px-4 bg-surface-variant/30 rounded-lg font-body-md text-body-md text-on-surface-variant cursor-not-allowed border-none outline-none" 
-            />
-          </div>
-
           {/* Email */}
           <div className="flex flex-col gap-2 col-span-1 md:col-span-2 mt-4">
             <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" htmlFor="email">Địa chỉ Email</label>

@@ -3,8 +3,6 @@ import { LoginPage } from './pages/LoginPage';
 
 test.describe('Flow 4: Đăng Tin Marketplace & Kiểm Duyệt Admin', () => {
 
-  const roomId = `P-Market-${Date.now()}`; // Có thể lấy động nếu setup logic nối từ Flow 3
-
   test('Chủ trọ gửi yêu cầu đăng tin và Admin duyệt tin', async ({ page, context }) => {
     // === PHẦN 1: CHỦ TRỌ GỬI YÊU CẦU ===
     const loginPage = new LoginPage(page);
@@ -62,7 +60,6 @@ test.describe('Flow 4: Đăng Tin Marketplace & Kiểm Duyệt Admin', () => {
     await guestPage.goto('/phong');
     
     // Kiểm tra danh sách có phòng không (Không cần kiểm tra ID chính xác nếu luồng trên lấy phòng ngẫu nhiên)
-    const propertyCard = guestPage.locator('.property-card, [data-testid="property-card"]').first();
     // Vì không biết UI cụ thể, kiểm tra tổng quát
     await expect(guestPage.getByRole('heading').first()).toBeVisible();
     await guestPage.close();

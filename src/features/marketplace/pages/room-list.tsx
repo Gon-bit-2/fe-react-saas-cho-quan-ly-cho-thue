@@ -2,6 +2,7 @@ import { useSearchParams } from 'react-router'
 import { useState } from 'react'
 import { useMarketplaceRooms } from '@/shared/api/marketplace'
 import { RoomCard } from '../components/room-card'
+import { AdministrativeAreaSelect } from '@/shared/components/administrative-area-select'
 
 
 export function Component() {
@@ -9,8 +10,8 @@ export function Component() {
   
   // Local state for filters
   const [filters, setFilters] = useState({
-    province: searchParams.get('province') || '',
-    district: searchParams.get('district') || '',
+    provinceCode: searchParams.get('provinceCode') || '',
+    wardCode: searchParams.get('wardCode') || '',
     propertyType: searchParams.get('propertyType') || '',
     priceRange: searchParams.get('priceRange') || '',
   })
@@ -21,8 +22,8 @@ export function Component() {
     limit: 12,
   }
   
-  if (filters.province) apiFilters.province = filters.province
-  if (filters.district) apiFilters.district = filters.district
+  if (filters.provinceCode) apiFilters.provinceCode = filters.provinceCode
+  if (filters.wardCode) apiFilters.wardCode = filters.wardCode
   if (filters.propertyType) apiFilters.propertyType = filters.propertyType
   if (filters.priceRange) {
     if (filters.priceRange === 'under-3m') apiFilters.maxPrice = 3000000
@@ -33,13 +34,12 @@ export function Component() {
 
   const { data, isLoading } = useMarketplaceRooms(apiFilters)
 
-  // Fallback to mock data if API is loading or returns empty
   const rooms = data?.data || []
 
   const handleApplyFilters = () => {
     const params = new URLSearchParams()
-    if (filters.province) params.set('province', filters.province)
-    if (filters.district) params.set('district', filters.district)
+    if (filters.provinceCode) params.set('provinceCode', filters.provinceCode)
+    if (filters.wardCode) params.set('wardCode', filters.wardCode)
     if (filters.propertyType) params.set('propertyType', filters.propertyType)
     if (filters.priceRange) params.set('priceRange', filters.priceRange)
     
@@ -58,24 +58,11 @@ export function Component() {
           
           <div className="space-y-6">
             <div>
-              <label className="font-label-md text-on-surface mb-2 block">Tỉnh / Thành phố</label>
-              <input 
-                type="text" 
-                placeholder="Nhập tỉnh thành..."
-                className="w-full h-10 px-3 bg-surface-container-lowest border border-surface-border focus:border-primary rounded-lg font-body-md text-on-surface outline-none transition-colors"
-                value={filters.province}
-                onChange={e => setFilters(f => ({ ...f, province: e.target.value }))}
-              />
-            </div>
-            
-            <div>
-              <label className="font-label-md text-on-surface mb-2 block">Quận / Huyện</label>
-              <input 
-                type="text" 
-                placeholder="Nhập quận huyện..."
-                className="w-full h-10 px-3 bg-surface-container-lowest border border-surface-border focus:border-primary rounded-lg font-body-md text-on-surface outline-none transition-colors"
-                value={filters.district}
-                onChange={e => setFilters(f => ({ ...f, district: e.target.value }))}
+              <label className="font-label-md text-on-surface mb-2 block">Khu vực</label>
+              <AdministrativeAreaSelect
+                provinceCode={filters.provinceCode}
+                wardCode={filters.wardCode}
+                onChange={(area) => setFilters((current) => ({ ...current, ...area }))}
               />
             </div>
             

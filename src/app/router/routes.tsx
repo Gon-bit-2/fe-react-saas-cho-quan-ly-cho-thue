@@ -116,6 +116,34 @@ export const router = createBrowserRouter([
             path: 'chon-nha-tro',
             lazy: () => import('@/features/auth/pages/select-tenant'),
           },
+          {
+            path: 'lich-xem-phong',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'yeu-cau-thue',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'hop-dong',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'ban-giao',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'hoa-don',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'thanh-toan',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'ho-tro',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
         ],
       },
     ],

@@ -8,6 +8,7 @@ import { getDebts } from '../api'
 import { InvoiceStatus, type Debt, type InvoiceListParams } from '../types'
 
 export function DebtListPage() {
+  const [renderedAt] = useState(() => Date.now())
   const [debts, setDebts] = useState<Debt[]>([])
   const [stats, setStats] = useState({
     totalOutstanding: 0,
@@ -222,11 +223,11 @@ export function DebtListPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                debts.map((debt, index) => {
+                debts.map((debt) => {
                   const invoice = debt.invoice
                   if (!invoice) return null
-                  const isOverdue = debt.status === 'OVERDUE' || (debt.dueDate && new Date(debt.dueDate).getTime() < Date.now())
-                  const isWarning = !isOverdue && debt.dueDate && (new Date(debt.dueDate).getTime() - Date.now()) < 3 * 24 * 60 * 60 * 1000 // Sắp hết hạn trong 3 ngày
+                  const isOverdue = debt.status === 'OVERDUE' || (debt.dueDate && new Date(debt.dueDate).getTime() < renderedAt)
+                  const isWarning = !isOverdue && debt.dueDate && (new Date(debt.dueDate).getTime() - renderedAt) < 3 * 24 * 60 * 60 * 1000 // Sắp hết hạn trong 3 ngày
 
                   return (
                     <TableRow

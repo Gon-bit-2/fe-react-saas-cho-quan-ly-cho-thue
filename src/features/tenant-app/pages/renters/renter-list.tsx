@@ -53,11 +53,9 @@ export default function RenterListPage() {
     verificationStatus: statusFilter === 'ALL' ? undefined : statusFilter
   })
 
-  // Đảm bảo có fallback rỗng nếu data chưa load xong
   const renters = response?.data || []
 
-  // Lưu ý: Tính năng tìm kiếm đã được truyền lên hook useRenters, nên ta có thể lọc trên client 
-  // nếu API chưa triển khai hoàn thiện search (như fallback mock data).
+  // Keep the visible rows synchronized immediately while the debounced server query refreshes.
   const filteredRenters = renters.filter((renter) => {
     const matchSearch =
       renter.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||

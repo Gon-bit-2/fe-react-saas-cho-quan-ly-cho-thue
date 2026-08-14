@@ -95,9 +95,9 @@ export const BillingHistoryPage = () => {
                     <TableCell className="text-right font-medium tabular-nums">{formatCurrency(tx.amount)}</TableCell>
                     <TableCell className="text-muted-foreground font-mono text-xs">{tx.transactionId}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100 flex items-center gap-1 w-fit">
+                      <Badge variant="secondary" className={`${tx.status === 'SUCCESS' ? 'bg-green-100 text-green-800 hover:bg-green-100' : tx.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' : 'bg-red-100 text-red-800 hover:bg-red-100'} flex items-center gap-1 w-fit`}>
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        {tx.status}
+                        {tx.status === 'SUCCESS' ? 'Thành công' : tx.status === 'PENDING' ? 'Chờ xử lý' : 'Thất bại'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

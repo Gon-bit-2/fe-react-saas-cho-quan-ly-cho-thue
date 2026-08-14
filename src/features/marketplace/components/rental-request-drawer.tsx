@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useCreateRentalRequest, useMarketplaceRoom } from '@/shared/api/marketplace'
 import { toast } from 'sonner'
-import { useAuth } from '@/shared/hooks/use-auth'
 
 interface RentalRequestDrawerProps {
   isOpen: boolean
@@ -10,7 +9,6 @@ interface RentalRequestDrawerProps {
 }
 
 export function RentalRequestDrawer({ isOpen, onClose, roomId }: RentalRequestDrawerProps) {
-  const { profile } = useAuth()
   const { data: room } = useMarketplaceRoom(roomId)
   const { mutate, isPending } = useCreateRentalRequest()
   

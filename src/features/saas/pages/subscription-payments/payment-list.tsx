@@ -179,15 +179,15 @@ export function PaymentListPage() {
                     className="hover:bg-surface-container-lowest group border-surface-container-low/50 cursor-pointer border-b transition-colors last:border-0"
                   >
                     <td className="text-on-surface-variant p-4 font-mono whitespace-nowrap">
-                      #{payment.transactionId || payment.id}
+                      #{payment.transactionCode || payment.id}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="bg-primary-container text-on-primary-container font-label-md flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold">
-                          {payment.landlordId}
+                          {payment.tenantId}
                         </div>
                         <div>
-                          <div className="max-w-[200px] truncate font-semibold">Tenant {payment.landlordId}</div>
+                          <div className="max-w-[200px] truncate font-semibold">Tenant {payment.tenantId}</div>
                         </div>
                       </div>
                     </td>

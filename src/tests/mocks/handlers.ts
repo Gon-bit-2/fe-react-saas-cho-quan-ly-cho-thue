@@ -49,6 +49,13 @@ export const handlers = [
     })
   }),
 
+  http.get(`${API_URL}/locations/provinces`, () => {
+    return HttpResponse.json([
+      { code: '01', name: 'Thành phố Hà Nội', type: 'Thành phố' },
+      { code: '79', name: 'Thành phố Hồ Chí Minh', type: 'Thành phố' },
+    ])
+  }),
+
   // Marketplace Handlers
   http.get(`${API_URL}/marketplace/rooms`, () => {
     return HttpResponse.json({

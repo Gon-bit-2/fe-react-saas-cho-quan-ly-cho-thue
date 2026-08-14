@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { 
-  ArrowLeft, Save, Building, Users, CalendarDays, FileText, 
-  Search, CreditCard, Upload, X, AlertTriangle 
+  ArrowLeft, Users, FileText,
+  Search, CreditCard, Upload, X
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,10 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useProperties, useFloors, useRooms } from '@/shared/api/properties'
+import { useRooms } from '@/shared/api/properties'
 import { useRenters, useUploadRenterImages } from '@/shared/api/renters'
 import { useCreateContract, useUpdateContract, useContract } from '@/shared/api/contracts'
-import type { ContractBillingCycle, RenterInfo } from '@/types/contract'
+import type { ContractBillingCycle, CreateContractBody, RenterInfo, UpdateContractBody } from '@/types/contract'
 
 export default function ContractFormPage() {
   const navigate = useNavigate()
@@ -37,9 +37,6 @@ export default function ContractFormPage() {
   const loading = isCreating || isUpdating || isUploading
 
   // Form State
-  const [propertyId, setPropertyId] = useState<string>('')
-  const [floorId, setFloorId] = useState<string>('')
-  
   const [formData, setFormData] = useState({
     roomId: '',
     renterId: renterIdParam || '',
@@ -74,17 +71,12 @@ export default function ContractFormPage() {
   const [renterSearch, setRenterSearch] = useState('')
 
   // Queries
-  const { data: propertiesData } = useProperties({ limit: 100 })
-  const { data: floorsData } = useFloors(propertyId)
-  const { data: roomsData } = useRooms({ 
-    propertyId: propertyId ? Number(propertyId) : undefined, 
-    floorId: floorId ? Number(floorId) : undefined, 
-    limit: 100 
-  })
+  const { data: roomsData } = useRooms({ limit: 100 })
   
   const { data: rentersData } = useRenters({ search: renterSearch, limit: 10 })
 
   // Initialize form when editing
+  /* eslint-disable react-hooks/set-state-in-effect -- API detail hydrates the edit form once it arrives. */
   useEffect(() => {
     if (isEditing && contractData) {
       setFormData({
@@ -115,6 +107,7 @@ export default function ContractFormPage() {
       }
     }
   }, [isEditing, contractData])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Handle Room Selection: Auto-fill price and deposit
   const handleRoomSelect = (val: string) => {
@@ -123,8 +116,8 @@ export default function ContractFormPage() {
     if (selectedRoom) {
       setFormData(prev => ({
         ...prev,
-        monthlyPrice: String(selectedRoom.price || ''),
-        depositAmount: String(selectedRoom.price || '')
+        monthlyPrice: String(selectedRoom.basePrice || ''),
+        depositAmount: String(selectedRoom.depositAmount || selectedRoom.basePrice || '')
       }))
     }
   }
@@ -168,14 +161,20 @@ export default function ContractFormPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
-    if (!formData.roomId) {
-      alert('Vui lòng chọn phòng thuê.')
+    if (!formData.roomId || !formData.renterId) {
+      alert('Vui lòng chọn phòng và khách thuê đã có trong hệ thống.')
       return
     }
 
     try {
       // Upload ảnh CCCD nếu có file mới được chọn
-      let finalRenterInfo = { ...renterInfo }
+      const finalRenterInfo: RenterInfo = {
+        phone: renterInfo.phone,
+        identityNumber: renterInfo.identityNumber,
+        permanentAddress: renterInfo.permanentAddress,
+        identityFrontUrl: renterInfo.identityFrontUrl,
+        identityBackUrl: renterInfo.identityBackUrl,
+      }
       const filesToUpload: File[] = []
       if (frontFile) filesToUpload.push(frontFile)
       if (backFile) filesToUpload.push(backFile)
@@ -195,9 +194,7 @@ export default function ContractFormPage() {
         }
       }
 
-      const payload = {
-        roomId: Number(formData.roomId),
-        renterId: formData.renterId ? Number(formData.renterId) : undefined, // Bỏ qua nếu tạo mới người thuê (API cần support tạo mới)
+      const updatePayload: UpdateContractBody = {
         startDate: new Date(formData.startDate).toISOString(),
         endDate: new Date(formData.endDate).toISOString(),
         monthlyPrice: Number(formData.monthlyPrice),
@@ -205,14 +202,25 @@ export default function ContractFormPage() {
         billingCycle: formData.billingCycle,
         paymentDueDay: Number(formData.paymentDueDay),
         contentSnapshot: formData.contentSnapshot.trim() || 'Hợp đồng tiêu chuẩn',
-        renterInfo: finalRenterInfo, // Pass form details in case it's a new renter
+        renterInfo: finalRenterInfo,
       }
       
       if (isEditing) {
-        const { roomId, renterId, ...updatePayload } = payload;
-        await updateContract(updatePayload as any)
+        await updateContract(updatePayload)
       } else {
-        await createContract(payload as any)
+        const createPayload: CreateContractBody = {
+          ...updatePayload,
+          roomId: Number(formData.roomId),
+          renterId: Number(formData.renterId),
+          startDate: updatePayload.startDate!,
+          endDate: updatePayload.endDate!,
+          monthlyPrice: updatePayload.monthlyPrice!,
+          depositAmount: updatePayload.depositAmount!,
+          billingCycle: updatePayload.billingCycle!,
+          paymentDueDay: updatePayload.paymentDueDay!,
+          contentSnapshot: updatePayload.contentSnapshot!,
+        }
+        await createContract(createPayload)
       }
       navigate('/hop-dong')
     } catch (error) {
@@ -220,8 +228,6 @@ export default function ContractFormPage() {
       alert('Có lỗi xảy ra khi lưu hợp đồng.')
     }
   }
-
-  const selectedRenter = formData.renterId ? rentersData?.data.find(r => String(r.id) === formData.renterId) : null
 
   if (isEditing && isLoadingContract) {
     return <div className="p-12 text-center text-slate-500">Đang tải dữ liệu hợp đồng...</div>
@@ -251,15 +257,6 @@ export default function ContractFormPage() {
           <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
             {loading ? 'Đang xử lý...' : isEditing ? 'Cập nhật thay đổi' : 'Tạo hợp đồng'}
           </Button>
-        </div>
-      </div>
-
-      {/* Cảnh báo (Mocked) */}
-      <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex gap-3 text-orange-800">
-        <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
-        <div>
-          <h4 className="font-semibold text-orange-800 text-sm mb-1">Cảnh báo xung đột thời gian</h4>
-          <p className="text-sm text-orange-700/90">Phòng này đã có một hợp đồng khác (HĐ-2023-005) sẽ kết thúc vào ngày 15/11/2023. Ngày bắt đầu của hợp đồng này hiện tại (01/11/2023) đang bị trùng. Vui lòng kiểm tra lại!</p>
         </div>
       </div>
 
@@ -328,7 +325,7 @@ export default function ContractFormPage() {
         <CardContent className="p-6 space-y-6">
           {/* Search Khách cũ */}
           <div className="space-y-2 bg-blue-50 p-4 rounded-xl border border-blue-100">
-            <Label className="text-blue-800 font-medium">Chọn khách thuê đã có hoặc Tạo mới ở dưới</Label>
+            <Label className="text-blue-800 font-medium">Chọn khách thuê đã có trong hệ thống</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
               <Input 
@@ -373,19 +370,19 @@ export default function ContractFormPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label className="text-slate-600 text-xs font-bold uppercase">Họ và tên <span className="text-red-500">*</span></Label>
-              <Input name="fullName" value={renterInfo.fullName} onChange={handleRenterChange} className="border-slate-200 focus:ring-blue-500" placeholder="Nguyễn Văn A" required />
+              <Input name="fullName" value={renterInfo.fullName ?? ''} disabled className="border-slate-200 bg-slate-50" placeholder="Chọn khách thuê ở trên" />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-600 text-xs font-bold uppercase">Số điện thoại <span className="text-red-500">*</span></Label>
-              <Input name="phone" value={renterInfo.phone} onChange={handleRenterChange} className="border-slate-200 focus:ring-blue-500" placeholder="0901234567" required />
+              <Input name="phone" value={renterInfo.phone ?? ''} onChange={handleRenterChange} className="border-slate-200 focus:ring-blue-500" placeholder="0901234567" required />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-600 text-xs font-bold uppercase">CCCD/CMND <span className="text-red-500">*</span></Label>
-              <Input name="identityNumber" value={renterInfo.identityNumber} onChange={handleRenterChange} className="border-slate-200 focus:ring-blue-500" placeholder="079..." required />
+              <Input name="identityNumber" value={renterInfo.identityNumber ?? ''} onChange={handleRenterChange} className="border-slate-200 focus:ring-blue-500" placeholder="079..." required />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-600 text-xs font-bold uppercase">Ngày sinh</Label>
-              <Input type="date" name="dateOfBirth" value={renterInfo.dateOfBirth} onChange={handleRenterChange} className="border-slate-200 focus:ring-blue-500" />
+              <Input type="date" name="dateOfBirth" value={renterInfo.dateOfBirth ?? ''} disabled className="border-slate-200 bg-slate-50" />
             </div>
           </div>
 
@@ -459,14 +456,13 @@ export default function ContractFormPage() {
 
             <div className="space-y-2">
               <Label className="text-slate-600 text-xs font-bold uppercase">Chu kỳ thanh toán</Label>
-              <Select value={formData.billingCycle} onValueChange={(val: any) => setFormData(prev => ({...prev, billingCycle: val}))}>
+              <Select value={formData.billingCycle} onValueChange={(val) => setFormData(prev => ({...prev, billingCycle: val as ContractBillingCycle}))}>
                 <SelectTrigger className="border-slate-200 bg-white">
                   <SelectValue placeholder="Chọn chu kỳ" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="MONTHLY">1 Tháng / Lần</SelectItem>
                   <SelectItem value="QUARTERLY">3 Tháng / Lần</SelectItem>
-                  <SelectItem value="YEARLY">12 Tháng / Lần</SelectItem>
                 </SelectContent>
               </Select>
             </div>

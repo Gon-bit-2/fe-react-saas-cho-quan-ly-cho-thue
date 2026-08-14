@@ -11,6 +11,18 @@ const RENTER_KEYS = {
   detail: (tenantId: string, id: number) => [...RENTER_KEYS.details(tenantId), id] as const,
   roommates: (tenantId: string, renterId: number) => [...RENTER_KEYS.detail(tenantId, renterId), 'roommates'] as const,
   invitationDetail: (tenantId: string, id: number | string) => [...RENTER_KEYS.all, 'invitation', tenantId, id] as const,
+  history: (tenantId: string, id: number) => [...RENTER_KEYS.detail(tenantId, id), 'history'] as const,
+}
+
+interface RentalHistoryItem {
+  id: number
+  roomId: number
+  contractId: number
+  startedAt: string
+  endedAt?: string | null
+  status: 'ACTIVE' | 'ENDED' | 'TERMINATED'
+  room: { id: number; roomCode: string; title: string; property: { id: number; name: string } }
+  contract: { id: number; contractCode?: string | null; status: string }
 }
 
 interface PaginatedResponse<T> {
@@ -52,6 +64,22 @@ export const useRenter = (id: number) => {
       return data
     },
     enabled: !!tenantId && !!id,
+  })
+}
+
+export const useRenterHistory = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  return useQuery({
+    queryKey: RENTER_KEYS.history(tenantId, id),
+    queryFn: async () => {
+      const { data } = await apiClient.get<PaginatedResponse<RentalHistoryItem>>(`/renters/${id}/history`, {
+        params: { page: 1, limit: 50 },
+        tenantId,
+      })
+      return data
+    },
+    enabled: Boolean(tenantId && id),
   })
 }
 
