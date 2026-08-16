@@ -23,7 +23,8 @@ export function MeterReadingsListPage() {
 
   const { data: response, isLoading } = useMeterReadingsControllerList(filters)
 
-  const readings = (response as unknown as { data?: Array<Record<string, any>> })?.data || []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const readings = (response as unknown as { data?: Array<any> })?.data || []
   const total = (response as unknown as { meta?: { total?: number } })?.meta?.total || 0
 
   const getStatusBadge = (status: string) => {

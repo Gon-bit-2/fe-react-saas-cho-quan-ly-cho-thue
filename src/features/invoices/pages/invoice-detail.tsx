@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getInvoiceDetail, cancelInvoice } from '../api';
+import { getInvoiceDetail, cancelInvoice, createMyPaymentQr } from '../api';
 import { InvoiceStatus, InvoiceItemType, type Invoice, type InvoiceItem } from '../types';
 import { toast } from 'sonner';
 import { getPayments } from '../../payments/api';
@@ -54,6 +54,24 @@ export function InvoiceDetailPage() {
 
   const handleRecordPayment = () => {
     toast.info('Tính năng ghi nhận thanh toán thủ công đang được phát triển.');
+  };
+
+  const handlePayOS = async () => {
+    if (!invoice) return;
+    setIsLoading(true);
+    try {
+      const data = await createMyPaymentQr(invoice.id);
+      if (data && data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        toast.error('Không lấy được link thanh toán PayOS');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Có lỗi xảy ra khi tạo QR thanh toán');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -138,8 +156,11 @@ export function InvoiceDetailPage() {
           <Button variant="outline" className="flex items-center gap-2" onClick={handleRemind}>
             <span className="material-symbols-outlined text-[18px]">notifications_active</span> Nhắc nhở
           </Button>
+          <Button variant="default" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700" onClick={handlePayOS} disabled={invoice.status === InvoiceStatus.PAID || invoice.status === InvoiceStatus.CANCELED}>
+            <span className="material-symbols-outlined text-[18px]">qr_code_2</span> Thanh toán QR
+          </Button>
           <Button className="flex items-center gap-2" onClick={handleRecordPayment} disabled={invoice.status === InvoiceStatus.PAID || invoice.status === InvoiceStatus.CANCELED}>
-            <span className="material-symbols-outlined text-[18px]">payments</span> Ghi nhận thanh toán
+            <span className="material-symbols-outlined text-[18px]">payments</span> Ghi nhận
           </Button>
         </div>
       </div>

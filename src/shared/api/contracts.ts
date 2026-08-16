@@ -153,3 +153,37 @@ export const useRemoveContractMember = (id: number) => {
     },
   })
 }
+
+export const useSignContractLandlord = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (signature: string) => {
+      const { data } = await apiClient.post<Contract>(`/contracts/${id}/sign-landlord`, { signature }, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useSignContractRenter = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (signature: string) => {
+      const { data } = await apiClient.post<Contract>(`/contracts/me/${id}/sign`, { signature }, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.lists(tenantId) })
+    },
+  })
+}

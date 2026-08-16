@@ -37,7 +37,8 @@ export function RecordReadingDialog({ children }: { children: React.ReactNode })
     status: 'ACTIVE',
   })
 
-  const meters = (metersResponse as unknown as { data?: Array<Record<string, any>> })?.data || []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const meters = (metersResponse as unknown as { data?: Array<any> })?.data || []
 
   const {
     register,

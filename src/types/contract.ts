@@ -57,9 +57,19 @@ export interface Contract {
   createdAt: string
 
   updatedAt: string
+
+  landlordSignature?: string | null
+  renterSignature?: string | null
+  signedByLandlordAt?: string | null
+  signedByRenterAt?: string | null
+
   members?: ContractMember[]
   room?: ContractRoom
   renter?: ContractRenter
+  tenant?: {
+    id: number
+    name: string
+  }
 }
 
 export interface ListContractsQuery {

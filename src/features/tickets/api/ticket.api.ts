@@ -77,8 +77,39 @@ export const ticketApi = {
   },
 
   /** Renter tạo ticket mới */
-  createMyTicket: async (payload: { roomId: number; contractId?: number; title: string; description: string; category: TicketCategory; priority: TicketPriority }) => {
+  createMyTicket: async (payload: {
+    roomId: number
+    contractId?: number
+    title: string
+    description: string
+    category: TicketCategory
+    priority: TicketPriority
+  }) => {
     const { data } = await apiClient.post<TicketDetail>('/tickets', payload)
+    return data
+  },
+
+  /** Upload ảnh đính kèm */
+  uploadAttachment: async (id: number, file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const { data } = await apiClient.post(`/tickets/${id}/attachments`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return data
+  },
+
+  /** Lấy danh sách ảnh đính kèm của ticket */
+  getTicketAttachments: async (id: number) => {
+    const { data } = await apiClient.get<PaginatedResponse<any>>(`/tickets/${id}/attachments`)
+    return data
+  },
+
+  /** Lấy danh sách ảnh đính kèm của my ticket */
+  getMyTicketAttachments: async (id: number) => {
+    const { data } = await apiClient.get<PaginatedResponse<any>>(`/tickets/me/${id}/attachments`)
     return data
   },
 }

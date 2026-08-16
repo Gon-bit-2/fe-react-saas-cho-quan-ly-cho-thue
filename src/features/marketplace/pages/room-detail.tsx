@@ -39,6 +39,7 @@ export function Component() {
       }, 2000)
       return () => clearTimeout(timer)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isValidRoomId, id])
 
   const [isViewingOpen, setIsViewingOpen] = useState(false)
@@ -136,7 +137,7 @@ export function Component() {
         {/* Main Info */}
         <div className="flex-1 space-y-8">
           <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
-            <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="mb-4 flex items-start justify-between gap-4">
               <h1 className="font-headline-lg text-text-main">{room.title}</h1>
               <FavoriteButton roomId={room.id} className="flex-shrink-0" />
             </div>
@@ -223,7 +224,7 @@ export function Component() {
                 room.property.longitude !== undefined ? (
                   <GoongMap latitude={room.property.latitude} longitude={room.property.longitude} className="h-48" />
                 ) : (
-                  <div className="overflow-hidden rounded-xl h-48 bg-surface-container">
+                  <div className="bg-surface-container h-48 overflow-hidden rounded-xl">
                     <iframe
                       width="100%"
                       height="100%"
@@ -231,7 +232,7 @@ export function Component() {
                       loading="lazy"
                       allowFullScreen
                       src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                        [room.property.addressDetail, location].filter(Boolean).join(', ')
+                        [room.property.addressDetail, location].filter(Boolean).join(', '),
                       )}&output=embed`}
                     ></iframe>
                   </div>

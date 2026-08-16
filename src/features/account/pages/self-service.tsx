@@ -4,6 +4,7 @@ import { apiClient } from '@/shared/api/axios-client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { SignContractDialog } from '@/features/tenant-app/pages/contracts/components/sign-contract-dialog'
 
 type SelfServiceItem = Record<string, unknown>
 
@@ -116,6 +117,13 @@ export function Component() {
     onSuccess: () => query.refetch(),
   })
 
+  const signContract = useMutation({
+    mutationFn: ({ id, signature }: { id: number; signature: string }) => {
+      return apiClient.post(`/contracts/me/${id}/sign`, { signature })
+    },
+    onSuccess: () => query.refetch(),
+  })
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
@@ -171,6 +179,17 @@ export function Component() {
                   >
                     Hủy
                   </Button>
+                )}
+                {slug === 'hop-dong' && status === 'WAITING_RENTER_SIGN' && (
+                  <SignContractDialog
+                    title="Khách thuê ký hợp đồng"
+                    onSign={(signature) => signContract.mutate({ id: itemId, signature })}
+                    isPending={signContract.isPending}
+                  >
+                    <Button type="button" size="sm" className="bg-blue-600 text-white hover:bg-blue-700 ml-2">
+                      Ký hợp đồng
+                    </Button>
+                  </SignContractDialog>
                 )}
               </CardContent>
             </Card>

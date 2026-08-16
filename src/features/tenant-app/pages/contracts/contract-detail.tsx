@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useContract, useCancelContract, useActivateContract, useRemoveContractMember } from '@/shared/api/contracts'
+import { useContract, useCancelContract, useActivateContract, useRemoveContractMember, useSignContractLandlord } from '@/shared/api/contracts'
 import { AddMemberDialog } from './components/add-member-dialog'
+import { SignContractDialog } from './components/sign-contract-dialog'
+import { ContractPrintTemplate } from './components/contract-print-template'
 
 export default function ContractDetailPage() {
   const { id } = useParams()
@@ -14,6 +16,7 @@ export default function ContractDetailPage() {
   const { mutate: cancelContract, isPending: isCanceling } = useCancelContract(Number(id))
   const { mutate: activateContract, isPending: isActivating } = useActivateContract(Number(id))
   const { mutate: removeMember, isPending: isRemoving } = useRemoveContractMember(Number(id))
+  const { mutate: signLandlord, isPending: isSigning } = useSignContractLandlord(Number(id))
 
   const handleRemoveMember = (memberUserId: number) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa thành viên này khỏi hợp đồng?')) {
@@ -65,8 +68,9 @@ export default function ContractDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 pb-20">
-      {/* Header */}
+    <>
+      <div className="mx-auto max-w-6xl space-y-6 pb-20 print:hidden">
+        {/* Header */}
       <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-100 bg-white p-6 md:flex-row md:items-center">
         <div className="flex items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
@@ -100,12 +104,26 @@ export default function ContractDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="text-slate-600">
+          <Button variant="outline" className="text-slate-600" onClick={() => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
             In hợp đồng
           </Button>
-          {(contract.status === 'DRAFT' ||
-            contract.status === 'WAITING_LANDLORD_SIGN' ||
+          {contract.status === 'DRAFT' && (
+            <SignContractDialog
+              title="Chủ trọ ký hợp đồng"
+              onSign={(signature) => signLandlord(signature)}
+              isPending={isSigning}
+            >
+              <Button
+                className="bg-blue-600 text-white hover:bg-blue-700"
+                disabled={isSigning}
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Ký hợp đồng
+              </Button>
+            </SignContractDialog>
+          )}
+          {(contract.status === 'WAITING_LANDLORD_SIGN' ||
             contract.status === 'WAITING_RENTER_SIGN') && (
             <Button
               className="bg-blue-600 text-white hover:bg-blue-700"
@@ -113,7 +131,7 @@ export default function ContractDetailPage() {
               disabled={isActivating}
             >
               <CheckCircle2 className="mr-2 h-4 w-4" />
-              Kích hoạt
+              Kích hoạt ngay
             </Button>
           )}
           {contract.status !== 'CANCELED' && contract.status !== 'TERMINATED' && (
@@ -422,6 +440,9 @@ export default function ContractDetailPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+      
+      <ContractPrintTemplate contract={contract} />
+    </>
   )
 }
