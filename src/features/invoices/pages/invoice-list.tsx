@@ -42,6 +42,8 @@ export function InvoiceListPage() {
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Quá hạn</Badge>;
       case InvoiceStatus.DRAFT:
         return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100 border border-slate-200">Bản nháp</Badge>;
+      case InvoiceStatus.CANCELED:
+        return <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100 line-through">Đã hủy</Badge>;
       case InvoiceStatus.UNPAID:
       default:
         return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Chờ thanh toán</Badge>;

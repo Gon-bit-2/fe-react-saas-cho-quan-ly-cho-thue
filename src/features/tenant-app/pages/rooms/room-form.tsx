@@ -174,7 +174,7 @@ export function Component() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
         <Card className="overflow-hidden rounded-xl border-slate-200 shadow-sm">
           <CardHeader className="border-b border-slate-200/60 bg-slate-50/80 pb-6">
             <CardTitle className="flex items-center gap-2 text-xl text-slate-800">
@@ -316,7 +316,6 @@ export function Component() {
                   {...register('basePrice')}
                   id="basePrice"
                   type="number"
-                  step={100000}
                   className="border-slate-200 bg-slate-50 font-semibold text-emerald-700 focus-visible:ring-emerald-500"
                 />
                 {errors.basePrice && (
@@ -331,7 +330,6 @@ export function Component() {
                   {...register('depositAmount')}
                   id="depositAmount"
                   type="number"
-                  step={100000}
                   className="border-slate-200 bg-slate-50 font-semibold focus-visible:ring-emerald-500"
                 />
                 {errors.depositAmount && (
@@ -349,7 +347,6 @@ export function Component() {
                   {...register('electricityPrice')}
                   id="electricityPrice"
                   type="number"
-                  step={500}
                   className="border-slate-200 bg-slate-50 focus-visible:ring-emerald-500"
                 />
                 {errors.electricityPrice && (
@@ -364,7 +361,6 @@ export function Component() {
                   {...register('waterPrice')}
                   id="waterPrice"
                   type="number"
-                  step={1000}
                   className="border-slate-200 bg-slate-50 focus-visible:ring-emerald-500"
                 />
                 {errors.waterPrice && (

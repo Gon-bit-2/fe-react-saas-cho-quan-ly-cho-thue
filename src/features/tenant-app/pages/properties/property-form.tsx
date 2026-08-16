@@ -206,7 +206,7 @@ export function Component() {
             </CardContent>
           </Card>
 
-          <Card className="bg-surface-container-lowest border-surface-border rounded-2xl shadow-sm">
+          <Card className="bg-surface-container-lowest border-surface-border rounded-2xl shadow-sm overflow-visible">
             <CardHeader className="border-surface-variant/30 border-b pb-4">
               <div className="flex items-center gap-3">
                 <div className="bg-primary text-on-primary flex h-8 w-8 items-center justify-center rounded-full font-bold">

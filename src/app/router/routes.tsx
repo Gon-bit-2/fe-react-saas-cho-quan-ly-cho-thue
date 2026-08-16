@@ -121,6 +121,14 @@ export const router = createBrowserRouter([
             lazy: () => import('@/features/account/pages/self-service'),
           },
           {
+            path: 'phong-yeu-thich',
+            lazy: () => import('@/features/account/pages/favorites'),
+          },
+          {
+            path: 'lich-su-xem',
+            lazy: () => import('@/features/account/pages/view-history'),
+          },
+          {
             path: 'yeu-cau-thue',
             lazy: () => import('@/features/account/pages/self-service'),
           },
@@ -201,19 +209,19 @@ export const router = createBrowserRouter([
                 lazy: () => import('@/features/tenant-app/pages/rooms/room-form'),
               },
               {
-                path: 'quan-ly-nha-tro/yeu-cau-thue',
+                path: 'yeu-cau-thue',
                 lazy: () => import('@/features/tenant-app/pages/rental-requests/request-list'),
               },
               {
-                path: 'quan-ly-nha-tro/yeu-cau-thue/:id',
+                path: 'yeu-cau-thue/:id',
                 lazy: () => import('@/features/tenant-app/pages/rental-requests/request-detail'),
               },
               {
-                path: 'quan-ly-nha-tro/lich-xem-phong',
+                path: 'lich-xem-phong',
                 lazy: () => import('@/features/tenant-app/pages/viewing-schedules/schedule-list'),
               },
               {
-                path: 'quan-ly-nha-tro/lich-xem-phong/:id',
+                path: 'lich-xem-phong/:id',
                 lazy: () => import('@/features/tenant-app/pages/viewing-schedules/schedule-detail'),
               },
               {

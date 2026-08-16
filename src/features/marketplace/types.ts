@@ -53,13 +53,15 @@ export interface MarketplaceFilters {
   maxArea?: number
   maxOccupants?: number
   amenityIds?: number[] | string
+  lat?: number
+  lng?: number
+  radius?: number
 }
 
 export interface CreateViewingBody {
   scheduledAt: string // ISO date
   note?: string | null
 }
-
 export interface CreateRentalRequestBody {
   expectedStartDate: string // YYYY-MM-DD
   message?: string | null

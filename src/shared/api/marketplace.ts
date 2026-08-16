@@ -1,11 +1,11 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
-import type { 
-  MarketplaceFilters, 
-  MarketplaceRoom, 
+import type {
+  MarketplaceFilters,
+  MarketplaceRoom,
   PaginatedResponse,
   CreateViewingBody,
-  CreateRentalRequestBody
+  CreateRentalRequestBody,
 } from '@/features/marketplace/types'
 
 type DecimalValue = number | string | null
@@ -92,10 +92,10 @@ import type { ViewingScheduleDetail } from '@/types/viewing-schedule'
 export const marketplaceApi = {
   listRooms: async (filters: MarketplaceFilters): Promise<PaginatedResponse<MarketplaceRoom>> => {
     const cleanFilters = Object.fromEntries(
-      Object.entries(filters).filter(([, v]) => v !== '' && v !== undefined && v !== null)
+      Object.entries(filters).filter(([, v]) => v !== '' && v !== undefined && v !== null),
     )
     const { data } = await apiClient.get<PaginatedResponse<MarketplaceRoomResponse>>('/marketplace/rooms', {
-      params: cleanFilters
+      params: cleanFilters,
     })
     return { ...data, data: data.data.map(normalizeMarketplaceRoom) }
   },
@@ -109,16 +109,40 @@ export const marketplaceApi = {
     const { data } = await apiClient.get<ViewingScheduleDetail>(`/room-viewing-appointments/${id}`)
     return data
   },
-
-  createViewing: async (params: { roomId: number, body: CreateViewingBody }) => {
+  createViewing: async (params: { roomId: number; body: CreateViewingBody }) => {
     const { data } = await apiClient.post(`/marketplace/rooms/${params.roomId}/viewing-appointments`, params.body)
     return data
   },
 
-  createRentalRequest: async (params: { roomId: number, body: CreateRentalRequestBody }) => {
+  createRentalRequest: async (params: { roomId: number; body: CreateRentalRequestBody }) => {
     const { data } = await apiClient.post(`/marketplace/rooms/${params.roomId}/rental-requests`, params.body)
     return data
-  }
+  },
+
+  getFavorites: async (): Promise<MarketplaceRoom[]> => {
+    const { data } = await apiClient.get<MarketplaceRoomResponse[]>('/marketplace/favorites')
+    return data.map(normalizeMarketplaceRoom)
+  },
+
+  addFavorite: async (roomId: number) => {
+    const { data } = await apiClient.post(`/marketplace/favorites/${roomId}`)
+    return data
+  },
+
+  removeFavorite: async (roomId: number) => {
+    const { data } = await apiClient.delete(`/marketplace/favorites/${roomId}`)
+    return data
+  },
+
+  getViewHistory: async (): Promise<MarketplaceRoom[]> => {
+    const { data } = await apiClient.get<MarketplaceRoomResponse[]>('/marketplace/view-history')
+    return data.map(normalizeMarketplaceRoom)
+  },
+
+  recordView: async (roomId: number) => {
+    const { data } = await apiClient.post(`/marketplace/rooms/${roomId}/views`)
+    return data
+  },
 }
 
 // ─── React Query Hooks ────────────────────────────────────────
@@ -129,12 +153,14 @@ export const marketplaceKeys = {
   roomList: (filters: MarketplaceFilters) => [...marketplaceKeys.rooms(), filters] as const,
   roomDetail: (id: number) => [...marketplaceKeys.rooms(), id] as const,
   appointmentDetail: (id: number) => [...marketplaceKeys.all, 'appointment', id] as const,
+  favorites: () => [...marketplaceKeys.all, 'favorites'] as const,
+  viewHistory: () => [...marketplaceKeys.all, 'viewHistory'] as const,
 }
 
 export function useMarketplaceRooms(filters: MarketplaceFilters = {}) {
   return useQuery({
     queryKey: marketplaceKeys.roomList(filters),
-    queryFn: () => marketplaceApi.listRooms(filters)
+    queryFn: () => marketplaceApi.listRooms(filters),
   })
 }
 
@@ -142,19 +168,19 @@ export function useMarketplaceRoom(id: number) {
   return useQuery({
     queryKey: marketplaceKeys.roomDetail(id),
     queryFn: () => marketplaceApi.getRoomById(id),
-    enabled: Number.isInteger(id) && id > 0
+    enabled: Number.isInteger(id) && id > 0,
   })
 }
 
 export function useCreateViewing() {
   return useMutation({
-    mutationFn: marketplaceApi.createViewing
+    mutationFn: marketplaceApi.createViewing,
   })
 }
 
 export function useCreateRentalRequest() {
   return useMutation({
-    mutationFn: marketplaceApi.createRentalRequest
+    mutationFn: marketplaceApi.createRentalRequest,
   })
 }
 
@@ -162,6 +188,38 @@ export function useViewingAppointment(id: number) {
   return useQuery({
     queryKey: marketplaceKeys.appointmentDetail(id),
     queryFn: () => marketplaceApi.getAppointmentById(id),
-    enabled: !!id
+    enabled: !!id,
+  })
+}
+
+export function useFavorites() {
+  return useQuery({
+    queryKey: marketplaceKeys.favorites(),
+    queryFn: () => marketplaceApi.getFavorites(),
+  })
+}
+
+export function useAddFavorite() {
+  return useMutation({
+    mutationFn: marketplaceApi.addFavorite,
+  })
+}
+
+export function useRemoveFavorite() {
+  return useMutation({
+    mutationFn: marketplaceApi.removeFavorite,
+  })
+}
+
+export function useViewHistory() {
+  return useQuery({
+    queryKey: marketplaceKeys.viewHistory(),
+    queryFn: () => marketplaceApi.getViewHistory(),
+  })
+}
+
+export function useRecordView() {
+  return useMutation({
+    mutationFn: marketplaceApi.recordView,
   })
 }

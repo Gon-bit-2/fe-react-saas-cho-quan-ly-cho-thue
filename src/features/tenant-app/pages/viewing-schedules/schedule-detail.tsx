@@ -23,7 +23,7 @@ export function Component() {
   const property = data.room.property
   return (
     <div className="mx-auto max-w-4xl space-y-6 pb-12">
-      <Button variant="ghost" onClick={() => navigate('/quan-ly-nha-tro/lich-xem-phong')}><ArrowLeft className="mr-2 h-4 w-4" />Quay lại</Button>
+      <Button variant="ghost" onClick={() => navigate('/lich-xem-phong')}><ArrowLeft className="mr-2 h-4 w-4" />Quay lại</Button>
       <div className="flex flex-col justify-between gap-4 rounded-xl border bg-white p-6 sm:flex-row sm:items-center">
         <div><h1 className="text-2xl font-bold">Lịch hẹn #{data.id}</h1><Badge className="mt-2" variant="secondary">{statusLabel[data.status]}</Badge></div>
         <div className="flex flex-wrap gap-2">

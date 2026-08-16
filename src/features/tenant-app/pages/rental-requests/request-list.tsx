@@ -155,7 +155,7 @@ export function Component() {
                       variant="ghost" 
                       size="sm" 
                       className="opacity-0 group-hover:opacity-100 transition-opacity font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-                      onClick={() => navigate(`/quan-ly-nha-tro/yeu-cau-thue/${req.id}`)}
+                      onClick={() => navigate(`/yeu-cau-thue/${req.id}`)}
                     >
                       Xử lý <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>

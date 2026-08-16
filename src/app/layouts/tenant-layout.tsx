@@ -6,6 +6,8 @@ const navItems = [
   { name: 'Tổng quan', path: '/tong-quan', icon: 'grid_view' },
   { name: 'Khu trọ', path: '/khu-tro', icon: 'apartment' },
   { name: 'Quản lý phòng', path: '/quan-ly-phong/danh-sach', icon: 'door_open' },
+  { name: 'Yêu cầu thuê', path: '/yeu-cau-thue', icon: 'assignment_turned_in' },
+  { name: 'Lịch xem phòng', path: '/lich-xem-phong', icon: 'calendar_month' },
   { name: 'Người thuê', path: '/nguoi-thue', icon: 'group' },
   { name: 'Hợp đồng', path: '/hop-dong', icon: 'description' },
   { name: 'Yêu cầu kết thúc', path: '/yeu-cau-ket-thuc-hop-dong', icon: 'assignment_late' },

@@ -71,8 +71,10 @@ export function PlanFormPage() {
       name: values.name,
       priceMonthly: values.price,
       priceYearly: values.billingCycle === 'YEARLY' ? values.price : values.price * 12,
-      maxRooms: values.maxRooms ?? values.maxProperties ?? 1,
+      maxProperties: values.maxProperties ?? 1,
+      maxRooms: values.maxRooms ?? 1,
       maxStaff: values.maxManagers ?? 1,
+      maxStorageGb: values.maxStorageGb ?? 0,
       isActive: values.status === 'ACTIVE',
     }
     try {

@@ -1,10 +1,12 @@
 import { useParams, Link } from 'react-router'
 import { useState } from 'react'
-import { useMarketplaceRoom } from '@/shared/api/marketplace'
+import { useMarketplaceRoom, useRecordView } from '@/shared/api/marketplace'
+import { useEffect } from 'react'
 
 import { useAuth } from '@/shared/hooks/use-auth'
 import { BookViewingDrawer } from '../components/book-viewing-drawer'
 import { RentalRequestDrawer } from '../components/rental-request-drawer'
+import { FavoriteButton } from '../components/favorite-button'
 import { GoongMap } from '@/shared/components/goong-map'
 import {
   useReviewsPublicControllerGetSummary,
@@ -27,6 +29,17 @@ export function Component() {
     { page: 1, limit: 5 },
     { query: { enabled: isValidRoomId } },
   )
+
+  const recordViewMutation = useRecordView()
+
+  useEffect(() => {
+    if (isValidRoomId) {
+      const timer = setTimeout(() => {
+        recordViewMutation.mutate(id)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [isValidRoomId, id])
 
   const [isViewingOpen, setIsViewingOpen] = useState(false)
   const [isRequestOpen, setIsRequestOpen] = useState(false)
@@ -123,7 +136,10 @@ export function Component() {
         {/* Main Info */}
         <div className="flex-1 space-y-8">
           <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
-            <h1 className="font-headline-lg text-text-main mb-4">{room.title}</h1>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h1 className="font-headline-lg text-text-main">{room.title}</h1>
+              <FavoriteButton roomId={room.id} className="flex-shrink-0" />
+            </div>
             <p className="font-body-md text-on-surface-variant mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-[20px]">location_on</span>
               {location || 'Chưa cập nhật khu vực'}
@@ -161,16 +177,20 @@ export function Component() {
 
           <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
             <h2 className="font-headline-sm text-text-main mb-4">Tiện ích</h2>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-              {room.amenities.map((amenity) => (
-                <div key={amenity.id} className="flex items-center gap-3">
-                  <div className="bg-secondary-container text-secondary flex h-10 w-10 items-center justify-center rounded-full">
-                    <span className="material-symbols-outlined">{amenity.icon || 'check'}</span>
+            {room.amenities && room.amenities.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                {room.amenities.map((amenity) => (
+                  <div key={amenity.id} className="flex items-center gap-3">
+                    <div className="bg-secondary-container text-secondary flex h-10 w-10 items-center justify-center rounded-full">
+                      <span className="material-symbols-outlined">{amenity.icon || 'check'}</span>
+                    </div>
+                    <span className="font-body-md text-on-surface">{amenity.name}</span>
                   </div>
-                  <span className="font-body-md text-on-surface">{amenity.name}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="font-body-md text-on-surface-variant italic">Chưa có thông tin tiện ích cho phòng này.</p>
+            )}
           </section>
 
           <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
@@ -203,8 +223,17 @@ export function Component() {
                 room.property.longitude !== undefined ? (
                   <GoongMap latitude={room.property.latitude} longitude={room.property.longitude} className="h-48" />
                 ) : (
-                  <div className="bg-surface-container text-on-surface-variant flex h-48 items-center justify-center rounded-lg">
-                    Chưa có tọa độ bản đồ.
+                  <div className="overflow-hidden rounded-xl h-48 bg-surface-container">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      allowFullScreen
+                      src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                        [room.property.addressDetail, location].filter(Boolean).join(', ')
+                      )}&output=embed`}
+                    ></iframe>
                   </div>
                 )}
               </div>

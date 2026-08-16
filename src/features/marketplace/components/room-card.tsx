@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import type { MarketplaceRoom } from '../types'
+import { FavoriteButton } from './favorite-button'
 
 interface RoomCardProps {
   room: MarketplaceRoom
@@ -70,9 +71,7 @@ export function RoomCard({ room, variant = 'default', badge = null }: RoomCardPr
           
           <div className="flex items-center justify-between border-t border-slate-100 pt-4">
             <span className="font-headline-sm text-primary">{formattedPrice}<span className="text-sm font-normal text-slate-500"> đ/tháng</span></span>
-            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[16px]">bookmark_border</span>
-            </div>
+            <FavoriteButton roomId={room.id} />
           </div>
         </div>
       </article>

@@ -23,15 +23,15 @@ export interface IPlanDTO {
   status: 'ACTIVE' | 'INACTIVE'
 }
 
-type PlanApiDTO = Omit<IPlanDTO, 'price' | 'billingCycle' | 'maxProperties' | 'maxManagers' | 'maxStorageGb' | 'status'>
+type PlanApiDTO = Omit<IPlanDTO, 'price' | 'billingCycle' | 'maxManagers' | 'status'>
 
 const normalizePlan = (plan: PlanApiDTO): IPlanDTO => ({
   ...plan,
   price: plan.priceMonthly,
   billingCycle: 'MONTHLY',
-  maxProperties: plan.maxRooms,
+  maxProperties: plan.maxProperties,
   maxManagers: plan.maxStaff,
-  maxStorageGb: 0,
+  maxStorageGb: plan.maxStorageGb,
   status: plan.isActive ? 'ACTIVE' : 'INACTIVE',
 })
 
@@ -48,8 +48,10 @@ export interface ICreatePlanBodyDTO {
   description?: string
   priceMonthly: number
   priceYearly: number
+  maxProperties?: number
   maxRooms: number
   maxStaff: number
+  maxStorageGb?: number
   allowAiOcr?: boolean
   allowWebhookPayment?: boolean
   isActive?: boolean

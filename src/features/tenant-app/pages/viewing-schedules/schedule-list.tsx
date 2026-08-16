@@ -54,7 +54,7 @@ export function Component() {
             <thead className="bg-slate-50 text-slate-500"><tr><th className="p-4">Khách hàng</th><th className="p-4">Phòng</th><th className="p-4">Thời gian</th><th className="p-4">Nhân viên</th><th className="p-4">Trạng thái</th></tr></thead>
             <tbody className="divide-y">
               {data.data.map((appointment) => (
-                <tr key={appointment.id} className="cursor-pointer hover:bg-slate-50" onClick={() => navigate(`/quan-ly-nha-tro/lich-xem-phong/${appointment.id}`)}>
+                <tr key={appointment.id} className="cursor-pointer hover:bg-slate-50" onClick={() => navigate(`/lich-xem-phong/${appointment.id}`)}>
                   <td className="p-4"><div className="font-medium">{appointment.renter.fullName}</div><div className="text-xs text-slate-500">{appointment.renter.phone ?? appointment.renter.email}</div></td>
                   <td className="p-4"><div className="font-medium">{appointment.room.title}</div><div className="text-xs text-slate-500">{appointment.room.roomCode}</div></td>
                   <td className="p-4">{new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(appointment.scheduledAt))}</td>

@@ -249,7 +249,13 @@ export function Component() {
                             : 'outline'
                     }
                   >
-                    {room.marketplaceStatus}
+                    {{
+                      DRAFT: 'Bản nháp',
+                      PENDING_REVIEW: 'Chờ duyệt',
+                      PUBLISHED: 'Đã đăng',
+                      REJECTED: 'Từ chối',
+                      UNPUBLISHED: 'Đã ẩn',
+                    }[room.marketplaceStatus as string] || room.marketplaceStatus}
                   </Badge>
                 </div>
               </CardContent>

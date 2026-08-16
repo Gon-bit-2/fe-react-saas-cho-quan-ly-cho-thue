@@ -19,7 +19,7 @@ export function Component() {
       await updateDecision({ id: Number(id), status: action })
       toast.success(`Đã xử lý yêu cầu: ${action}`)
       setTimeout(() => {
-        navigate('/quan-ly-nha-tro/yeu-cau-thue')
+        navigate('/yeu-cau-thue')
       }, 1000)
     } catch {
       toast.error('Có lỗi xảy ra khi xử lý yêu cầu.')
@@ -54,7 +54,7 @@ export function Component() {
         </div>
         
         <div className="relative z-10">
-          <Button variant="ghost" size="sm" className="mb-4 text-slate-500 hover:text-slate-900 -ml-2" onClick={() => navigate('/quan-ly-nha-tro/yeu-cau-thue')}>
+          <Button variant="ghost" size="sm" className="mb-4 text-slate-500 hover:text-slate-900 -ml-2" onClick={() => navigate('/yeu-cau-thue')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại danh sách
           </Button>
           
