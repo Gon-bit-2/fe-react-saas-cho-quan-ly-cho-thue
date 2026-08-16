@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { useProperty, useCreateProperty, useUpdateProperty } from '@/shared/api/properties'
+import { useProperty, useCreateProperty, useUpdateProperty, useUploadPropertyCoverImage } from '@/shared/api/properties'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,6 +19,9 @@ export function Component() {
   const { data: initialData, isLoading } = useProperty(Number(id))
   const createProperty = useCreateProperty()
   const updateProperty = useUpdateProperty(Number(id))
+  const uploadCoverImage = useUploadPropertyCoverImage(Number(id))
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [propertyTypeState, setPropertyType] = useState<string | null>(null)
   const [statusState, setStatus] = useState<string | null>(null)
@@ -70,7 +73,23 @@ export function Component() {
     }
   }
 
-  const isSubmitting = createProperty.isPending || updateProperty.isPending
+  const isSubmitting = createProperty.isPending || updateProperty.isPending || uploadCoverImage.isPending
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      await uploadCoverImage.mutateAsync(file)
+      toast.success('Cập nhật ảnh bìa thành công!')
+    } catch {
+      toast.error('Có lỗi xảy ra khi tải ảnh lên!')
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
 
   if (isEditing && isLoading) {
     return (
@@ -261,10 +280,41 @@ export function Component() {
 
               {/* Image card */}
               <Card className="bg-surface-container-lowest border-surface-border overflow-hidden rounded-2xl shadow-sm">
-                <div className="bg-surface-container text-on-surface-variant group relative flex h-40 cursor-pointer flex-col items-center justify-center gap-2">
-                  <ImageIcon className="h-8 w-8 opacity-50 transition-opacity group-hover:opacity-100" />
-                  <span className="font-label-md">Thêm ảnh bìa</span>
-                  <div className="bg-primary/0 group-hover:bg-primary/5 absolute inset-0 transition-colors"></div>
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+                <div 
+                  className="bg-surface-container text-on-surface-variant group relative flex h-40 cursor-pointer flex-col items-center justify-center gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploadCoverImage.isPending ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="border-primary/30 border-t-primary h-8 w-8 animate-spin rounded-full border-4" />
+                      <span className="font-label-md">Đang tải lên...</span>
+                    </div>
+                  ) : initialData?.coverImageUrl ? (
+                    <>
+                      <img 
+                        src={initialData.coverImageUrl} 
+                        alt="Cover" 
+                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      />
+                      <div className="bg-surface-container/80 absolute inset-0 flex flex-col items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                        <ImageIcon className="h-8 w-8 text-primary" />
+                        <span className="font-label-md text-primary mt-2">Thay đổi ảnh bìa</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-8 w-8 opacity-50 transition-opacity group-hover:opacity-100" />
+                      <span className="font-label-md">Thêm ảnh bìa</span>
+                      <div className="bg-primary/0 group-hover:bg-primary/5 absolute inset-0 transition-colors"></div>
+                    </>
+                  )}
                 </div>
               </Card>
             </>

@@ -1,22 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
-import { 
-  ArrowLeft, Users, FileText,
-  Search, CreditCard, Upload, X
-} from 'lucide-react'
+import { ArrowLeft, Users, FileText, Search, CreditCard, Upload, X, Wand2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRooms } from '@/shared/api/properties'
 import { useRenters, useUploadRenterImages } from '@/shared/api/renters'
 import { useCreateContract, useUpdateContract, useContract } from '@/shared/api/contracts'
@@ -33,7 +24,7 @@ export default function ContractFormPage() {
   const { mutateAsync: createContract, isPending: isCreating } = useCreateContract()
   const { mutateAsync: updateContract, isPending: isUpdating } = useUpdateContract(Number(id))
   const { mutateAsync: uploadRenterImages, isPending: isUploading } = useUploadRenterImages()
-  
+
   const loading = isCreating || isUpdating || isUploading
 
   // Form State
@@ -57,7 +48,7 @@ export default function ContractFormPage() {
     identityFrontUrl: '',
     identityBackUrl: '',
     fullName: '',
-    dateOfBirth: ''
+    dateOfBirth: '',
   })
 
   // File ảnh CCCD chưa upload (preview local)
@@ -72,7 +63,7 @@ export default function ContractFormPage() {
 
   // Queries
   const { data: roomsData } = useRooms({ limit: 100 })
-  
+
   const { data: rentersData } = useRenters({ search: renterSearch, limit: 10 })
 
   // Initialize form when editing
@@ -111,13 +102,13 @@ export default function ContractFormPage() {
 
   // Handle Room Selection: Auto-fill price and deposit
   const handleRoomSelect = (val: string) => {
-    setFormData(prev => ({ ...prev, roomId: val }))
-    const selectedRoom = roomsData?.data.find(r => String(r.id) === val)
+    setFormData((prev) => ({ ...prev, roomId: val }))
+    const selectedRoom = roomsData?.data.find((r) => String(r.id) === val)
     if (selectedRoom) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         monthlyPrice: String(selectedRoom.basePrice || ''),
-        depositAmount: String(selectedRoom.depositAmount || selectedRoom.basePrice || '')
+        depositAmount: String(selectedRoom.depositAmount || selectedRoom.basePrice || ''),
       }))
     }
   }
@@ -148,19 +139,58 @@ export default function ContractFormPage() {
     if (side === 'front') {
       setFrontFile(null)
       setFrontPreview('')
-      setRenterInfo(prev => ({ ...prev, identityFrontUrl: '' }))
+      setRenterInfo((prev) => ({ ...prev, identityFrontUrl: '' }))
       if (frontInputRef.current) frontInputRef.current.value = ''
     } else {
       setBackFile(null)
       setBackPreview('')
-      setRenterInfo(prev => ({ ...prev, identityBackUrl: '' }))
+      setRenterInfo((prev) => ({ ...prev, identityBackUrl: '' }))
       if (backInputRef.current) backInputRef.current.value = ''
     }
   }
 
+  const handleGenerateTemplate = () => {
+    const room = roomsData?.data.find((r) => String(r.id) === formData.roomId)
+    const roomName = room ? (room.title || room.roomCode) : '[Tên phòng]'
+    const price = formData.monthlyPrice ? Number(formData.monthlyPrice).toLocaleString('vi-VN') : '[Giá tiền]'
+    const deposit = formData.depositAmount ? Number(formData.depositAmount).toLocaleString('vi-VN') : '[Tiền cọc]'
+    const start = formData.startDate ? new Date(formData.startDate).toLocaleDateString('vi-VN') : '[Ngày bắt đầu]'
+    const end = formData.endDate ? new Date(formData.endDate).toLocaleDateString('vi-VN') : '[Ngày kết thúc]'
+
+    const template = `Điều 1: ĐỐI TƯỢNG CHO THUÊ
+- Bên A đồng ý cho Bên B thuê phòng trọ: ${roomName}
+- Mục đích thuê: Để ở.
+
+Điều 2: THỜI HẠN THUÊ
+- Thời gian thuê: Từ ngày ${start} đến ngày ${end}.
+- Nếu một trong hai bên muốn chấm dứt hợp đồng trước hạn, phải báo trước ít nhất 30 ngày.
+
+Điều 3: GIÁ THUÊ VÀ PHƯƠNG THỨC THANH TOÁN
+- Giá thuê phòng: ${price} VNĐ/tháng.
+- Tiền đặt cọc: ${deposit} VNĐ.
+- Tiền cọc sẽ được hoàn trả cho Bên B sau khi thanh lý hợp đồng và trừ đi các khoản chi phí phát sinh (nếu có) hoặc bồi thường hư hỏng tài sản.
+- Ngày thanh toán hàng tháng: Ngày ${formData.paymentDueDay || '5'} hàng tháng.
+
+Điều 4: TRÁCH NHIỆM CỦA CÁC BÊN
+1. Trách nhiệm Bên A (Chủ trọ):
+- Giao phòng và trang thiết bị đầy đủ cho Bên B đúng thời hạn.
+- Đảm bảo an ninh trật tự, vệ sinh môi trường khu vực chung.
+
+2. Trách nhiệm Bên B (Khách thuê):
+- Đóng tiền phòng và các chi phí sinh hoạt đúng hạn.
+- Giữ gìn an ninh trật tự, tuân thủ nội quy khu trọ.
+- Bồi thường nếu làm hư hỏng tài sản do Bên A cung cấp.
+
+Điều 5: ĐIỀU KHOẢN CHUNG
+- Hai bên cam kết thực hiện đúng các điều khoản trong hợp đồng.
+- Mọi sửa đổi, bổ sung hợp đồng phải được sự đồng ý của cả hai bên bằng văn bản.`
+
+    setFormData((prev) => ({ ...prev, contentSnapshot: template }))
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
+
     if (!formData.roomId || !formData.renterId) {
       alert('Vui lòng chọn phòng và khách thuê đã có trong hệ thống.')
       return
@@ -204,7 +234,7 @@ export default function ContractFormPage() {
         contentSnapshot: formData.contentSnapshot.trim() || 'Hợp đồng tiêu chuẩn',
         renterInfo: finalRenterInfo,
       }
-      
+
       if (isEditing) {
         await updateContract(updatePayload)
       } else {
@@ -234,17 +264,26 @@ export default function ContractFormPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-[1000px] mx-auto space-y-6 pb-20">
+    <form onSubmit={handleSubmit} className="mx-auto max-w-[1000px] space-y-6 pb-20">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+      <div className="mb-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" type="button" onClick={() => navigate('/hop-dong')} className="-ml-2 hover:bg-slate-100">
-            <ArrowLeft className="w-5 h-5 text-slate-600" />
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            onClick={() => navigate('/hop-dong')}
+            className="-ml-2 hover:bg-slate-100"
+          >
+            <ArrowLeft className="h-5 w-5 text-slate-600" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+            <h1 className="flex items-center gap-3 text-2xl font-bold text-slate-900">
               {isEditing ? 'Chỉnh sửa hợp đồng nháp' : 'Tạo hợp đồng mới'}
-              <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 uppercase text-[10px] tracking-wider font-bold">
+              <Badge
+                variant="outline"
+                className="border-orange-200 bg-orange-50 text-[10px] font-bold tracking-wider text-orange-600 uppercase"
+              >
                 Trạng thái: Nháp
               </Badge>
             </h1>
@@ -254,47 +293,64 @@ export default function ContractFormPage() {
           <Button type="button" variant="outline" onClick={() => navigate('/hop-dong')} className="bg-white">
             Hủy bỏ
           </Button>
-          <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
+          <Button type="submit" disabled={loading} className="bg-blue-600 text-white shadow-sm hover:bg-blue-700">
             {loading ? 'Đang xử lý...' : isEditing ? 'Cập nhật thay đổi' : 'Tạo hợp đồng'}
           </Button>
         </div>
       </div>
 
       {/* THÔNG TIN CƠ BẢN */}
-      <Card className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
-          <CardTitle className="text-base font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
-            <FileText className="w-5 h-5 text-blue-600" /> THÔNG TIN CƠ BẢN
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+        <CardHeader className="border-b border-slate-100 bg-slate-50 pb-4">
+          <CardTitle className="flex items-center gap-2 text-base font-bold tracking-wide text-slate-800 uppercase">
+            <FileText className="h-5 w-5 text-blue-600" /> THÔNG TIN CƠ BẢN
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Mã hợp đồng</Label>
-              <Input value={isEditing ? `HD-${id}` : 'Tạo tự động'} disabled className="bg-slate-50 text-slate-500 font-medium border-slate-200" />
+              <Label className="text-xs font-bold text-slate-600 uppercase">Mã hợp đồng</Label>
+              <Input
+                value={isEditing ? `HD-${id}` : 'Tạo tự động'}
+                disabled
+                className="border-slate-200 bg-slate-50 font-medium text-slate-500"
+              />
             </div>
-            
+
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Phòng cho thuê <span className="text-red-500">*</span></Label>
+              <Label className="text-xs font-bold text-slate-600 uppercase">
+                Phòng cho thuê <span className="text-red-500">*</span>
+              </Label>
               <Select value={formData.roomId} onValueChange={handleRoomSelect} disabled={isEditing}>
-                <SelectTrigger className="border-slate-200 focus:ring-blue-500 bg-white">
+                <SelectTrigger className="border-slate-200 bg-white focus:ring-blue-500">
                   <SelectValue placeholder="Chọn phòng" />
                 </SelectTrigger>
                 <SelectContent>
-                  {roomsData?.data.map(r => (
-                    <SelectItem key={r.id} value={String(r.id)}>{r.title || r.roomCode}</SelectItem>
+                  {roomsData?.data.map((r) => (
+                    <SelectItem key={r.id} value={String(r.id)}>
+                      {r.title || r.roomCode}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Ngày bắt đầu <span className="text-red-500">*</span></Label>
-              <Input type="date" name="startDate" value={formData.startDate} onChange={handleChange} className="border-slate-200 focus:ring-blue-500" required />
+              <Label className="text-xs font-bold text-slate-600 uppercase">
+                Ngày bắt đầu <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+                className="border-slate-200 focus:ring-blue-500"
+                required
+              />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Thời hạn (Tháng)</Label>
+              <Label className="text-xs font-bold text-slate-600 uppercase">Thời hạn (Tháng)</Label>
               <Select defaultValue="12">
                 <SelectTrigger className="border-slate-200 bg-white">
                   <SelectValue placeholder="Thời hạn" />
@@ -308,29 +364,38 @@ export default function ContractFormPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Ngày kết thúc dự kiến <span className="text-red-500">*</span></Label>
-              <Input type="date" name="endDate" value={formData.endDate} onChange={handleChange} className="border-slate-200 focus:ring-blue-500 bg-emerald-50 text-emerald-700 font-medium border-emerald-200" required />
+              <Label className="text-xs font-bold text-slate-600 uppercase">
+                Ngày kết thúc dự kiến <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                type="date"
+                name="endDate"
+                value={formData.endDate}
+                onChange={handleChange}
+                className="border-emerald-200 border-slate-200 bg-emerald-50 font-medium text-emerald-700 focus:ring-blue-500"
+                required
+              />
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* KHÁCH THUÊ CHÍNH */}
-      <Card className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
-          <CardTitle className="text-base font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-600" /> KHÁCH THUÊ CHÍNH
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+        <CardHeader className="border-b border-slate-100 bg-slate-50 pb-4">
+          <CardTitle className="flex items-center gap-2 text-base font-bold tracking-wide text-slate-800 uppercase">
+            <Users className="h-5 w-5 text-blue-600" /> KHÁCH THUÊ CHÍNH
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="space-y-6 p-6">
           {/* Search Khách cũ */}
-          <div className="space-y-2 bg-blue-50 p-4 rounded-xl border border-blue-100">
-            <Label className="text-blue-800 font-medium">Chọn khách thuê đã có trong hệ thống</Label>
+          <div className="space-y-2 rounded-xl border border-blue-100 bg-blue-50 p-4">
+            <Label className="font-medium text-blue-800">Chọn khách thuê đã có trong hệ thống</Label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
-              <Input 
-                placeholder="Tìm bằng SĐT hoặc Tên..." 
-                className="pl-9 bg-white border-blue-200 focus:ring-blue-500"
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-blue-400" />
+              <Input
+                placeholder="Tìm bằng SĐT hoặc Tên..."
+                className="border-blue-200 bg-white pl-9 focus:ring-blue-500"
                 value={renterSearch}
                 onChange={(e) => setRenterSearch(e.target.value)}
                 disabled={isEditing}
@@ -338,13 +403,13 @@ export default function ContractFormPage() {
             </div>
             {/* Search Results Dropdown */}
             {renterSearch && rentersData?.data && rentersData.data.length > 0 && !formData.renterId && (
-              <div className="absolute z-10 w-full max-w-md mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-auto">
-                {rentersData.data.map(renter => (
-                  <div 
-                    key={renter.id} 
-                    className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-sm border-b border-slate-50"
+              <div className="absolute z-10 mt-1 max-h-60 w-full max-w-md overflow-auto rounded-lg border border-slate-200 bg-white shadow-xl">
+                {rentersData.data.map((renter) => (
+                  <div
+                    key={renter.id}
+                    className="cursor-pointer border-b border-slate-50 px-4 py-3 text-sm hover:bg-slate-50"
                     onClick={() => {
-                      setFormData(prev => ({ ...prev, renterId: String(renter.id) }))
+                      setFormData((prev) => ({ ...prev, renterId: String(renter.id) }))
                       setRenterSearch('')
                       setRenterInfo({
                         fullName: renter.fullName || '',
@@ -360,67 +425,119 @@ export default function ContractFormPage() {
                     }}
                   >
                     <div className="font-semibold text-slate-900">{renter.fullName}</div>
-                    <div className="text-slate-500 text-xs mt-0.5">{renter.phone} - CCCD: {renter.identityNumber}</div>
+                    <div className="mt-0.5 text-xs text-slate-500">
+                      {renter.phone} - CCCD: {renter.identityNumber}
+                    </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Họ và tên <span className="text-red-500">*</span></Label>
-              <Input name="fullName" value={renterInfo.fullName ?? ''} disabled className="border-slate-200 bg-slate-50" placeholder="Chọn khách thuê ở trên" />
+              <Label className="text-xs font-bold text-slate-600 uppercase">
+                Họ và tên <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                name="fullName"
+                value={renterInfo.fullName ?? ''}
+                disabled
+                className="border-slate-200 bg-slate-50"
+                placeholder="Chọn khách thuê ở trên"
+              />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Số điện thoại <span className="text-red-500">*</span></Label>
-              <Input name="phone" value={renterInfo.phone ?? ''} onChange={handleRenterChange} className="border-slate-200 focus:ring-blue-500" placeholder="0901234567" required />
+              <Label className="text-xs font-bold text-slate-600 uppercase">
+                Số điện thoại <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                name="phone"
+                value={renterInfo.phone ?? ''}
+                onChange={handleRenterChange}
+                className="border-slate-200 focus:ring-blue-500"
+                placeholder="0901234567"
+                required
+              />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">CCCD/CMND <span className="text-red-500">*</span></Label>
-              <Input name="identityNumber" value={renterInfo.identityNumber ?? ''} onChange={handleRenterChange} className="border-slate-200 focus:ring-blue-500" placeholder="079..." required />
+              <Label className="text-xs font-bold text-slate-600 uppercase">
+                CCCD/CMND <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                name="identityNumber"
+                value={renterInfo.identityNumber ?? ''}
+                onChange={handleRenterChange}
+                className="border-slate-200 focus:ring-blue-500"
+                placeholder="079..."
+                required
+              />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Ngày sinh</Label>
-              <Input type="date" name="dateOfBirth" value={renterInfo.dateOfBirth ?? ''} disabled className="border-slate-200 bg-slate-50" />
+              <Label className="text-xs font-bold text-slate-600 uppercase">Ngày sinh</Label>
+              <Input
+                type="date"
+                name="dateOfBirth"
+                value={renterInfo.dateOfBirth ?? ''}
+                disabled
+                className="border-slate-200 bg-slate-50"
+              />
             </div>
           </div>
 
           {/* Upload CCCD */}
           <div className="space-y-3 pt-2">
-            <Label className="text-slate-600 text-xs font-bold uppercase">Hình ảnh giấy tờ</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Label className="text-xs font-bold text-slate-600 uppercase">Hình ảnh giấy tờ</Label>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <p className="text-xs text-slate-500 font-medium">Mặt trước</p>
+                <p className="text-xs font-medium text-slate-500">Mặt trước</p>
                 {frontPreview ? (
-                  <div className="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                    <img src={frontPreview} alt="Mặt trước" className="w-full h-32 object-cover" />
-                    <button type="button" onClick={() => handleRemoveFile('front')} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                    <img src={frontPreview} alt="Mặt trước" className="h-32 w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFile('front')}
+                      className="absolute top-2 right-2 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 bg-slate-50 transition-colors">
-                    <Upload className="h-6 w-6 text-slate-400 mb-2" />
+                  <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 transition-colors hover:border-blue-400 hover:bg-blue-50/50">
+                    <Upload className="mb-2 h-6 w-6 text-slate-400" />
                     <span className="text-xs font-medium text-slate-600">Tải ảnh mặt trước</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect('front', e.target.files?.[0] || null)} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFileSelect('front', e.target.files?.[0] || null)}
+                    />
                   </label>
                 )}
               </div>
               <div className="space-y-2">
-                <p className="text-xs text-slate-500 font-medium">Mặt sau</p>
+                <p className="text-xs font-medium text-slate-500">Mặt sau</p>
                 {backPreview ? (
-                  <div className="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                    <img src={backPreview} alt="Mặt sau" className="w-full h-32 object-cover" />
-                    <button type="button" onClick={() => handleRemoveFile('back')} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                    <img src={backPreview} alt="Mặt sau" className="h-32 w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFile('back')}
+                      className="absolute top-2 right-2 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 bg-slate-50 transition-colors">
-                    <Upload className="h-6 w-6 text-slate-400 mb-2" />
+                  <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 transition-colors hover:border-blue-400 hover:bg-blue-50/50">
+                    <Upload className="mb-2 h-6 w-6 text-slate-400" />
                     <span className="text-xs font-medium text-slate-600">Tải ảnh mặt sau</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect('back', e.target.files?.[0] || null)} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFileSelect('back', e.target.files?.[0] || null)}
+                    />
                   </label>
                 )}
               </div>
@@ -430,33 +547,58 @@ export default function ContractFormPage() {
       </Card>
 
       {/* TÀI CHÍNH */}
-      <Card className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
-          <CardTitle className="text-base font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-blue-600" /> TÀI CHÍNH
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+        <CardHeader className="border-b border-slate-100 bg-slate-50 pb-4">
+          <CardTitle className="flex items-center gap-2 text-base font-bold tracking-wide text-slate-800 uppercase">
+            <CreditCard className="h-5 w-5 text-blue-600" /> TÀI CHÍNH
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2 relative">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Giá thuê / tháng <span className="text-red-500">*</span></Label>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="relative space-y-2">
+              <Label className="text-xs font-bold text-slate-600 uppercase">
+                Giá thuê / tháng <span className="text-red-500">*</span>
+              </Label>
               <div className="relative">
-                <Input type="number" name="monthlyPrice" value={formData.monthlyPrice} onChange={handleChange} className="border-slate-200 focus:ring-blue-500 pr-14 text-right font-bold text-lg" required />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">VNĐ</span>
+                <Input
+                  type="number"
+                  name="monthlyPrice"
+                  value={formData.monthlyPrice}
+                  onChange={handleChange}
+                  className="border-slate-200 pr-14 text-right text-lg font-bold focus:ring-blue-500"
+                  required
+                />
+                <span className="absolute top-1/2 right-4 -translate-y-1/2 text-sm font-medium text-slate-500">
+                  VNĐ
+                </span>
               </div>
             </div>
-            
-            <div className="space-y-2 relative">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Tiền cọc <span className="text-red-500">*</span></Label>
+
+            <div className="relative space-y-2">
+              <Label className="text-xs font-bold text-slate-600 uppercase">
+                Tiền cọc <span className="text-red-500">*</span>
+              </Label>
               <div className="relative">
-                <Input type="number" name="depositAmount" value={formData.depositAmount} onChange={handleChange} className="border-slate-200 focus:ring-blue-500 pr-14 text-right font-bold text-lg" required />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">VNĐ</span>
+                <Input
+                  type="number"
+                  name="depositAmount"
+                  value={formData.depositAmount}
+                  onChange={handleChange}
+                  className="border-slate-200 pr-14 text-right text-lg font-bold focus:ring-blue-500"
+                  required
+                />
+                <span className="absolute top-1/2 right-4 -translate-y-1/2 text-sm font-medium text-slate-500">
+                  VNĐ
+                </span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Chu kỳ thanh toán</Label>
-              <Select value={formData.billingCycle} onValueChange={(val) => setFormData(prev => ({...prev, billingCycle: val as ContractBillingCycle}))}>
+              <Label className="text-xs font-bold text-slate-600 uppercase">Chu kỳ thanh toán</Label>
+              <Select
+                value={formData.billingCycle}
+                onValueChange={(val) => setFormData((prev) => ({ ...prev, billingCycle: val as ContractBillingCycle }))}
+              >
                 <SelectTrigger className="border-slate-200 bg-white">
                   <SelectValue placeholder="Chọn chu kỳ" />
                 </SelectTrigger>
@@ -468,14 +610,19 @@ export default function ContractFormPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-600 text-xs font-bold uppercase">Ngày thanh toán hàng tháng</Label>
-              <Select value={formData.paymentDueDay} onValueChange={(val) => setFormData(prev => ({...prev, paymentDueDay: val}))}>
+              <Label className="text-xs font-bold text-slate-600 uppercase">Ngày thanh toán hàng tháng</Label>
+              <Select
+                value={formData.paymentDueDay}
+                onValueChange={(val) => setFormData((prev) => ({ ...prev, paymentDueDay: val }))}
+              >
                 <SelectTrigger className="border-slate-200 bg-white">
                   <SelectValue placeholder="Chọn ngày" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                    <SelectItem key={day} value={String(day)}>Ngày {day}</SelectItem>
+                    <SelectItem key={day} value={String(day)}>
+                      Ngày {day}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -485,19 +632,30 @@ export default function ContractFormPage() {
       </Card>
 
       {/* ĐIỀU KHOẢN BỔ SUNG */}
-      <Card className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
-          <CardTitle className="text-base font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
-            <FileText className="w-5 h-5 text-blue-600" /> GHI CHÚ / ĐIỀU KHOẢN BỔ SUNG
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+        <CardHeader className="border-b border-slate-100 bg-slate-50 pb-4">
+          <CardTitle className="flex items-center justify-between text-base font-bold tracking-wide text-slate-800 uppercase">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" /> NỘI DUNG HỢP ĐỒNG
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateTemplate}
+              className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+            >
+              <Wand2 className="mr-2 h-4 w-4" /> Tạo mẫu tự động
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <Textarea 
+          <Textarea
             placeholder="Nhập ghi chú hoặc điều khoản riêng tư cho hợp đồng này..."
             name="contentSnapshot"
             value={formData.contentSnapshot}
             onChange={handleChange}
-            className="min-h-[150px] border-slate-200 focus:ring-blue-500 resize-none rounded-xl"
+            className="min-h-[150px] resize-none rounded-xl border-slate-200 focus:ring-blue-500"
           />
         </CardContent>
       </Card>

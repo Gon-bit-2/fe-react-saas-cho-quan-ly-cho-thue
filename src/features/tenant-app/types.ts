@@ -80,22 +80,27 @@ export interface ActionCenterResponse {
 
 export interface Property {
   id: number
+  tenantId: number
   name: string
-  addressDetail: string
+  type: 'HOUSE' | 'MINI_APARTMENT' | 'DORM' | 'APARTMENT'
   province: string
-  provinceCode?: string | null
+  provinceCode: string | null
   district: string | null
   ward: string
-  wardCode?: string | null
-  latitude?: number | null
-  longitude?: number | null
-  type: string
+  wardCode: string | null
+  addressDetail: string
+  latitude: number | null
+  longitude: number | null
+  description: string | null
+  coverImageUrl: string | null
+  coverImagePublicId: string | null
+  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
+  createdAt: string
+  updatedAt: string
   _count?: {
     floors: number
     rooms: number
   }
-  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
-  createdAt: string
 }
 
 export interface Floor {

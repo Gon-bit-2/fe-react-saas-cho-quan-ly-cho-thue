@@ -106,6 +106,29 @@ export const useRoom = (id: number) => {
   })
 }
 
+export const useUploadPropertyCoverImage = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await apiClient.post<Property>(`/properties/${id}/cover-image`, formData, {
+        tenantId,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROPERTY_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: PROPERTY_KEYS.lists(tenantId) })
+    },
+  })
+}
+
 export const useCreateProperty = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
