@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router'
 import { useState } from 'react'
+import { AlertTriangle, Star } from 'lucide-react'
 import { useMarketplaceRoom, useRecordView } from '@/shared/api/marketplace'
 import { useEffect } from 'react'
 
@@ -12,6 +13,8 @@ import {
   useReviewsPublicControllerGetSummary,
   useReviewsPublicControllerListPublic,
 } from '@/shared/api/generated/reviews-public/reviews-public'
+import { ReviewModal } from '../components/review-modal'
+import { ReportModal } from '../components/report-modal'
 
 export function Component() {
   const { roomId } = useParams()
@@ -21,10 +24,10 @@ export function Component() {
   const isAuthenticated = state === 'authenticated'
 
   const { data, isLoading, isError, refetch } = useMarketplaceRoom(id)
-  const { data: reviewSummary } = useReviewsPublicControllerGetSummary(id, {
+  const { data: reviewSummary, refetch: refetchSummary } = useReviewsPublicControllerGetSummary(id, {
     query: { enabled: isValidRoomId },
   })
-  const { data: reviews } = useReviewsPublicControllerListPublic(
+  const { data: reviews, refetch: refetchReviews } = useReviewsPublicControllerListPublic(
     id,
     { page: 1, limit: 5 },
     { query: { enabled: isValidRoomId } },
@@ -44,6 +47,8 @@ export function Component() {
 
   const [isViewingOpen, setIsViewingOpen] = useState(false)
   const [isRequestOpen, setIsRequestOpen] = useState(false)
+  const [isReviewOpen, setIsReviewOpen] = useState(false)
+  const [isReportOpen, setIsReportOpen] = useState(false)
 
   const room = data
 
@@ -241,15 +246,26 @@ export function Component() {
             </section>
 
             <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
-              <div className="mb-4 flex items-center gap-2">
-                <h2 className="font-headline-sm text-text-main">Đánh giá</h2>
-                <div className="font-label-md flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[16px] text-yellow-400">star</span>
-                  <span className="text-text-main">{Number(reviewSummary?.averageRating || 0).toFixed(1)}</span>
-                  <span className="text-on-surface-variant font-body-md">
-                    ({reviewSummary?.totalReviews ?? 0} đánh giá)
-                  </span>
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-headline-sm text-text-main">Đánh giá</h2>
+                  <div className="font-label-md flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[16px] text-yellow-400">star</span>
+                    <span className="text-text-main">{Number(reviewSummary?.averageRating || 0).toFixed(1)}</span>
+                    <span className="text-on-surface-variant font-body-md">
+                      ({reviewSummary?.totalReviews ?? 0} đánh giá)
+                    </span>
+                  </div>
                 </div>
+                {isAuthenticated && (
+                  <button
+                    onClick={() => setIsReviewOpen(true)}
+                    className="bg-surface-container text-primary hover:bg-surface-container-high flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+                  >
+                    <Star className="h-4 w-4" />
+                    Viết đánh giá
+                  </button>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -325,6 +341,16 @@ export function Component() {
             <p className="font-label-sm text-on-surface-variant mt-4 text-center">
               Bạn không phải trả phí khi sử dụng dịch vụ đặt lịch và yêu cầu thuê.
             </p>
+
+            <div className="border-surface-border mt-6 border-t pt-6">
+              <button
+                onClick={() => setIsReportOpen(true)}
+                className="text-on-surface-variant hover:text-destructive flex w-full items-center justify-center gap-2 text-sm transition-colors"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                Báo cáo vi phạm
+              </button>
+            </div>
           </div>
         </aside>
       </div>
@@ -332,6 +358,18 @@ export function Component() {
       {/* Drawers */}
       <BookViewingDrawer isOpen={isViewingOpen} onClose={() => setIsViewingOpen(false)} roomId={id} />
       <RentalRequestDrawer isOpen={isRequestOpen} onClose={() => setIsRequestOpen(false)} roomId={id} />
+
+      {/* Modals */}
+      <ReviewModal
+        open={isReviewOpen}
+        onOpenChange={setIsReviewOpen}
+        roomId={id}
+        onSuccess={() => {
+          refetchReviews()
+          refetchSummary()
+        }}
+      />
+      <ReportModal open={isReportOpen} onOpenChange={setIsReportOpen} targetId={id} targetType="ROOM" />
     </div>
   )
 }

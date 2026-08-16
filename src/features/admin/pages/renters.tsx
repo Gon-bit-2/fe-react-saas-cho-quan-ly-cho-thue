@@ -1,21 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import {
-  Search,
-  Filter,
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  MoreVertical,
-  Users,
-  UserCheck,
-  Lock,
-  TrendingUp,
-} from 'lucide-react'
+import { Search, Filter, Download, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react'
 import { adminRenterApi } from '../api/tenant.api'
 import type { UserProfile } from '@/features/auth/api/types'
 
@@ -44,70 +33,6 @@ export const RentersPage = () => {
 
   return (
     <div className="flex w-full flex-col gap-6 pb-12">
-      {/* Metrics Overview */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <Card className="group relative overflow-hidden">
-          <div className="bg-primary/10 group-hover:bg-primary/20 absolute -top-8 -right-8 h-32 w-32 rounded-full blur-2xl transition-colors duration-500"></div>
-          <CardContent className="p-6">
-            <div className="relative z-10 mb-4 flex items-start justify-between">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground mb-1 text-xs font-semibold tracking-wider uppercase">
-                  Tổng người thuê
-                </span>
-                <span className="text-foreground text-3xl font-bold tabular-nums">12,450</span>
-              </div>
-              <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
-                <Users className="text-primary h-5 w-5" />
-              </div>
-            </div>
-            <div className="relative z-10 flex items-center gap-2 text-green-600">
-              <TrendingUp className="h-4 w-4" />
-              <span className="text-sm font-medium">+12% so với tháng trước</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="group relative overflow-hidden">
-          <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-green-500/10 blur-2xl transition-colors duration-500 group-hover:bg-green-500/20"></div>
-          <CardContent className="p-6">
-            <div className="relative z-10 mb-4 flex items-start justify-between">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground mb-1 text-xs font-semibold tracking-wider uppercase">
-                  Tài khoản hoạt động
-                </span>
-                <span className="text-foreground text-3xl font-bold tabular-nums">11,892</span>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                <UserCheck className="h-5 w-5 text-green-600" />
-              </div>
-            </div>
-            <div className="text-muted-foreground relative z-10 flex items-center gap-2">
-              <span className="text-sm font-medium">Tăng trưởng ổn định</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="group relative overflow-hidden">
-          <div className="bg-destructive/10 group-hover:bg-destructive/20 absolute -top-8 -right-8 h-32 w-32 rounded-full blur-2xl transition-colors duration-500"></div>
-          <CardContent className="p-6">
-            <div className="relative z-10 mb-4 flex items-start justify-between">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground mb-1 text-xs font-semibold tracking-wider uppercase">
-                  Đã khóa / Không HĐ
-                </span>
-                <span className="text-foreground text-3xl font-bold tabular-nums">558</span>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-                <Lock className="text-destructive h-5 w-5" />
-              </div>
-            </div>
-            <div className="text-destructive relative z-10 flex items-center gap-2">
-              <span className="text-sm font-medium">Cần xử lý: 12</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Main Data Table Container */}
       <Card className="flex flex-1 flex-col overflow-hidden">
         {/* Table Toolbar */}

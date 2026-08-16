@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { plansApi } from '@/shared/api/plans'
+import { toast } from 'sonner'
 
 const planFormSchema = z.object({
   name: z.string().min(1, 'Vui lòng nhập tên gói dịch vụ'),
@@ -12,7 +13,6 @@ const planFormSchema = z.object({
   maxProperties: z.coerce.number().nullable().optional(),
   maxRooms: z.coerce.number().nullable().optional(),
   maxManagers: z.coerce.number().nullable().optional(),
-  maxStorageGb: z.coerce.number().nullable().optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']),
 })
 
@@ -34,7 +34,6 @@ export function PlanFormPage() {
       maxProperties: null,
       maxRooms: null,
       maxManagers: null,
-      maxStorageGb: null,
       status: 'ACTIVE',
     },
     values: initialData || undefined,
@@ -55,7 +54,6 @@ export function PlanFormPage() {
             maxProperties: data.maxProperties,
             maxRooms: data.maxRooms,
             maxManagers: data.maxManagers,
-            maxStorageGb: data.maxStorageGb,
             status: data.status,
           })
         } catch (error) {
@@ -74,7 +72,6 @@ export function PlanFormPage() {
       maxProperties: values.maxProperties ?? 1,
       maxRooms: values.maxRooms ?? 1,
       maxStaff: values.maxManagers ?? 1,
-      maxStorageGb: values.maxStorageGb ?? 0,
       isActive: values.status === 'ACTIVE',
     }
     try {
@@ -82,13 +79,19 @@ export function PlanFormPage() {
         await plansApi.update(Number(id), apiValues)
       } else {
         await plansApi.create({
-          code: values.name.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]+/g, '_'),
+          code: values.name
+            .toUpperCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^A-Z0-9]+/g, '_'),
           ...apiValues,
         })
       }
+      toast.success(isEditing ? 'Cập nhật gói dịch vụ thành công' : 'Tạo gói dịch vụ thành công')
       navigate('/admin/goi-dich-vu')
     } catch (error) {
       console.error('Lỗi khi lưu gói', error)
+      toast.error('Có lỗi xảy ra khi lưu gói dịch vụ')
     }
   }
 
@@ -251,15 +254,6 @@ export function PlanFormPage() {
                       <input
                         type="number"
                         {...form.register('maxManagers')}
-                        className="bg-surface font-body-md h-10 rounded-lg px-3 text-center"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      <label className="font-label-md text-label-md text-on-surface">Dung lượng lưu trữ (GB)</label>
-                      <input
-                        type="number"
-                        {...form.register('maxStorageGb')}
                         className="bg-surface font-body-md h-10 rounded-lg px-3 text-center"
                       />
                     </div>

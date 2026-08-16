@@ -19,7 +19,6 @@ export interface IPlanDTO {
   billingCycle: 'MONTHLY'
   maxProperties: number
   maxManagers: number
-  maxStorageGb: number
   status: 'ACTIVE' | 'INACTIVE'
 }
 
@@ -31,7 +30,6 @@ const normalizePlan = (plan: PlanApiDTO): IPlanDTO => ({
   billingCycle: 'MONTHLY',
   maxProperties: plan.maxProperties,
   maxManagers: plan.maxStaff,
-  maxStorageGb: plan.maxStorageGb,
   status: plan.isActive ? 'ACTIVE' : 'INACTIVE',
 })
 
@@ -51,7 +49,6 @@ export interface ICreatePlanBodyDTO {
   maxProperties?: number
   maxRooms: number
   maxStaff: number
-  maxStorageGb?: number
   allowAiOcr?: boolean
   allowWebhookPayment?: boolean
   isActive?: boolean
@@ -80,5 +77,5 @@ export const plansApi = {
   update: async (id: number, body: IUpdatePlanBodyDTO) => {
     const response = await apiClient.patch<IPlanDTO>(`/plans/${id}`, body)
     return response.data
-  }
+  },
 }

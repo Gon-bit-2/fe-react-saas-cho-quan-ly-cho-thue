@@ -68,10 +68,7 @@ export function Component() {
         })
 
         const profile = profileResponse.data
-        establishSession(
-          { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! },
-          profile,
-        )
+        establishSession({ accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! }, profile)
         navigate(getPostLoginPath(profile), { replace: true })
       }
     } catch (err) {
@@ -96,12 +93,8 @@ export function Component() {
   return (
     <div className="max-w-auth-card-width bg-surface-container-lowest p-page-padding-desktop relative w-full rounded-xl shadow-lg">
       <div className="mb-8 flex flex-col items-center">
-        <img
-          alt="Rental SaaS Logo"
-          className="mb-4 h-16 w-16 object-contain"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyLm5J0odnQpMPSA8arxrkeH3VjvXLfd6a6sFsQFPf5cxc40RwPweR2G6Ub1bIOGjsU0YMPJWbwncbedAmWgKXqONnlOAq9jbn0kRxfHzHscNn_acn8bJQMy9W6aR2vp2A-_-kpdG1hgFpg_UE4SM5qOqK2r4UCz0FiSRhbMUvn1q4QIZnkpdhXkm3uAOuvv-fbxOScm7uM6w05QYypwqu848BS4DgfmJ-KT4gDntWJwfCBFW_4prB"
-        />
-        <h2 className="font-headline-lg text-headline-lg text-on-surface">Rental SaaS</h2>
+        <img alt="Nhà Trọ Việt Logo" className="mb-4 h-16 w-auto object-contain" src="/logo.png" />
+        <h2 className="font-headline-lg text-headline-lg text-on-surface">Nhà Trọ Việt</h2>
         <p className="font-body-md text-body-md text-on-surface-variant mt-2 text-center">
           Đăng nhập vào tài khoản của bạn để quản lý bất động sản
         </p>

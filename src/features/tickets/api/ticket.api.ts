@@ -1,5 +1,5 @@
 import { apiClient } from '@/shared/api/axios-client'
-import type { TicketSummary, TicketDetail, TicketComment, TicketStatus, TicketCategory, TicketPriority } from './types'
+import type { TicketSummary, TicketDetail, TicketComment, TicketStatus, TicketCategory, TicketPriority, TicketAttachment } from './types'
 
 export interface GetTicketsParams {
   page?: number
@@ -103,13 +103,13 @@ export const ticketApi = {
 
   /** Lấy danh sách ảnh đính kèm của ticket */
   getTicketAttachments: async (id: number) => {
-    const { data } = await apiClient.get<PaginatedResponse<any>>(`/tickets/${id}/attachments`)
+    const { data } = await apiClient.get<PaginatedResponse<TicketAttachment>>(`/tickets/${id}/attachments`)
     return data
   },
 
   /** Lấy danh sách ảnh đính kèm của my ticket */
   getMyTicketAttachments: async (id: number) => {
-    const { data } = await apiClient.get<PaginatedResponse<any>>(`/tickets/me/${id}/attachments`)
+    const { data } = await apiClient.get<PaginatedResponse<TicketAttachment>>(`/tickets/me/${id}/attachments`)
     return data
   },
 }

@@ -30,12 +30,14 @@ export function MarketplaceHeader() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-surface-border">
       <div className="mx-auto max-w-[1440px] px-page-padding-mobile md:px-page-padding-desktop h-topbar-height flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-primary/10 text-primary flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">home</span>
-            </div>
+          <Link to="/" className="flex items-center gap-3">
+            <img
+              alt="Nhà Trọ Việt Logo"
+              className="h-8 w-auto object-contain"
+              src="/logo.png"
+            />
             <span className="font-display text-text-main font-bold text-xl hidden sm:block">
-              RentalSaaS
+              Nhà Trọ Việt
             </span>
           </Link>
           <nav className="hidden md:flex items-center gap-8 ml-4">

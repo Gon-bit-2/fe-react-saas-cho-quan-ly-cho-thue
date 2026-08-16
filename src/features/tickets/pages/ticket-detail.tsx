@@ -5,14 +5,14 @@ import { Badge } from '@/components/ui/badge'
 import { TicketCommentSection } from '../components/ticket-comment-section'
 import { TicketAssignmentModal } from '../components/ticket-assignment-modal'
 import { ticketApi } from '../api/ticket.api'
-import type { TicketDetail, TicketComment, TicketPriority, TicketStatus } from '../api/types'
+import type { TicketDetail, TicketComment, TicketPriority, TicketStatus, TicketAttachment } from '../api/types'
 import { toast } from 'sonner'
 
 export function TicketDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [ticket, setTicket] = useState<TicketDetail | null>(null)
   const [comments, setComments] = useState<TicketComment[]>([])
-  const [attachments, setAttachments] = useState<any[]>([])
+  const [attachments, setAttachments] = useState<TicketAttachment[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -96,9 +96,10 @@ export function TicketDetailPage() {
       // Reload ticket to update count
       const ticketRes = await ticketApi.getTicketById(ticket.id)
       setTicket(ticketRes)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to upload attachment', error)
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tải lên')
+      const err = error as { response?: { data?: { message?: string } } }
+      toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi tải lên')
     } finally {
       setIsUploading(false)
       if (e.target) {

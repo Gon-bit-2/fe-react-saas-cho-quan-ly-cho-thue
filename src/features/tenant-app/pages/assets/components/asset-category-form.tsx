@@ -1,11 +1,5 @@
-import { useState, useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { useState } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -25,15 +19,17 @@ export function AssetCategoryForm({ open, onOpenChange, initialData }: AssetCate
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open)
+  const [prevData, setPrevData] = useState(initialData)
+
+  if (open !== prevOpen || initialData !== prevData) {
+    setPrevOpen(open)
+    setPrevData(initialData)
     if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setName(initialData?.name || '')
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDescription(initialData?.description || '')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialData])
+  }
 
   const createCategory = useCreateAssetCategory()
   const updateCategory = useUpdateAssetCategory(initialData?.id || 0)
@@ -76,7 +72,9 @@ export function AssetCategoryForm({ open, onOpenChange, initialData }: AssetCate
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Tên danh mục <span className="text-red-500">*</span></Label>
+            <Label htmlFor="name">
+              Tên danh mục <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="name"
               placeholder="VD: Nội thất gỗ, Thiết bị điện..."
