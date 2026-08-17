@@ -21,6 +21,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddContractMemberBodyDTO,
   BadRequestResponse,
   ConflictResponse,
   Contract,
@@ -33,6 +34,7 @@ import type {
   InternalErrorResponse,
   NotFoundResponse,
   RateLimitedResponse,
+  SignContractBodyDTO,
   UnauthorizedResponse,
   UpdateContractBodyDTO
 } from '../models';
@@ -222,6 +224,101 @@ export function useContractsControllerGetMine<TData = Awaited<ReturnType<typeof 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getContractsControllerGetMineQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const contractsControllerSignRenter = (
+    id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Contract>(
+      {url: `/contracts/me/${id}/sign`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: signContractBodyDTO, signal
+    },
+      options);
+    }
+
+
+
+
+export const getContractsControllerSignRenterQueryKey = (id: number,
+    signContractBodyDTO?: BodyType<SignContractBodyDTO>,) => {
+    return [
+    'POST', `/contracts/me/${id}/sign`, signContractBodyDTO
+    ] as const;
+    }
+
+
+export const getContractsControllerSignRenterQueryOptions = <TData = Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getContractsControllerSignRenterQueryKey(id,signContractBodyDTO);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof contractsControllerSignRenter>>> = ({ signal }) => contractsControllerSignRenter(id,signContractBodyDTO, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ContractsControllerSignRenterQueryResult = NonNullable<Awaited<ReturnType<typeof contractsControllerSignRenter>>>
+export type ContractsControllerSignRenterQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
+
+
+export function useContractsControllerSignRenter<TData = Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof contractsControllerSignRenter>>,
+          TError,
+          Awaited<ReturnType<typeof contractsControllerSignRenter>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useContractsControllerSignRenter<TData = Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof contractsControllerSignRenter>>,
+          TError,
+          Awaited<ReturnType<typeof contractsControllerSignRenter>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useContractsControllerSignRenter<TData = Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useContractsControllerSignRenter<TData = Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignRenter>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getContractsControllerSignRenterQueryOptions(id,signContractBodyDTO,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -589,6 +686,101 @@ export function useContractsControllerUpdateDraft<TData = Awaited<ReturnType<typ
 
 
 
+export const contractsControllerSignLandlord = (
+    id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Contract>(
+      {url: `/contracts/${id}/sign-landlord`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: signContractBodyDTO, signal
+    },
+      options);
+    }
+
+
+
+
+export const getContractsControllerSignLandlordQueryKey = (id: number,
+    signContractBodyDTO?: BodyType<SignContractBodyDTO>,) => {
+    return [
+    'POST', `/contracts/${id}/sign-landlord`, signContractBodyDTO
+    ] as const;
+    }
+
+
+export const getContractsControllerSignLandlordQueryOptions = <TData = Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getContractsControllerSignLandlordQueryKey(id,signContractBodyDTO);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof contractsControllerSignLandlord>>> = ({ signal }) => contractsControllerSignLandlord(id,signContractBodyDTO, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ContractsControllerSignLandlordQueryResult = NonNullable<Awaited<ReturnType<typeof contractsControllerSignLandlord>>>
+export type ContractsControllerSignLandlordQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
+
+
+export function useContractsControllerSignLandlord<TData = Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof contractsControllerSignLandlord>>,
+          TError,
+          Awaited<ReturnType<typeof contractsControllerSignLandlord>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useContractsControllerSignLandlord<TData = Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof contractsControllerSignLandlord>>,
+          TError,
+          Awaited<ReturnType<typeof contractsControllerSignLandlord>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useContractsControllerSignLandlord<TData = Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useContractsControllerSignLandlord<TData = Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    signContractBodyDTO: BodyType<SignContractBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerSignLandlord>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getContractsControllerSignLandlordQueryOptions(id,signContractBodyDTO,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 export const contractsControllerActivate = (
     id: number,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -836,6 +1028,194 @@ export function useContractsControllerCancel<TData = Awaited<ReturnType<typeof c
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getContractsControllerCancelQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const contractsControllerAddMember = (
+    id: number,
+    addContractMemberBodyDTO: BodyType<AddContractMemberBodyDTO>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Contract>(
+      {url: `/contracts/${id}/members`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: addContractMemberBodyDTO, signal
+    },
+      options);
+    }
+
+
+
+
+export const getContractsControllerAddMemberQueryKey = (id: number,
+    addContractMemberBodyDTO?: BodyType<AddContractMemberBodyDTO>,) => {
+    return [
+    'POST', `/contracts/${id}/members`, addContractMemberBodyDTO
+    ] as const;
+    }
+
+
+export const getContractsControllerAddMemberQueryOptions = <TData = Awaited<ReturnType<typeof contractsControllerAddMember>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number,
+    addContractMemberBodyDTO: BodyType<AddContractMemberBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerAddMember>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getContractsControllerAddMemberQueryKey(id,addContractMemberBodyDTO);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof contractsControllerAddMember>>> = ({ signal }) => contractsControllerAddMember(id,addContractMemberBodyDTO, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof contractsControllerAddMember>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ContractsControllerAddMemberQueryResult = NonNullable<Awaited<ReturnType<typeof contractsControllerAddMember>>>
+export type ContractsControllerAddMemberQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
+
+
+export function useContractsControllerAddMember<TData = Awaited<ReturnType<typeof contractsControllerAddMember>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    addContractMemberBodyDTO: BodyType<AddContractMemberBodyDTO>, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerAddMember>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof contractsControllerAddMember>>,
+          TError,
+          Awaited<ReturnType<typeof contractsControllerAddMember>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useContractsControllerAddMember<TData = Awaited<ReturnType<typeof contractsControllerAddMember>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    addContractMemberBodyDTO: BodyType<AddContractMemberBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerAddMember>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof contractsControllerAddMember>>,
+          TError,
+          Awaited<ReturnType<typeof contractsControllerAddMember>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useContractsControllerAddMember<TData = Awaited<ReturnType<typeof contractsControllerAddMember>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    addContractMemberBodyDTO: BodyType<AddContractMemberBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerAddMember>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useContractsControllerAddMember<TData = Awaited<ReturnType<typeof contractsControllerAddMember>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    addContractMemberBodyDTO: BodyType<AddContractMemberBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerAddMember>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getContractsControllerAddMemberQueryOptions(id,addContractMemberBodyDTO,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const contractsControllerRemoveMember = (
+    id: number,
+    userId: number,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Contract>(
+      {url: `/contracts/${id}/members/${userId}`, method: 'DELETE', signal
+    },
+      options);
+    }
+
+
+
+
+export const getContractsControllerRemoveMemberQueryKey = (id: number,
+    userId: number,) => {
+    return [
+    'DELETE', `/contracts/${id}/members/${userId}`
+    ] as const;
+    }
+
+
+export const getContractsControllerRemoveMemberQueryOptions = <TData = Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number,
+    userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getContractsControllerRemoveMemberQueryKey(id,userId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof contractsControllerRemoveMember>>> = ({ signal }) => contractsControllerRemoveMember(id,userId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && userId !== null && userId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ContractsControllerRemoveMemberQueryResult = NonNullable<Awaited<ReturnType<typeof contractsControllerRemoveMember>>>
+export type ContractsControllerRemoveMemberQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
+
+
+export function useContractsControllerRemoveMember<TData = Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    userId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof contractsControllerRemoveMember>>,
+          TError,
+          Awaited<ReturnType<typeof contractsControllerRemoveMember>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useContractsControllerRemoveMember<TData = Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof contractsControllerRemoveMember>>,
+          TError,
+          Awaited<ReturnType<typeof contractsControllerRemoveMember>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useContractsControllerRemoveMember<TData = Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useContractsControllerRemoveMember<TData = Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof contractsControllerRemoveMember>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getContractsControllerRemoveMemberQueryOptions(id,userId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

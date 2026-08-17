@@ -104,10 +104,10 @@ export function Component() {
             <div className="border-surface-border flex items-center gap-3 border-l pl-2">
               <div className="hidden text-right sm:block">
                 <div className="font-label-md text-label-md text-on-surface leading-none">
-                  {user?.fullName || 'User'}
+                  {user?.fullName || 'Người dùng'}
                 </div>
                 <div className="text-on-surface-variant text-[11px]">
-                  {user?.systemRole === 'ADMIN' ? 'Operations Manager' : 'Operations Manager'}
+                  {user?.systemRole === 'ADMIN' ? 'Quản trị viên' : 'Quản lý vận hành'}
                 </div>
               </div>
 
@@ -119,11 +119,11 @@ export function Component() {
                       className="ring-surface-border bg-surface-container h-9 w-9 cursor-pointer rounded-full object-cover ring-2"
                       src={
                         user?.avatarUrl ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=random`
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Người dùng')}&background=random`
                       }
                       onError={(e) => {
                         ;(e.target as HTMLImageElement).src =
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=random`
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Người dùng')}&background=random`
                       }}
                     />
                   </button>

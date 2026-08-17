@@ -341,7 +341,7 @@ export function Component() {
             <div className="grid grid-cols-1 gap-6 border-t border-slate-100 pt-4 md:grid-cols-2">
               <div className="space-y-2.5">
                 <Label htmlFor="electricityPrice" className="font-medium text-slate-700">
-                  Giá điện (VND/kWh) <span className="text-red-500">*</span>
+                  Giá điện (VND/kWh)
                 </Label>
                 <Input
                   {...register('electricityPrice')}
@@ -355,7 +355,7 @@ export function Component() {
               </div>
               <div className="space-y-2.5">
                 <Label htmlFor="waterPrice" className="font-medium text-slate-700">
-                  Giá nước (VND/khối) <span className="text-red-500">*</span>
+                  Giá nước (VND/khối)
                 </Label>
                 <Input
                   {...register('waterPrice')}

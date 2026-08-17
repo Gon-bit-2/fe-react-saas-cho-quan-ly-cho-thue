@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getInvoiceDetail, cancelInvoice, createMyPaymentQr } from '../api';
+import { getInvoiceDetail, cancelInvoice, createPaymentQr } from '../api';
 import { InvoiceStatus, InvoiceItemType, type Invoice, type InvoiceItem } from '../types';
 import { toast } from 'sonner';
 import { getPayments } from '../../payments/api';
 import { type Payment } from '../../payments/types';
+import { ManualPaymentDialog } from '../components/manual-payment-dialog';
 
 export function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +61,7 @@ export function InvoiceDetailPage() {
     if (!invoice) return;
     setIsLoading(true);
     try {
-      const data = await createMyPaymentQr(invoice.id);
+      const data = await createPaymentQr(invoice.id);
       if (data && data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
@@ -159,9 +160,22 @@ export function InvoiceDetailPage() {
           <Button variant="default" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700" onClick={handlePayOS} disabled={invoice.status === InvoiceStatus.PAID || invoice.status === InvoiceStatus.CANCELED}>
             <span className="material-symbols-outlined text-[18px]">qr_code_2</span> Thanh toán QR
           </Button>
-          <Button className="flex items-center gap-2" onClick={handleRecordPayment} disabled={invoice.status === InvoiceStatus.PAID || invoice.status === InvoiceStatus.CANCELED}>
-            <span className="material-symbols-outlined text-[18px]">payments</span> Ghi nhận
-          </Button>
+          
+          {(invoice.status === InvoiceStatus.PAID || invoice.status === InvoiceStatus.CANCELED) ? (
+            <Button className="flex items-center gap-2" disabled>
+              <span className="material-symbols-outlined text-[18px]">payments</span> Ghi nhận
+            </Button>
+          ) : (
+            <ManualPaymentDialog 
+              invoiceId={invoice.id} 
+              remainingAmount={invoice.debtAmount}
+              trigger={
+                <Button className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px]">payments</span> Ghi nhận
+                </Button>
+              }
+            />
+          )}
         </div>
       </div>
 

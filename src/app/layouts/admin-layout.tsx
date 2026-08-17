@@ -119,9 +119,9 @@ export function Component() {
             <div className="flex items-center gap-3">
               <div className="hidden text-right sm:block">
                 <div className="font-label-md text-label-md text-on-surface leading-none">
-                  {profile?.fullName || profile?.email || 'Admin'}
+                  {profile?.fullName || profile?.email || 'Quản trị viên'}
                 </div>
-                <div className="text-on-surface-variant text-[11px]">{profile?.systemRole || 'ADMIN'}</div>
+                <div className="text-on-surface-variant text-[11px]">{profile?.systemRole || 'QUẢN TRỊ VIÊN'}</div>
               </div>
 
               <DropdownMenu>

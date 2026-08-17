@@ -1,18 +1,41 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { useMeterReadingsControllerList } from '../api'
+import { useMeterReadingsControllerList, meterReadingsControllerUpdateStatus } from '../api'
 import { RecordReadingDialog } from '../components/record-reading-dialog'
+import { CreateMeterDialog } from '../components/create-meter-dialog'
+import { useRoomsControllerList } from '@/shared/api/generated/rooms/rooms'
 
 export function MeterReadingsListPage() {
+  const queryClient = useQueryClient()
+  
+  const { mutate: updateReadingStatus, isPending: isUpdatingStatus } = useMutation({
+    mutationFn: ({ id, data }: { id: number, data: { status: 'CONFIRMED' | 'ABNORMAL' | 'REJECTED' } }) => 
+      meterReadingsControllerUpdateStatus(id, data),
+    onSuccess: () => {
+      toast.success('Cập nhật trạng thái thành công')
+      queryClient.invalidateQueries({ queryKey: ['meter-readings'] })
+    },
+    onError: () => {
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái')
+    }
+  })
+
+  const { data: roomsResponse, isLoading: isLoadingRooms } = useRoomsControllerList({ limit: 100 })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rooms = (roomsResponse as unknown as { data?: Array<any> })?.data || []
+
   const [filters, setFilters] = useState<{
     page: number
     limit: number
+    roomId?: number
     billingMonth?: string
     type?: 'ELECTRICITY' | 'WATER'
     status?: 'DRAFT' | 'CONFIRMED' | 'ABNORMAL' | 'REJECTED'
@@ -53,15 +76,48 @@ export function MeterReadingsListPage() {
           <h1 className="mb-1 text-3xl font-bold text-slate-900">Chỉ Số Điện Nước</h1>
           <p className="text-sm text-slate-500">Quản lý và ghi nhận chỉ số tiêu thụ tiện ích định kỳ.</p>
         </div>
-        <RecordReadingDialog>
-          <Button className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            Ghi Chỉ Số
-          </Button>
-        </RecordReadingDialog>
+        <div className="flex items-center gap-3">
+          <CreateMeterDialog>
+            <Button variant="outline" className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">add_circle</span>
+              Thêm Công Tơ
+            </Button>
+          </CreateMeterDialog>
+          <RecordReadingDialog>
+            <Button className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              Ghi Chỉ Số
+            </Button>
+          </RecordReadingDialog>
+        </div>
       </div>
 
       <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
+          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Phòng</label>
+          <Select
+            onValueChange={(val) =>
+              setFilters((prev) => ({
+                ...prev,
+                roomId: val === 'all' ? undefined : Number(val),
+                page: 1,
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={isLoadingRooms ? 'Đang tải...' : 'Tất cả các phòng'} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả các phòng</SelectItem>
+              {rooms.map((room) => (
+                <SelectItem key={room.id} value={room.id.toString()}>
+                  Phòng {room.roomCode}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
           <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Tháng tính tiền</label>
           <Input
@@ -201,7 +257,15 @@ export function MeterReadingsListPage() {
                             </DropdownMenuItem>
                           </Link>
                           {reading.status === 'DRAFT' && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                updateReadingStatus({
+                                  id: reading.id,
+                                  data: { status: 'CONFIRMED' }
+                                })
+                              }}
+                              disabled={isUpdatingStatus}
+                            >
                               <span className="material-symbols-outlined mr-2 text-[18px]">check_circle</span>
                               Duyệt chỉ số
                             </DropdownMenuItem>

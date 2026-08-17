@@ -65,4 +65,19 @@ maxArea?: number;
  */
 maxOccupants?: number;
 amenityIds?: string | number[];
+/**
+ * @minimum -90
+ * @maximum 90
+ */
+lat?: number;
+/**
+ * @minimum -180
+ * @maximum 180
+ */
+lng?: number;
+/**
+ * @maximum 100
+ * @exclusiveMinimum 0
+ */
+radius?: number;
 };

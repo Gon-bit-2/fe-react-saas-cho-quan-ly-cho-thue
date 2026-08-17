@@ -307,6 +307,18 @@ export const router = createBrowserRouter([
               },
               // Quản lý điện nước
               {
+                path: 'dien-nuoc/cong-to',
+                lazy: () =>
+                  import('@/features/utilities/pages/meter-list').then((m) => ({
+                    Component: m.MeterListPage,
+                  })),
+              },
+              {
+                path: 'dien-nuoc/cong-to/:id',
+                lazy: () =>
+                  import('@/features/utilities/pages/meter-detail').then((m) => ({ Component: m.MeterDetailPage })),
+              },
+              {
                 path: 'dien-nuoc/chi-so',
                 lazy: () =>
                   import('@/features/utilities/pages/meter-readings-list').then((m) => ({
@@ -314,9 +326,9 @@ export const router = createBrowserRouter([
                   })),
               },
               {
-                path: 'dien-nuoc/cong-to/:id',
+                path: 'dien-nuoc/ocr-review',
                 lazy: () =>
-                  import('@/features/utilities/pages/meter-detail').then((m) => ({ Component: m.MeterDetailPage })),
+                  import('@/features/utilities/pages/ocr-review').then((m) => ({ Component: m.OcrReviewPage })),
               },
               // Quản lý dịch vụ (W11)
               {

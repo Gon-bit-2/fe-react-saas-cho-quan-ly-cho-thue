@@ -60,6 +60,11 @@ export const createMyPaymentQr = async (id: number | string): Promise<{ qrConten
   return response.data
 }
 
+export const createPaymentQr = async (id: number | string): Promise<{ qrContent: string; checkoutUrl: string }> => {
+  const response = await apiClient.post(`/invoices/${id}/payment-qr`, {})
+  return response.data
+}
+
 export const getMyPaymentQr = async (id: number | string): Promise<{ qrContent: string; checkoutUrl: string }> => {
   const response = await apiClient.get(`/invoices/me/${id}/payment-qr`)
   return response.data

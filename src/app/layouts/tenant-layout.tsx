@@ -20,7 +20,9 @@ const navItems = [
   { name: 'Hợp đồng', path: '/hop-dong', icon: 'description' },
   { name: 'Yêu cầu kết thúc', path: '/yeu-cau-ket-thuc-hop-dong', icon: 'assignment_late' },
   { name: 'Tài sản', path: '/quan-ly-tai-san', icon: 'inventory_2' },
-  { name: 'Điện nước', path: '/dien-nuoc/chi-so', icon: 'water_ec' },
+  { name: 'Công tơ', path: '/dien-nuoc/cong-to', icon: 'speed' },
+  { name: 'Chỉ số', path: '/dien-nuoc/chi-so', icon: 'water_ec' },
+  { name: 'Nhận diện OCR', path: '/dien-nuoc/ocr-review', icon: 'document_scanner' },
   { name: 'Dịch vụ', path: '/dich-vu', icon: 'electric_bolt' },
   { name: 'Hóa đơn', path: '/hoa-don', icon: 'receipt_long' },
   { name: 'Thanh toán', path: '/thanh-toan', icon: 'payments' },
@@ -105,9 +107,9 @@ export function Component() {
             <div className="border-surface-border flex items-center gap-3 border-l pl-2">
               <div className="hidden text-right sm:block">
                 <div className="font-label-md text-label-md text-on-surface leading-none">
-                  {profile?.fullName || profile?.email || 'User'}
+                  {profile?.fullName || profile?.email || 'Người dùng'}
                 </div>
-                <div className="text-on-surface-variant text-[11px]">{profile?.systemRole || 'Operations Manager'}</div>
+                <div className="text-on-surface-variant text-[11px]">{profile?.systemRole || 'Quản lý vận hành'}</div>
               </div>
 
               <DropdownMenu>

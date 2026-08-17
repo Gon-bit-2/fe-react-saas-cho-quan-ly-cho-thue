@@ -36,19 +36,9 @@ export function MeterDetailPage() {
   // `unknown`, so narrow the endpoint payload once at the API boundary.
   const readings = (readingsResponse as MeterReadingsListResponse | undefined)?.data ?? []
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Hoạt động</Badge>
-      case 'INACTIVE':
-        return (
-          <Badge className="border border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-100">Ngừng HĐ</Badge>
-        )
-      case 'BROKEN':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Báo hỏng</Badge>
-      default:
-        return null
-    }
+  const getStatusBadge = (isActive: boolean) => {
+    if (isActive) return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Hoạt động</Badge>
+    return <Badge className="border border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-100">Ngừng HĐ</Badge>
   }
 
   const getReadingStatusBadge = (status: string) => {
@@ -79,8 +69,8 @@ export function MeterDetailPage() {
     <div className="flex h-full min-h-[calc(100vh-64px)] w-full flex-col bg-slate-50 p-8">
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center gap-2 text-sm text-slate-500">
-        <Link to="/dien-nuoc/chi-so" className="hover:text-primary transition-colors">
-          Điện Nước
+        <Link to="/dien-nuoc/cong-to" className="hover:text-primary transition-colors">
+          Danh sách Công tơ
         </Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
         <span className="font-medium text-slate-900">Chi tiết công tơ</span>
@@ -96,8 +86,8 @@ export function MeterDetailPage() {
           </div>
           <div>
             <div className="mb-1 flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-slate-900">{meter.meterCode}</h1>
-              {getStatusBadge(meter.status)}
+              <h1 className="text-2xl font-bold text-slate-900">{meter.serialNumber}</h1>
+              {getStatusBadge(meter.isActive)}
             </div>
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
               <div className="flex items-center gap-1.5">

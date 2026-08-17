@@ -1,12 +1,23 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useNavigate, useLocation } from 'react-router'
-import { Copy, ArrowLeft, Download, Timer, Lock, Verified, ExternalLink, CheckCircle } from 'lucide-react'
+import { Copy, ArrowLeft, Timer, Lock, Verified, ExternalLink, CheckCircle } from 'lucide-react'
 import {
   subscriptionPaymentsControllerCreateCheckout,
   subscriptionPaymentsControllerGetMineById,
 } from '@/shared/api/generated/subscription-payments/subscription-payments'
 import { toast } from 'sonner'
+
+export type CheckoutData = {
+  id: number
+  qrContent: string
+  amount: number
+  accountNo: string
+  accountName: string
+  description: string
+  orderCode: number | string
+  checkoutUrl: string
+}
 
 export const CheckoutPage = () => {
   const navigate = useNavigate()
@@ -14,7 +25,7 @@ export const CheckoutPage = () => {
   const { plan, billingCycle } = location.state || {}
 
   const [timeLeft, setTimeLeft] = useState(14 * 60 + 59) // 14:59
-  const [checkoutData, setCheckoutData] = useState<any>(null)
+  const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSuccess, setIsSuccess] = useState(false)
 
@@ -29,9 +40,10 @@ export const CheckoutPage = () => {
           planId: plan.id,
           billingCycle: billingCycle === 'annually' ? 'YEARLY' : 'MONTHLY',
         })
-        setCheckoutData(res)
-      } catch (error: any) {
-        toast.error(error?.response?.data?.message || 'Không thể khởi tạo thanh toán')
+        setCheckoutData(res as CheckoutData)
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } }
+        toast.error(err?.response?.data?.message || 'Không thể khởi tạo thanh toán')
       } finally {
         setIsLoading(false)
       }
@@ -46,7 +58,7 @@ export const CheckoutPage = () => {
 
     const intervalId = setInterval(async () => {
       try {
-        const paymentInfo = await subscriptionPaymentsControllerGetMineById(checkoutData.id)
+        const paymentInfo = await subscriptionPaymentsControllerGetMineById(checkoutData.id as number)
         if (paymentInfo.status === 'PAID') {
           setIsSuccess(true)
           toast.success('Thanh toán thành công! Gói của bạn đã được kích hoạt.')

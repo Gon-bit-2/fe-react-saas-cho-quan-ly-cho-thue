@@ -766,6 +766,94 @@ export function useInvoicesControllerUpdateDraft<TData = Awaited<ReturnType<type
 
 
 
+export const invoicesControllerPreview = (
+    createInvoiceBodyDTO: BodyType<CreateInvoiceBodyDTO>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Invoice>(
+      {url: `/invoices/preview`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createInvoiceBodyDTO, signal
+    },
+      options);
+    }
+
+
+
+
+export const getInvoicesControllerPreviewQueryKey = (createInvoiceBodyDTO?: BodyType<CreateInvoiceBodyDTO>,) => {
+    return [
+    'POST', `/invoices/preview`, createInvoiceBodyDTO
+    ] as const;
+    }
+
+
+export const getInvoicesControllerPreviewQueryOptions = <TData = Awaited<ReturnType<typeof invoicesControllerPreview>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(createInvoiceBodyDTO: BodyType<CreateInvoiceBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesControllerPreview>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getInvoicesControllerPreviewQueryKey(createInvoiceBodyDTO);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof invoicesControllerPreview>>> = ({ signal }) => invoicesControllerPreview(createInvoiceBodyDTO, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof invoicesControllerPreview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type InvoicesControllerPreviewQueryResult = NonNullable<Awaited<ReturnType<typeof invoicesControllerPreview>>>
+export type InvoicesControllerPreviewQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
+
+
+export function useInvoicesControllerPreview<TData = Awaited<ReturnType<typeof invoicesControllerPreview>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ createInvoiceBodyDTO: BodyType<CreateInvoiceBodyDTO>, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesControllerPreview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof invoicesControllerPreview>>,
+          TError,
+          Awaited<ReturnType<typeof invoicesControllerPreview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useInvoicesControllerPreview<TData = Awaited<ReturnType<typeof invoicesControllerPreview>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ createInvoiceBodyDTO: BodyType<CreateInvoiceBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesControllerPreview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof invoicesControllerPreview>>,
+          TError,
+          Awaited<ReturnType<typeof invoicesControllerPreview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useInvoicesControllerPreview<TData = Awaited<ReturnType<typeof invoicesControllerPreview>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ createInvoiceBodyDTO: BodyType<CreateInvoiceBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesControllerPreview>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useInvoicesControllerPreview<TData = Awaited<ReturnType<typeof invoicesControllerPreview>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ createInvoiceBodyDTO: BodyType<CreateInvoiceBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof invoicesControllerPreview>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getInvoicesControllerPreviewQueryOptions(createInvoiceBodyDTO,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 export const invoicesControllerIssue = (
     id: number,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal

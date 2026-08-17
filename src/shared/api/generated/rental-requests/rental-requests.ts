@@ -147,6 +147,92 @@ export function useRentalRequestsControllerListMine<TData = Awaited<ReturnType<t
 
 
 
+export const rentalRequestsControllerGetMine = (
+    id: number,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RentalRequest>(
+      {url: `/rental-requests/me/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getRentalRequestsControllerGetMineQueryKey = (id: number,) => {
+    return [
+    `/rental-requests/me/${id}`
+    ] as const;
+    }
+
+
+export const getRentalRequestsControllerGetMineQueryOptions = <TData = Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getRentalRequestsControllerGetMineQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>> = ({ signal }) => rentalRequestsControllerGetMine(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type RentalRequestsControllerGetMineQueryResult = NonNullable<Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>>
+export type RentalRequestsControllerGetMineQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
+
+
+export function useRentalRequestsControllerGetMine<TData = Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>,
+          TError,
+          Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRentalRequestsControllerGetMine<TData = Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>,
+          TError,
+          Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRentalRequestsControllerGetMine<TData = Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useRentalRequestsControllerGetMine<TData = Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rentalRequestsControllerGetMine>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getRentalRequestsControllerGetMineQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 export const rentalRequestsControllerUpdateMine = (
     id: number,
     updateMyRentalRequestBodyDTO: BodyType<UpdateMyRentalRequestBodyDTO>,

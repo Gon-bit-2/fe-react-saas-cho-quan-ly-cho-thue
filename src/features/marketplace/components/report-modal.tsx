@@ -71,9 +71,10 @@ export function ReportModal({ open, onOpenChange, targetId, targetType }: Report
       form.reset()
       onOpenChange(false)
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } }
       toast.error('Gửi báo cáo thất bại', {
-        description: error?.response?.data?.message || 'Đã có lỗi xảy ra',
+        description: err?.response?.data?.message || 'Đã có lỗi xảy ra',
       })
     },
   })

@@ -26,6 +26,7 @@ import type {
   CreatePaymentQrBodyDTO,
   ForbiddenResponse,
   InternalErrorResponse,
+  Invoice,
   NotFoundResponse,
   Payment,
   PaymentQrCode,
@@ -36,6 +37,7 @@ import type {
   PaymentsControllerListMineParams,
   PayosWebhookBodyDTO,
   RateLimitedResponse,
+  RecordManualPaymentBodyDTO,
   ReviewPaymentBodyDTO,
   SubmitPaymentConfirmationBodyDTO,
   UnauthorizedResponse
@@ -407,6 +409,101 @@ export function usePaymentsControllerCreateMyPaymentQr<TData = Awaited<ReturnTyp
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPaymentsControllerCreateMyPaymentQrQueryOptions(id,createPaymentQrBodyDTO,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const paymentsControllerCreatePaymentQr = (
+    id: number,
+    createPaymentQrBodyDTO: BodyType<CreatePaymentQrBodyDTO>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PaymentQrCode>(
+      {url: `/invoices/${id}/payment-qr`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createPaymentQrBodyDTO, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPaymentsControllerCreatePaymentQrQueryKey = (id: number,
+    createPaymentQrBodyDTO?: BodyType<CreatePaymentQrBodyDTO>,) => {
+    return [
+    'POST', `/invoices/${id}/payment-qr`, createPaymentQrBodyDTO
+    ] as const;
+    }
+
+
+export const getPaymentsControllerCreatePaymentQrQueryOptions = <TData = Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number,
+    createPaymentQrBodyDTO: BodyType<CreatePaymentQrBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPaymentsControllerCreatePaymentQrQueryKey(id,createPaymentQrBodyDTO);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>> = ({ signal }) => paymentsControllerCreatePaymentQr(id,createPaymentQrBodyDTO, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PaymentsControllerCreatePaymentQrQueryResult = NonNullable<Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>>
+export type PaymentsControllerCreatePaymentQrQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
+
+
+export function usePaymentsControllerCreatePaymentQr<TData = Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    createPaymentQrBodyDTO: BodyType<CreatePaymentQrBodyDTO>, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>,
+          TError,
+          Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePaymentsControllerCreatePaymentQr<TData = Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    createPaymentQrBodyDTO: BodyType<CreatePaymentQrBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>,
+          TError,
+          Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePaymentsControllerCreatePaymentQr<TData = Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    createPaymentQrBodyDTO: BodyType<CreatePaymentQrBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePaymentsControllerCreatePaymentQr<TData = Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    createPaymentQrBodyDTO: BodyType<CreatePaymentQrBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerCreatePaymentQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPaymentsControllerCreatePaymentQrQueryOptions(id,createPaymentQrBodyDTO,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -865,6 +962,101 @@ export function usePaymentsControllerReject<TData = Awaited<ReturnType<typeof pa
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPaymentsControllerRejectQueryOptions(id,reviewPaymentBodyDTO,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const paymentsControllerRecordManualPayment = (
+    id: number,
+    recordManualPaymentBodyDTO: BodyType<RecordManualPaymentBodyDTO>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Invoice>(
+      {url: `/invoices/${id}/manual-payments`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: recordManualPaymentBodyDTO, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPaymentsControllerRecordManualPaymentQueryKey = (id: number,
+    recordManualPaymentBodyDTO?: BodyType<RecordManualPaymentBodyDTO>,) => {
+    return [
+    'POST', `/invoices/${id}/manual-payments`, recordManualPaymentBodyDTO
+    ] as const;
+    }
+
+
+export const getPaymentsControllerRecordManualPaymentQueryOptions = <TData = Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number,
+    recordManualPaymentBodyDTO: BodyType<RecordManualPaymentBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPaymentsControllerRecordManualPaymentQueryKey(id,recordManualPaymentBodyDTO);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>> = ({ signal }) => paymentsControllerRecordManualPayment(id,recordManualPaymentBodyDTO, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PaymentsControllerRecordManualPaymentQueryResult = NonNullable<Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>>
+export type PaymentsControllerRecordManualPaymentQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
+
+
+export function usePaymentsControllerRecordManualPayment<TData = Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    recordManualPaymentBodyDTO: BodyType<RecordManualPaymentBodyDTO>, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>,
+          TError,
+          Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePaymentsControllerRecordManualPayment<TData = Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    recordManualPaymentBodyDTO: BodyType<RecordManualPaymentBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>,
+          TError,
+          Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePaymentsControllerRecordManualPayment<TData = Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    recordManualPaymentBodyDTO: BodyType<RecordManualPaymentBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePaymentsControllerRecordManualPayment<TData = Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    recordManualPaymentBodyDTO: BodyType<RecordManualPaymentBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof paymentsControllerRecordManualPayment>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPaymentsControllerRecordManualPaymentQueryOptions(id,recordManualPaymentBodyDTO,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

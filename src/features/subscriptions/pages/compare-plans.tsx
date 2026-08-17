@@ -4,13 +4,26 @@ import { useNavigate } from 'react-router'
 import { cn } from '@/shared/lib/utils'
 import { usePlansControllerListAvailable } from '@/shared/api/generated/plans/plans'
 
+type PlanDto = {
+  id: number
+  name: string
+  description: string
+  code: string
+  priceMonthly: number
+  priceYearly: number
+  maxRooms: number
+  maxStaff: number
+  allowAiOcr: boolean
+  allowWebhookPayment: boolean
+}
+
 export const ComparePlansPage = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually')
   const navigate = useNavigate()
   const { data = [], isLoading, error } = usePlansControllerListAvailable()
 
   // Extract plans array from data response (handles both array and nested data object)
-  const plans = Array.isArray(data) ? data : (data as any)?.data || []
+  const plans = Array.isArray(data) ? data : (data as { data?: PlanDto[] })?.data || []
 
   console.log('API Response:', { data, plans, isLoading, error })
 
@@ -70,7 +83,7 @@ export const ComparePlansPage = () => {
             Không có gói dịch vụ nào khả dụng lúc này.
           </div>
         ) : (
-          plans.map((plan: any) => {
+          plans.map((plan: PlanDto) => {
             const isEnterprise =
               plan.code === 'ENTERPRISE' ||
               plan.priceMonthly === null ||
@@ -262,7 +275,7 @@ export const ComparePlansPage = () => {
             <div className="text-muted-foreground col-span-1 pl-4 font-semibold tracking-wider uppercase">
               Tính năng
             </div>
-            {plans.slice(0, 3).map((plan: any) => (
+            {plans.slice(0, 3).map((plan: PlanDto) => (
               <div
                 key={`header-${plan.id}`}
                 className={cn(
@@ -281,7 +294,7 @@ export const ComparePlansPage = () => {
           <div className="flex flex-col">
             <div className="border-border hover:bg-muted/50 grid grid-cols-4 items-center border-b p-4 transition-colors">
               <div className="col-span-1 pl-4 font-medium">Số lượng phòng</div>
-              {plans.slice(0, 3).map((plan: any) => (
+              {plans.slice(0, 3).map((plan: PlanDto) => (
                 <div
                   key={`rooms-${plan.id}`}
                   className={cn(
@@ -298,7 +311,7 @@ export const ComparePlansPage = () => {
 
             <div className="border-border hover:bg-muted/50 grid grid-cols-4 items-center border-b p-4 transition-colors">
               <div className="col-span-1 pl-4 font-medium">Nhân sự</div>
-              {plans.slice(0, 3).map((plan: any) => (
+              {plans.slice(0, 3).map((plan: PlanDto) => (
                 <div
                   key={`staff-${plan.id}`}
                   className={cn(
@@ -323,7 +336,7 @@ export const ComparePlansPage = () => {
                   info
                 </span>
               </div>
-              {plans.slice(0, 3).map((plan: any) => (
+              {plans.slice(0, 3).map((plan: PlanDto) => (
                 <div
                   key={`ai-${plan.id}`}
                   className={cn(
@@ -352,7 +365,7 @@ export const ComparePlansPage = () => {
                   info
                 </span>
               </div>
-              {plans.slice(0, 3).map((plan: any) => (
+              {plans.slice(0, 3).map((plan: PlanDto) => (
                 <div
                   key={`webhook-${plan.id}`}
                   className={cn(

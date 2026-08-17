@@ -148,6 +148,92 @@ export function useViewingAppointmentsControllerListMine<TData = Awaited<ReturnT
 
 
 
+export const viewingAppointmentsControllerGetMine = (
+    id: number,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Appointment>(
+      {url: `/room-viewing-appointments/me/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getViewingAppointmentsControllerGetMineQueryKey = (id: number,) => {
+    return [
+    `/room-viewing-appointments/me/${id}`
+    ] as const;
+    }
+
+
+export const getViewingAppointmentsControllerGetMineQueryOptions = <TData = Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getViewingAppointmentsControllerGetMineQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>> = ({ signal }) => viewingAppointmentsControllerGetMine(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ViewingAppointmentsControllerGetMineQueryResult = NonNullable<Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>>
+export type ViewingAppointmentsControllerGetMineQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
+
+
+export function useViewingAppointmentsControllerGetMine<TData = Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>,
+          TError,
+          Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useViewingAppointmentsControllerGetMine<TData = Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>,
+          TError,
+          Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useViewingAppointmentsControllerGetMine<TData = Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useViewingAppointmentsControllerGetMine<TData = Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof viewingAppointmentsControllerGetMine>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getViewingAppointmentsControllerGetMineQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 export const viewingAppointmentsControllerCancelMine = (
     id: number,
     cancelMyViewingAppointmentBodyDTO: BodyType<CancelMyViewingAppointmentBodyDTO>,

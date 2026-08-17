@@ -24,13 +24,18 @@ export interface CreatePlanBodyDTO {
   /** @minimum 0 */
   priceYearly: number;
   /**
+     * @minimum 0
      * @maximum 9007199254740991
-     * @exclusiveMinimum 0
+     */
+  maxProperties?: number;
+  /**
+     * @minimum 0
+     * @maximum 9007199254740991
      */
   maxRooms: number;
   /**
+     * @minimum 0
      * @maximum 9007199254740991
-     * @exclusiveMinimum 0
      */
   maxStaff: number;
   allowAiOcr?: boolean;
