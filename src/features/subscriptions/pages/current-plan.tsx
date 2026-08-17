@@ -86,29 +86,41 @@ export const CurrentPlanPage = () => {
             </div>
             <div className="flex flex-col gap-1 sm:items-end">
               <span className="text-primary text-3xl font-bold">
-                ${plan.price}
-                <span className="text-muted-foreground text-lg font-normal">/năm</span>
+                {new Intl.NumberFormat('vi-VN').format(
+                  subscription.billingCycle === 'YEARLY' ? plan.priceYearly : plan.priceMonthly
+                )}
+                <span className="text-muted-foreground text-lg font-normal"> VNĐ</span>
               </span>
-              <span className="text-muted-foreground text-sm">Thanh toán theo năm</span>
+              <span className="text-muted-foreground text-sm">
+                Thanh toán theo {subscription.billingCycle === 'YEARLY' ? 'năm' : 'tháng'}
+              </span>
             </div>
           </div>
 
           <div className="bg-muted/50 border-l-primary mb-8 grid grid-cols-1 gap-8 rounded-xl border-l-4 p-6 pb-8 sm:grid-cols-2 md:grid-cols-4">
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs font-medium">Chu kỳ thanh toán</span>
-              <span className="text-base font-medium">Hàng năm</span>
+              <span className="text-base font-medium">
+                {subscription.billingCycle === 'YEARLY' ? 'Hàng năm' : 'Hàng tháng'}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs font-medium">Hóa đơn tiếp theo</span>
-              <span className="font-mono text-base font-medium">1 Thg 10, 2024</span>
+              <span className="font-mono text-base font-medium">
+                {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(new Date(subscription.expiredAt))}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs font-medium">Bắt đầu chu kỳ</span>
-              <span className="font-mono text-base font-medium">1 Thg 10, 2023</span>
+              <span className="font-mono text-base font-medium">
+                {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(new Date(subscription.startedAt))}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs font-medium">Kết thúc chu kỳ</span>
-              <span className="font-mono text-base font-medium">30 Thg 9, 2024</span>
+              <span className="font-mono text-base font-medium">
+                {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(new Date(subscription.expiredAt))}
+              </span>
             </div>
           </div>
 
@@ -139,8 +151,10 @@ export const CurrentPlanPage = () => {
                 <span className="material-symbols-outlined text-[20px]">domain</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold">Tòa nhà không giới hạn</span>
-                <span className="text-muted-foreground text-sm">Quản lý không giới hạn số phòng</span>
+                <span className="text-sm font-semibold">
+                  Tối đa {plan.maxRooms >= 999999 ? 'Không giới hạn' : plan.maxRooms} phòng
+                </span>
+                <span className="text-muted-foreground text-sm">Quản lý số phòng trọ theo gói</span>
               </div>
             </div>
             <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
@@ -148,30 +162,36 @@ export const CurrentPlanPage = () => {
                 <span className="material-symbols-outlined text-[20px]">monitoring</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold">Phân tích nâng cao</span>
-                <span className="text-muted-foreground text-sm">Báo cáo chi tiết doanh thu</span>
+                <span className="text-sm font-semibold">
+                  Tối đa {plan.maxStaff >= 999999 ? 'Không giới hạn' : plan.maxStaff} nhân viên
+                </span>
+                <span className="text-muted-foreground text-sm">Phân quyền quản lý nhà trọ</span>
               </div>
             </div>
-            <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
-              <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                <span className="material-symbols-outlined text-[20px]">build</span>
+            {plan.allowAiOcr && (
+              <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
+                <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                  <span className="material-symbols-outlined text-[20px]">document_scanner</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold">AI & OCR</span>
+                  <span className="text-muted-foreground text-sm">Quét CCCD & Hóa đơn điện nước</span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">Quản lý bảo trì</span>
-                <span className="text-muted-foreground text-sm">Hệ thống ticket cho người thuê</span>
+            )}
+            {plan.allowWebhookPayment && (
+              <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
+                <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                  <span className="material-symbols-outlined text-[20px]">autorenew</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold">Thanh toán tự động</span>
+                  <span className="text-muted-foreground text-sm">Tự động nhận diện thanh toán</span>
+                </div>
               </div>
-            </div>
-            <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
-              <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                <span className="material-symbols-outlined text-[20px]">autorenew</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">Thanh toán tự động</span>
-                <span className="text-muted-foreground text-sm">Tự động tạo & gửi hóa đơn</span>
-              </div>
+            )}
             </div>
           </div>
-        </div>
 
         {/* Usage Limits */}
         <div className="flex flex-col gap-6">

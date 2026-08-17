@@ -24,6 +24,7 @@ const navItems = [
   { name: 'Dịch vụ', path: '/dich-vu', icon: 'electric_bolt' },
   { name: 'Hóa đơn', path: '/hoa-don', icon: 'receipt_long' },
   { name: 'Thanh toán', path: '/thanh-toan', icon: 'payments' },
+  { name: 'Gói dịch vụ', path: '/goi-dich-vu', icon: 'workspace_premium' },
   { name: 'Hỗ trợ', path: '/ho-tro', icon: 'confirmation_number' },
   { name: 'Thông báo', path: '/thong-bao', icon: 'notifications' },
   { name: 'Đăng xuất', path: '#logout', icon: 'logout' },
@@ -46,11 +47,7 @@ export function Component() {
       <aside className="w-sidebar-width bg-surface-container-lowest fixed top-0 left-0 z-50 flex h-full flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all">
         <div className="h-topbar-height border-surface-border flex items-center gap-3 border-b px-6">
           <Link to="/" className="flex items-center gap-3">
-            <img
-              alt="Nhà Trọ Việt Logo"
-              className="h-8 w-auto object-contain"
-              src="/logo.png"
-            />
+            <img alt="Nhà Trọ Việt Logo" className="h-8 w-auto object-contain" src="/logo.png" />
             <span className="font-headline-sm text-headline-sm text-primary tracking-tight">Nhà Trọ Việt</span>
           </Link>
         </div>

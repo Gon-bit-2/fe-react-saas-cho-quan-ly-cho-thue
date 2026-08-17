@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router'
-import { FileText, Printer, XCircle, User, Users, Phone, CheckCircle2, CalendarDays, Building } from 'lucide-react'
+import { FileText, Printer, XCircle, User, Users, Phone, CheckCircle2, CalendarDays, Building, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -281,49 +281,47 @@ export default function ContractDetailPage() {
                 </div>
               </div>
 
-              {/* Thành viên thuê Card */}
-              <div className="rounded-xl border border-slate-100 bg-white p-6">
+            </TabsContent>
+
+            <TabsContent value="members" className="mt-6">
+              <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
                 <div className="mb-6 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-slate-600" />
+                    <Users className="h-5 w-5 text-blue-600" />
                     <h2 className="text-lg font-semibold text-slate-800">
-                      Thành viên thuê ({contract.members?.length || 1})
+                      Quản lý thành viên ({contract.members?.length || 1})
                     </h2>
                   </div>
                   <AddMemberDialog contractId={contract.id}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-transparent bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
-                    >
-                      + Thêm
+                    <Button className="bg-blue-600 text-white hover:bg-blue-700">
+                      + Thêm thành viên
                     </Button>
                   </AddMemberDialog>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {/* Người đứng tên */}
-                  <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="flex flex-col justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50/50 p-5 md:flex-row md:items-center">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 font-bold text-slate-600">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-blue-600 shadow-sm">
                         {contract.renter?.fullName?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-900">
+                          <span className="text-base font-bold text-slate-900">
                             {contract.renter?.fullName || 'Chưa cập nhật'}
                           </span>
-                          <Badge className="h-5 bg-blue-600 px-1.5 text-[10px] text-white hover:bg-blue-600">
-                            NGƯỜI ĐỨNG TÊN
+                          <Badge className="border-transparent bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase">
+                            Người đứng tên
                           </Badge>
                         </div>
-                        <div className="mt-1 flex items-center gap-3 text-sm text-slate-500">
-                          <span className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" /> {contract.renter?.phone || 'Chưa có SĐT'}
+                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+                          <span className="flex items-center gap-1.5">
+                            <Phone className="h-4 w-4 text-slate-400" /> {contract.renter?.phone || 'Chưa có SĐT'}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <FileText className="h-3 w-3" />{' '}
-                            {contract.renter?.renterProfile?.identityNumber || 'Chưa cập nhật'}
+                          <span className="flex items-center gap-1.5">
+                            <FileText className="h-4 w-4 text-slate-400" />
+                            CCCD: {contract.renter?.renterProfile?.identityNumber || 'Chưa cập nhật'}
                           </span>
                         </div>
                       </div>
@@ -336,46 +334,63 @@ export default function ContractDetailPage() {
                     .map((member) => (
                       <div
                         key={member.id}
-                        className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-4"
+                        className="flex flex-col justify-between gap-4 rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-md md:flex-row md:items-center"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 font-bold text-slate-600">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-600">
                             {member.user.fullName.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-semibold text-slate-900">{member.user.fullName}</div>
-                            <div className="mt-1 flex items-center gap-3 text-sm text-slate-500">
-                              <span className="flex items-center gap-1">
-                                <Phone className="h-3 w-3" /> {member.user.phone || 'Chưa có SĐT'}
+                            <div className="flex items-center gap-2">
+                              <span className="text-base font-semibold text-slate-900">{member.user.fullName}</span>
+                              <Badge
+                                variant="outline"
+                                className="border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-500 uppercase"
+                              >
+                                Thành viên
+                              </Badge>
+                            </div>
+                            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+                              <span className="flex items-center gap-1.5">
+                                <Phone className="h-4 w-4 text-slate-400" /> {member.user.phone || 'Chưa có SĐT'}
                               </span>
-                              <span className="flex items-center gap-1">
-                                <FileText className="h-3 w-3" />
+                              <span className="flex items-center gap-1.5">
+                                <Mail className="h-4 w-4 text-slate-400" />
                                 {member.user.email || 'Chưa cập nhật email'}
                               </span>
                             </div>
                           </div>
                         </div>
                         <Button
-                          variant="ghost"
-                          size="icon"
+                          variant="outline"
                           onClick={() => handleRemoveMember(member.userId)}
                           disabled={isRemoving}
-                          className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                          className="shrink-0 border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                         >
-                          <XCircle className="h-5 w-5" />
+                          <XCircle className="mr-2 h-4 w-4" />
+                          Xóa thành viên
                         </Button>
                       </div>
                     ))}
+
+                  {contract.members?.length === 1 && (
+                    <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
+                        <Users className="h-6 w-6" />
+                      </div>
+                      <h3 className="mt-4 text-sm font-semibold text-slate-900">Chưa có thành viên phụ</h3>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Thêm thành viên để cùng quản lý và theo dõi hợp đồng.
+                      </p>
+                      <AddMemberDialog contractId={contract.id}>
+                        <Button variant="outline" className="mt-4 bg-white">
+                          + Thêm thành viên ngay
+                        </Button>
+                      </AddMemberDialog>
+                    </div>
+                  )}
                 </div>
               </div>
-            </TabsContent>
-
-            <TabsContent value="members">
-              <Card className="border-slate-100 shadow-sm">
-                <CardContent className="p-6 py-12 text-center text-slate-500">
-                  Chi tiết quản lý thành viên...
-                </CardContent>
-              </Card>
             </TabsContent>
             <TabsContent value="handovers">
               <Card className="border-slate-100 shadow-sm">
