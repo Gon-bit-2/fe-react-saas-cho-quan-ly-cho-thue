@@ -65,6 +65,7 @@ export function ManualPaymentDialog({ invoiceId, remainingAmount, trigger }: Pro
     },
   })
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const method = watch('method')
 
   const onSubmit = (data: ManualPaymentFormValues) => {

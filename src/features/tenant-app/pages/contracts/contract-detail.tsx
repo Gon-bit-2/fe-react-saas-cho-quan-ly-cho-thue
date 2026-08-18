@@ -3,12 +3,14 @@ import { useParams } from 'react-router'
 import { FileText, Printer, XCircle, User, Users, Phone, CheckCircle2, CalendarDays, Building, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useContract, useCancelContract, useActivateContract, useRemoveContractMember, useSignContractLandlord } from '@/shared/api/contracts'
 import { AddMemberDialog } from './components/add-member-dialog'
 import { SignContractDialog } from './components/sign-contract-dialog'
 import { ContractPrintTemplate } from './components/contract-print-template'
+import { TerminationRequest } from '@/features/contracts/components/termination-request'
+import { AssetHandover } from '@/features/contracts/components/asset-handover'
 
 export default function ContractDetailPage() {
   const { id } = useParams()
@@ -392,19 +394,11 @@ export default function ContractDetailPage() {
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="handovers">
-              <Card className="border-slate-100 shadow-sm">
-                <CardContent className="p-6 py-12 text-center text-slate-500">
-                  Chưa có biên bản bàn giao tài sản.
-                </CardContent>
-              </Card>
+            <TabsContent value="handovers" className="mt-6">
+              <AssetHandover contractId={Number(id)} isLandlord={true} status="DRAFT" />
             </TabsContent>
-            <TabsContent value="end">
-              <Card className="border-slate-100 shadow-sm">
-                <CardContent className="p-6 py-12 text-center text-slate-500">
-                  Chưa có biên bản kết thúc hợp đồng.
-                </CardContent>
-              </Card>
+            <TabsContent value="end" className="mt-6">
+              <TerminationRequest contractId={Number(id)} isLandlord={true} status="NONE" />
             </TabsContent>
           </Tabs>
         </div>

@@ -60,7 +60,7 @@ export function OcrReviewPage() {
               className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
             >
               <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-4">
-                <span className="font-medium text-slate-800">Job #{job.id}</span>
+                <span className="font-medium text-slate-800">Tác vụ #{job.id}</span>
                 <Badge className="bg-emerald-100 text-emerald-800">Hoàn thành</Badge>
               </div>
               <div className="flex flex-1 flex-col gap-4 p-4">

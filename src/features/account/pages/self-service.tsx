@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useLocation } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { apiClient } from '@/shared/api/axios-client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -97,6 +97,7 @@ function itemAmount(item: SelfServiceItem): string | undefined {
 export function Component() {
   const [detailId, setDetailId] = useState<number | null>(null)
   const location = useLocation()
+  const navigate = useNavigate()
   const slug = location.pathname.split('/').filter(Boolean).at(-1) as keyof typeof sections
   const section = sections[slug] ?? sections['lich-xem-phong']
 
@@ -173,7 +174,18 @@ export function Component() {
                 </div>
                 <div className="mt-2 flex items-center gap-2">
                   {Number.isInteger(itemId) && (
-                    <Button type="button" size="sm" variant="secondary" onClick={() => setDetailId(itemId)}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        if (slug === 'hoa-don' || slug === 'hop-dong') {
+                          navigate(`/tai-khoan/${slug}/${itemId}`)
+                        } else {
+                          setDetailId(itemId)
+                        }
+                      }}
+                    >
                       Xem chi tiết
                     </Button>
                   )}

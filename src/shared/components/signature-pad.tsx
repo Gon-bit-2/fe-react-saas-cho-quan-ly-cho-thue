@@ -21,7 +21,7 @@ export function SignaturePad({ onSave, onCancel, title = 'Ký xác nhận' }: Si
       alert('Vui lòng ký trước khi lưu')
       return
     }
-    const dataURL = padRef.current?.getTrimmedCanvas().toDataURL('image/png')
+    const dataURL = padRef.current?.getCanvas().toDataURL('image/png')
     if (dataURL) {
       onSave(dataURL)
     }

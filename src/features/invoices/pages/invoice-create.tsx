@@ -20,6 +20,8 @@ import { useContracts } from '@/shared/api/contracts'
 import { customInstance } from '@/shared/api/orval-mutator'
 import { toast } from 'sonner'
 import { isAxiosError } from 'axios'
+import { useUtilityMetersControllerList } from '@/shared/api/generated/utility-meters/utility-meters'
+import { OcrUploadDialog } from '@/features/utilities/components/ocr-upload-dialog'
 
 type InvoiceCreateFormValues = CreateInvoiceDto & {
   extraItems: NonNullable<CreateInvoiceDto['extraItems']>
@@ -49,6 +51,9 @@ export function InvoiceCreatePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [previewData, setPreviewData] = useState<InvoicePreviewData | null>(null)
   const [pendingData, setPendingData] = useState<CreateInvoiceDto | null>(null)
+  
+  const [ocrDialogOpen, setOcrDialogOpen] = useState(false)
+  const [selectedMeterForOcr, setSelectedMeterForOcr] = useState<{ id: number; name: string } | null>(null)
 
   const { data: contractsResponse, isLoading: isLoadingContracts } = useContracts({ limit: 100 })
   const contracts = contractsResponse?.data || []
@@ -68,6 +73,17 @@ export function InvoiceCreatePage() {
   })
   // eslint-disable-next-line react-hooks/incompatible-library
   const extraItems = watch('extraItems') || []
+  
+  const selectedContractId = watch('contractId')
+  const selectedContract = contracts.find((c: { id: number; roomId: number }) => c.id === selectedContractId)
+  const currentBillingMonth = watch('billingMonth')
+
+  const { data: metersResponse } = useUtilityMetersControllerList(
+    { roomId: selectedContract?.roomId, status: 'ACTIVE' },
+    { query: { enabled: !!selectedContract?.roomId } }
+  )
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const roomMeters = (metersResponse as unknown as { data?: Array<any> })?.data || []
 
   const additions = extraItems
     .filter((item) => item.itemType === InvoiceItemType.PENALTY || item.itemType === InvoiceItemType.OTHER)
@@ -184,6 +200,41 @@ export function InvoiceCreatePage() {
             </div>
           </div>
 
+          {/* Section: Chỉ số công tơ */}
+          {selectedContract && roomMeters.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-slate-900">
+                <span className="material-symbols-outlined text-primary">speed</span>
+                Chỉ Số Điện/Nước Tháng Này
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {roomMeters.map((meter) => (
+                  <div key={meter.id} className="flex flex-col gap-3 rounded-lg border border-slate-100 bg-slate-50 p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-slate-800">
+                        {meter.type === 'ELECTRICITY' ? '⚡ Điện' : '💧 Nước'} - {meter.meterCode}
+                      </span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        setSelectedMeterForOcr({
+                          id: meter.id,
+                          name: `${meter.type === 'ELECTRICITY' ? 'Điện' : 'Nước'} - ${meter.meterCode}`,
+                        })
+                        setOcrDialogOpen(true)
+                      }}
+                    >
+                      <span className="material-symbols-outlined mr-2 text-[18px]">camera_alt</span>
+                      Cập nhật chỉ số
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Section: Điều chỉnh */}
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-slate-900">
@@ -286,6 +337,22 @@ export function InvoiceCreatePage() {
           </div>
         </div>
       </div>
+
+      {selectedMeterForOcr && currentBillingMonth && (
+        <OcrUploadDialog
+          open={ocrDialogOpen}
+          onOpenChange={setOcrDialogOpen}
+          meterId={selectedMeterForOcr.id}
+          meterName={selectedMeterForOcr.name}
+          billingMonth={`${currentBillingMonth}-01T00:00:00Z`}
+          onSuccess={() => {
+            // Khi ghi chỉ số thành công, nếu đang preview thì tính lại preview
+            if (pendingData) {
+              onSubmit(pendingData)
+            }
+          }}
+        />
+      )}
 
       <Dialog open={!!previewData} onOpenChange={(v) => !v && setPreviewData(null)}>
         <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">

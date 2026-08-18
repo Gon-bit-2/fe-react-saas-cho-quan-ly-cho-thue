@@ -137,12 +137,20 @@ export const router = createBrowserRouter([
             lazy: () => import('@/features/account/pages/self-service'),
           },
           {
+            path: 'hop-dong/:id',
+            lazy: () => import('@/features/account/pages/contract-detail').then((m) => ({ Component: m.default })),
+          },
+          {
             path: 'ban-giao',
             lazy: () => import('@/features/account/pages/self-service'),
           },
           {
             path: 'hoa-don',
             lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'hoa-don/:id',
+            lazy: () => import('@/features/account/pages/invoice-detail').then((m) => ({ Component: m.default })),
           },
           {
             path: 'thanh-toan',
