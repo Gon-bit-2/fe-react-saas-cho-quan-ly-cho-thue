@@ -35,12 +35,12 @@ export function Component() {
         <div className="mx-auto max-w-[1440px] px-page-padding-mobile md:px-page-padding-desktop flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
           
           <div className="flex-1 flex flex-col gap-6 z-10 w-full max-w-2xl">
-            <span className="font-label-sm text-primary uppercase tracking-widest font-semibold">Nền tảng cho thuê bất động sản</span>
+            <span className="font-label-sm text-primary uppercase tracking-widest font-semibold">Nền tảng tìm kiếm cho thuê quản lý nhà trọ</span>
             <h1 className="font-display text-slate-900 text-5xl md:text-6xl lg:text-[64px] leading-[1.1] tracking-tight">
               Tìm kiếm không gian sống <span className="text-primary italic font-serif">lý tưởng</span> của bạn
             </h1>
             <p className="font-body-md text-slate-600 max-w-xl text-lg">
-              Quản lý việc thuê và cho thuê nhà chưa bao giờ dễ dàng hơn. Nhanh chóng, minh bạch và an toàn với Rental SaaS.
+              Quản lý việc thuê và cho thuê nhà chưa bao giờ dễ dàng hơn. Nhanh chóng, minh bạch và an toàn với Nhà Trọ Việt.
             </p>
             
             {/* Search Bar Component */}
@@ -148,7 +148,7 @@ export function Component() {
       <section className="py-20 bg-white">
         <div className="mx-auto max-w-[1440px] px-page-padding-mobile md:px-page-padding-desktop">
           <div className="text-center mb-16">
-            <h2 className="font-display text-3xl font-bold text-slate-900 mb-4">Tại sao chọn Rental SaaS?</h2>
+            <h2 className="font-display text-3xl font-bold text-slate-900 mb-4">Tại sao chọn Nhà Trọ Việt?</h2>
             <p className="font-body-md text-slate-500 max-w-2xl mx-auto">
               Hệ sinh thái toàn diện giúp người thuê và chủ nhà kết nối, giao dịch và quản lý một cách chuyên nghiệp nhất.
             </p>
@@ -200,7 +200,7 @@ export function Component() {
         <div className="relative z-10 mx-auto max-w-[1440px] px-page-padding-mobile md:px-page-padding-desktop text-center">
           <h2 className="font-display text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">Bắt đầu hành trình của bạn ngay hôm nay</h2>
           <p className="font-body-md text-slate-600 max-w-2xl mx-auto mb-10 text-lg">
-            Dù bạn đang tìm kiếm một nơi ở mới hay muốn quản lý bất động sản cho thuê hiệu quả hơn, chúng tôi đều có giải pháp dành cho bạn.
+            Dù bạn đang tìm kiếm một nơi ở mới hay muốn quản lý cho thuê phòng hiệu quả hơn, chúng tôi đều có giải pháp dành cho bạn.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button onClick={() => navigate('/phong')} className="w-full sm:w-auto px-8 py-3.5 bg-primary text-white font-label-md font-medium rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2">

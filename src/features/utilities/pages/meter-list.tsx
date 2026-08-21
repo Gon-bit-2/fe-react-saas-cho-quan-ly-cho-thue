@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { METER_STATUS_MAP } from '@/shared/constants/status-config'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { CreateMeterDialog } from '../components/create-meter-dialog'
@@ -127,19 +129,7 @@ export function MeterListPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      className={
-                        meter.status === 'ACTIVE'
-                          ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-100'
-                          : 'bg-slate-100 text-slate-800 hover:bg-slate-100'
-                      }
-                    >
-                      {meter.status === 'ACTIVE'
-                        ? 'Đang hoạt động'
-                        : meter.status === 'BROKEN'
-                          ? 'Bị hỏng'
-                          : 'Ngưng hoạt động'}
-                    </Badge>
+                    <StatusBadge status={meter.status} statusMap={METER_STATUS_MAP} />
                   </TableCell>
                   <TableCell>
                     {meter.roomId ? (

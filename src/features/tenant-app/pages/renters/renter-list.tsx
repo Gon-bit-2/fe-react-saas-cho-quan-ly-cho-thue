@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { VERIFICATION_STATUS_MAP } from '@/shared/constants/status-config'
 import { Plus, Search, MoreHorizontal } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import {
@@ -30,17 +32,7 @@ import { useRenters } from '@/shared/api/renters'
 import type { RenterVerificationStatus } from '@/types/renter'
 
 const getStatusBadge = (status: RenterVerificationStatus) => {
-  switch (status) {
-    case 'VERIFIED':
-      return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Đã xác minh</Badge>
-    case 'PENDING':
-      return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">Chờ xác minh</Badge>
-    case 'REJECTED':
-      return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Từ chối</Badge>
-    case 'UNVERIFIED':
-    default:
-      return <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">Chưa xác minh</Badge>
-  }
+  return <StatusBadge status={status} statusMap={VERIFICATION_STATUS_MAP} fallbackLabel={status} />
 }
 
 export default function RenterListPage() {

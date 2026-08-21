@@ -20,7 +20,7 @@ export function Component() {
           />
         </Link>
         <h1 className="font-headline-md text-headline-md text-on-surface">
-          Hệ thống Quản lý Bất động sản
+          Hệ thống Quản lý cho thuê phòng
         </h1>
       </div>
 
@@ -34,7 +34,7 @@ export function Component() {
       {/* Footer */}
       <footer className="mt-gap-sections text-center">
         <p className="font-label-md text-label-md text-on-surface-variant">
-          © 2024 Bản quyền thuộc về Rental SaaS. Mọi quyền được bảo lưu.
+          © 2026 Bản quyền thuộc về gondev. Mọi quyền được bảo lưu.
         </p>
       </footer>
     </main>

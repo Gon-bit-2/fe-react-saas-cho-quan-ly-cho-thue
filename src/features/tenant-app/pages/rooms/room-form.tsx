@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { useRoom, useProperties, useCreateRoom, useUpdateRoom, useFloors } from '@/shared/api/properties'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -147,6 +148,7 @@ export function Component() {
   }
 
   const properties = propertiesData?.data || []
+  const selectedProperty = properties.find((p: Property) => p.id.toString() === selectedPropertyId)
 
   return (
     <div className="animate-in fade-in mx-auto max-w-4xl space-y-8 pb-12 duration-500">
@@ -211,6 +213,17 @@ export function Component() {
                 />
                 {errors.propertyId && (
                   <p className="mt-1 text-sm font-medium text-red-500">{errors.propertyId.message}</p>
+                )}
+                {selectedProperty && (
+                  <p className="mt-1.5 text-xs text-slate-500 flex items-start gap-1">
+                    <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 text-slate-400" />
+                    <span>
+                      {selectedProperty.addressDetail}
+                      {selectedProperty.ward && `, ${selectedProperty.ward}`}
+                      {selectedProperty.district && `, ${selectedProperty.district}`}
+                      {selectedProperty.province && `, ${selectedProperty.province}`}
+                    </span>
+                  </p>
                 )}
               </div>
 
@@ -367,6 +380,21 @@ export function Component() {
                   <p className="mt-1 text-sm font-medium text-red-500">{errors.waterPrice.message}</p>
                 )}
               </div>
+            </div>
+
+            <div className="space-y-2.5 border-t border-slate-100 pt-4">
+              <Label htmlFor="description" className="font-medium text-slate-700">
+                Mô tả chi tiết (Tùy chọn)
+              </Label>
+              <Textarea
+                {...register('description')}
+                id="description"
+                placeholder="Mô tả các tiện ích trong phòng, lưu ý, nội quy riêng biệt..."
+                className={`border-slate-200 bg-slate-50 min-h-[100px] focus-visible:ring-emerald-500 ${errors.description ? 'border-red-500 ring-red-500' : ''}`}
+              />
+              {errors.description && (
+                <p className="mt-1 text-sm font-medium text-red-500">{errors.description.message}</p>
+              )}
             </div>
           </CardContent>
         </Card>

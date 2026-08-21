@@ -1,6 +1,8 @@
 import { useParams, Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { METER_READING_STATUS_MAP, METER_STATUS_MAP } from '@/shared/constants/status-config'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useUtilityMetersControllerGetById, useMeterReadingsControllerList } from '../api'
 import { RecordReadingDialog } from '../components/record-reading-dialog'
@@ -36,23 +38,8 @@ export function MeterDetailPage() {
   // `unknown`, so narrow the endpoint payload once at the API boundary.
   const readings = (readingsResponse as MeterReadingsListResponse | undefined)?.data ?? []
 
-  const getStatusBadge = (isActive: boolean) => {
-    if (isActive) return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Hoạt động</Badge>
-    return <Badge className="border border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-100">Ngừng HĐ</Badge>
-  }
-
   const getReadingStatusBadge = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED':
-        return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Đã duyệt</Badge>
-      case 'ABNORMAL':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Bất thường</Badge>
-      case 'REJECTED':
-        return <Badge className="bg-slate-300 text-slate-800 hover:bg-slate-300">Đã từ chối</Badge>
-      case 'DRAFT':
-      default:
-        return <Badge className="border border-blue-200 bg-blue-100 text-blue-800 hover:bg-blue-100">Chờ duyệt</Badge>
-    }
+    return <StatusBadge status={status} statusMap={METER_READING_STATUS_MAP} fallbackLabel={status} />
   }
 
   if (isLoadingMeter) {
@@ -87,7 +74,7 @@ export function MeterDetailPage() {
           <div>
             <div className="mb-1 flex items-center gap-3">
               <h1 className="text-2xl font-bold text-slate-900">{meter.serialNumber}</h1>
-              {getStatusBadge(meter.isActive)}
+              <StatusBadge status={meter.status} statusMap={METER_STATUS_MAP} />
             </div>
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
               <div className="flex items-center gap-1.5">

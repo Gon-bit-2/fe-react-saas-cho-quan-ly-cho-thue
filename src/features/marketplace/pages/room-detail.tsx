@@ -303,21 +303,43 @@ export function Component() {
 
         {/* Sidebar / CTA */}
         <aside className="w-full flex-shrink-0 md:w-80">
-          <div className="bg-surface-container-lowest border-surface-border sticky top-[calc(var(--spacing-topbar-height)+24px)] rounded-2xl border p-6 shadow-sm">
-            <div className="border-surface-border mb-6 flex items-center gap-4 border-b pb-6">
-              <div className="bg-primary-container text-primary font-headline-sm flex h-12 w-12 items-center justify-center rounded-full">
+          <div className="bg-surface-container-lowest border-surface-border sticky top-[calc(var(--spacing-topbar-height)+24px)] rounded-2xl border p-5 shadow-sm">
+            <h2 className="font-headline-sm text-text-main mb-4">Đăng bởi</h2>
+            
+            <div className="mb-4 flex items-start gap-4">
+              <div className="bg-primary-container text-primary font-headline-sm flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full">
                 {room.property.name.charAt(0)}
               </div>
-              <div>
-                <h3 className="font-label-md text-text-main">{room.property.name}</h3>
-                <p className="font-label-sm text-on-surface-variant">Chủ nhà / Quản lý</p>
+              <div className="flex flex-col justify-center">
+                <h3 className="font-headline-sm text-text-main leading-tight">{room.property.name}</h3>
+                {room.publishedAt && (
+                  <div className="bg-surface-container-low mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1">
+                    <div className="bg-surface-variant h-1.5 w-1.5 rounded-full"></div>
+                    <span className="font-body-sm text-on-surface-variant">
+                      Đăng lúc {new Intl.DateTimeFormat('vi-VN').format(new Date(room.publishedAt))}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="mb-6 space-y-1">
+              {room.createdAt && (
+                <p className="font-body-md text-on-surface">
+                  <span className="font-medium text-text-main">Tham gia: </span>
+                  từ {new Intl.DateTimeFormat('vi-VN', { month: 'numeric', year: 'numeric' }).format(new Date(room.createdAt))}
+                </p>
+              )}
+              <p className="font-body-md text-on-surface">
+                <span className="font-medium text-text-main">Khu vực: </span>
+                {room.property.district || room.property.province || 'Đang cập nhật'}
+              </p>
+            </div>
+
+            <div className="flex gap-2">
               {!isAuthenticated ? (
                 <Link to={`/dang-nhap?returnUrl=/phong/${id}`} className="flex w-full">
-                  <button className="bg-primary text-on-primary font-label-md w-full rounded-lg py-3 shadow-sm transition-opacity hover:opacity-90">
+                  <button className="bg-primary text-on-primary font-label-md w-full rounded-full px-4 py-2.5 shadow-sm transition-opacity hover:opacity-90">
                     Đăng nhập để liên hệ
                   </button>
                 </Link>
@@ -325,24 +347,27 @@ export function Component() {
                 <>
                   <button
                     onClick={() => setIsViewingOpen(true)}
-                    className="bg-surface text-primary border-primary font-label-md hover:bg-primary/5 w-full rounded-lg border py-3 transition-colors"
+                    className="bg-surface-container text-on-surface font-label-md hover:bg-surface-container-high flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 transition-colors"
                   >
-                    Đặt lịch xem phòng
+                    <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+                    Xem phòng
                   </button>
                   <button
                     onClick={() => setIsRequestOpen(true)}
-                    className="bg-primary text-on-primary font-label-md w-full rounded-lg py-3 shadow-sm transition-opacity hover:opacity-90"
+                    className="bg-primary text-on-primary font-label-md flex flex-[1.3] items-center justify-center gap-1.5 rounded-full px-2 py-2.5 shadow-sm transition-opacity hover:opacity-90"
                   >
-                    Gửi yêu cầu thuê
+                    <span className="material-symbols-outlined text-[18px]">send</span>
+                    Gửi yêu cầu
                   </button>
                 </>
               )}
             </div>
+            
             <p className="font-label-sm text-on-surface-variant mt-4 text-center">
-              Bạn không phải trả phí khi sử dụng dịch vụ đặt lịch và yêu cầu thuê.
+              Bạn không phải trả phí khi đặt lịch và yêu cầu thuê.
             </p>
 
-            <div className="border-surface-border mt-6 border-t pt-6">
+            <div className="border-surface-border mt-5 border-t pt-4">
               <button
                 onClick={() => setIsReportOpen(true)}
                 className="text-on-surface-variant hover:text-destructive flex w-full items-center justify-center gap-2 text-sm transition-colors"

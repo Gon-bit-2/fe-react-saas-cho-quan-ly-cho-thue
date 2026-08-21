@@ -7,6 +7,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import { SignContractDialog } from '@/features/tenant-app/pages/contracts/components/sign-contract-dialog'
 import { SelfServiceDetailDialog } from './components/self-service-detail-dialog'
 import { useState } from 'react'
+import { StatusBadge } from '@/components/ui/status-badge'
+import {
+  APPOINTMENT_STATUS_MAP,
+  RENTAL_REQUEST_STATUS_MAP,
+  CONTRACT_STATUS_MAP,
+  HANDOVER_STATUS_MAP,
+  INVOICE_STATUS_MAP,
+  TICKET_STATUS_MAP,
+  type StatusVisual,
+} from '@/shared/constants/status-config'
 
 type SelfServiceItem = Record<string, unknown>
 
@@ -160,12 +170,22 @@ export function Component() {
             Number.isInteger(itemId) &&
             ((slug === 'lich-xem-phong' && !['REJECTED', 'CANCELED', 'COMPLETED'].includes(status ?? '')) ||
               (slug === 'yeu-cau-thue' && ['PENDING', 'NEED_MORE_INFO'].includes(status ?? '')))
+          let currentStatusMap: Record<string, StatusVisual> | undefined
+          switch (slug) {
+            case 'lich-xem-phong': currentStatusMap = APPOINTMENT_STATUS_MAP; break;
+            case 'yeu-cau-thue': currentStatusMap = RENTAL_REQUEST_STATUS_MAP; break;
+            case 'hop-dong': currentStatusMap = CONTRACT_STATUS_MAP; break;
+            case 'ban-giao': currentStatusMap = HANDOVER_STATUS_MAP; break;
+            case 'hoa-don': currentStatusMap = INVOICE_STATUS_MAP; break;
+            case 'thanh-toan': currentStatusMap = INVOICE_STATUS_MAP; break;
+            case 'ho-tro': currentStatusMap = TICKET_STATUS_MAP; break;
+          }
           return (
             <Card key={textValue(item.id) ?? index} className="border-slate-200 shadow-sm">
               <CardContent className="space-y-3 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <h2 className="font-semibold text-slate-900">{itemTitle(item)}</h2>
-                  {status && <Badge variant="secondary">{status}</Badge>}
+                  {status && (currentStatusMap ? <StatusBadge status={status} statusMap={currentStatusMap} fallbackLabel={status} /> : <Badge variant="secondary">{status}</Badge>)}
                 </div>
                 {description && <p className="text-sm text-slate-600">{description}</p>}
                 <div className="flex flex-wrap justify-between gap-2 text-sm text-slate-500">

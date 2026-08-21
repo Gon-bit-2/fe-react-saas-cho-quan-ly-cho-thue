@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { TICKET_STATUS_MAP, TICKET_PRIORITY_MAP } from '@/shared/constants/status-config'
 import { TicketCommentSection } from '../components/ticket-comment-section'
 import { TicketAssignmentModal } from '../components/ticket-assignment-modal'
 import { ticketApi } from '../api/ticket.api'
@@ -109,64 +110,13 @@ export function TicketDetailPage() {
   }
 
   const getPriorityBadge = (priority?: TicketPriority) => {
-    switch (priority) {
-      case 'URGENT':
-        return (
-          <Badge className="flex gap-1 border-none bg-red-100 px-3 py-1 text-red-800">
-            <span className="material-symbols-outlined text-[14px]">priority_high</span>Khẩn cấp
-          </Badge>
-        )
-      case 'HIGH':
-        return (
-          <Badge className="flex gap-1 border-none bg-orange-100 px-3 py-1 text-orange-800">
-            <span className="material-symbols-outlined text-[14px]">priority_high</span>Cao
-          </Badge>
-        )
-      case 'MEDIUM':
-        return <Badge className="flex gap-1 border-none bg-blue-100 px-3 py-1 text-blue-800">Trung bình</Badge>
-      case 'LOW':
-      default:
-        return <Badge className="flex gap-1 border-none bg-slate-100 px-3 py-1 text-slate-800">Thấp</Badge>
-    }
+    if (!priority) return null
+    return <StatusBadge status={priority} statusMap={TICKET_PRIORITY_MAP} fallbackLabel={priority} className="px-3 py-1 text-sm" />
   }
 
   const getStatusBadge = (status?: TicketStatus) => {
-    switch (status) {
-      case 'OPEN':
-        return (
-          <Badge className="flex gap-1 border-none bg-blue-100 px-3 py-1 text-blue-800">
-            <span className="h-2 w-2 rounded-full bg-blue-500"></span>Mới tạo
-          </Badge>
-        )
-      case 'IN_PROGRESS':
-        return (
-          <Badge className="flex gap-1 border-none bg-amber-100 px-3 py-1 text-amber-800">
-            <span className="h-2 w-2 rounded-full bg-amber-500"></span>Đang xử lý
-          </Badge>
-        )
-      case 'WAITING_RENTER':
-        return (
-          <Badge className="flex gap-1 border-none bg-purple-100 px-3 py-1 text-purple-800">
-            <span className="h-2 w-2 rounded-full bg-purple-500"></span>Chờ phản hồi
-          </Badge>
-        )
-      case 'RESOLVED':
-        return (
-          <Badge className="flex gap-1 border-none bg-emerald-100 px-3 py-1 text-emerald-800">
-            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>Đã giải quyết
-          </Badge>
-        )
-      case 'CLOSED':
-      case 'CANCELED':
-        return (
-          <Badge className="flex gap-1 border-none bg-slate-100 px-3 py-1 text-slate-800">
-            <span className="h-2 w-2 rounded-full bg-slate-500"></span>
-            {status === 'CLOSED' ? 'Đã đóng' : 'Đã hủy'}
-          </Badge>
-        )
-      default:
-        return null
-    }
+    if (!status) return null
+    return <StatusBadge status={status} statusMap={TICKET_STATUS_MAP} fallbackLabel={status} className="px-3 py-1 text-sm" />
   }
 
   if (isLoading) {

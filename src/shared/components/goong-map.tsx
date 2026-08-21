@@ -40,7 +40,7 @@ export function GoongMap({
         goongjs.accessToken = maptilesKey
         const map = new goongjs.Map({
           container: containerRef.current,
-          style: 'https://tiles.goong.io/assets/goong_map_web.json',
+          style: `https://tiles.goong.io/assets/goong_map_web.json?api_key=${maptilesKey}`,
           center: [longitude, latitude],
           zoom: 16,
           attributionControl: true,

@@ -18,6 +18,17 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
+  const getRoleLabel = (role?: string | null) => {
+    if (!role) return 'Quản lý vận hành'
+    switch (role) {
+      case 'ADMIN': return 'Quản trị viên'
+      case 'MANAGER': return 'Quản lý vận hành'
+      case 'LANDLORD': return 'Chủ trọ'
+      case 'TENANT': return 'Người thuê'
+      case 'USER': return 'Người dùng'
+      default: return role
+    }
+  }
   const form = useForm<UpdateProfileFormValues>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
@@ -65,7 +76,7 @@ export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
             <input 
               id="role" 
               type="text" 
-              value={user.systemRole || 'Thành viên'} 
+              value={getRoleLabel(user.systemRole)} 
               disabled 
               className="w-full h-10 px-4 bg-surface-variant/30 rounded-lg font-body-md text-body-md text-on-surface-variant cursor-not-allowed border-none outline-none" 
             />
@@ -110,7 +121,7 @@ export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
                 id="timezone" 
                 className="w-full h-10 pl-4 pr-10 bg-surface rounded-lg font-body-md text-body-md text-on-surface appearance-none focus:outline-none focus:ring-2 focus:ring-primary transition-shadow cursor-pointer"
               >
-                <option value="ict">(GMT+07:00) Indochina Time</option>
+                <option value="ict">(GMT+07:00) Việt Nam</option>
               </select>
               <ChevronDown className="absolute right-3 top-2.5 text-outline w-5 h-5 pointer-events-none" />
             </div>

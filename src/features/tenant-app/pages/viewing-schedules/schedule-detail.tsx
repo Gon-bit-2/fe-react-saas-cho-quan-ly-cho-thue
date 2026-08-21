@@ -2,13 +2,12 @@ import { useParams, useNavigate } from 'react-router'
 import { ArrowLeft, Calendar, MapPin, Phone, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { APPOINTMENT_STATUS_MAP } from '@/shared/constants/status-config'
 import { useUpdateViewingAppointmentStatus, useViewingAppointmentForLandlord } from '@/shared/api/viewing-appointments'
 import type { AppointmentStatus } from '@/shared/api/generated/models'
 
-const statusLabel: Record<AppointmentStatus, string> = {
-  PENDING: 'Chờ xác nhận', CONFIRMED: 'Đã xác nhận', REJECTED: 'Đã từ chối',
-  RESCHEDULED: 'Đã dời lịch', CANCELED: 'Đã hủy', COMPLETED: 'Đã xem',
-}
+
 
 export function Component() {
   const id = Number(useParams().id)
@@ -25,7 +24,7 @@ export function Component() {
     <div className="mx-auto max-w-4xl space-y-6 pb-12">
       <Button variant="ghost" onClick={() => navigate('/lich-xem-phong')}><ArrowLeft className="mr-2 h-4 w-4" />Quay lại</Button>
       <div className="flex flex-col justify-between gap-4 rounded-xl border bg-white p-6 sm:flex-row sm:items-center">
-        <div><h1 className="text-2xl font-bold">Lịch hẹn #{data.id}</h1><Badge className="mt-2" variant="secondary">{statusLabel[data.status]}</Badge></div>
+        <div><h1 className="text-2xl font-bold">Lịch hẹn #{data.id}</h1><div className="mt-2"><StatusBadge status={data.status} statusMap={APPOINTMENT_STATUS_MAP} fallbackLabel={data.status} /></div></div>
         <div className="flex flex-wrap gap-2">
           {data.status === 'PENDING' && <Button onClick={() => setStatus('CONFIRMED')} disabled={updateStatus.isPending}>Xác nhận</Button>}
           {['PENDING', 'CONFIRMED', 'RESCHEDULED'].includes(data.status) && <Button variant="outline" onClick={() => setStatus('CANCELED')} disabled={updateStatus.isPending}>Hủy lịch</Button>}

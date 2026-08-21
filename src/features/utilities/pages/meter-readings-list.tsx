@@ -5,7 +5,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { METER_READING_STATUS_MAP } from '@/shared/constants/status-config'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useMeterReadingsControllerList, meterReadingsControllerUpdateStatus } from '../api'
@@ -51,17 +52,7 @@ export function MeterReadingsListPage() {
   const total = (response as unknown as { meta?: { total?: number } })?.meta?.total || 0
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED':
-        return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Đã duyệt</Badge>
-      case 'ABNORMAL':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Bất thường</Badge>
-      case 'REJECTED':
-        return <Badge className="bg-slate-300 text-slate-800 hover:bg-slate-300">Đã từ chối</Badge>
-      case 'DRAFT':
-      default:
-        return <Badge className="border border-blue-200 bg-blue-100 text-blue-800 hover:bg-blue-100">Chờ duyệt</Badge>
-    }
+    return <StatusBadge status={status} statusMap={METER_READING_STATUS_MAP} fallbackLabel={status} />
   }
 
   const getTypeBadge = (type: string) => {

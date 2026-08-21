@@ -73,6 +73,7 @@ export interface TenantInfo {
   readonly name: string
   readonly slug: string
   readonly status: TenantStatus
+  readonly verificationStatus: string
   readonly ownerUserId: number
 }
 

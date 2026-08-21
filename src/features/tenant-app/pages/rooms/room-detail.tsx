@@ -40,6 +40,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { MARKETPLACE_STATUS_MAP } from '@/shared/constants/status-config'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function Component() {
@@ -238,25 +240,7 @@ export function Component() {
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-50 py-2">
                   <span className="text-slate-500">Marketplace</span>
-                  <Badge
-                    variant={
-                      room.marketplaceStatus === 'PUBLISHED'
-                        ? 'default'
-                        : room.marketplaceStatus === 'REJECTED'
-                          ? 'destructive'
-                          : room.marketplaceStatus === 'PENDING_REVIEW'
-                            ? 'secondary'
-                            : 'outline'
-                    }
-                  >
-                    {{
-                      DRAFT: 'Bản nháp',
-                      PENDING_REVIEW: 'Chờ duyệt',
-                      PUBLISHED: 'Đã đăng',
-                      REJECTED: 'Từ chối',
-                      UNPUBLISHED: 'Đã ẩn',
-                    }[room.marketplaceStatus as string] || room.marketplaceStatus}
-                  </Badge>
+                  <StatusBadge status={room.marketplaceStatus as string} statusMap={MARKETPLACE_STATUS_MAP} />
                 </div>
               </CardContent>
             </Card>

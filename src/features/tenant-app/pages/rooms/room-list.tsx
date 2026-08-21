@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { ROOM_STATUS_MAP, MARKETPLACE_STATUS_MAP } from '@/shared/constants/status-config'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, Search, DoorOpen, Building2, MapPin } from 'lucide-react'
 import type { Property, Room } from '@/features/tenant-app/types'
@@ -23,33 +25,12 @@ export function Component() {
   })
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'AVAILABLE':
-        return <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 shadow-sm">Phòng trống</Badge>
-      case 'OCCUPIED':
-        return (
-          <Badge variant="secondary" className="border-blue-200 bg-blue-50 text-blue-700 font-medium px-2 py-0.5 shadow-sm">
-            Đang thuê
-          </Badge>
-        )
-      case 'MAINTENANCE':
-        return (
-          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 font-medium px-2 py-0.5 shadow-sm">
-            Bảo trì
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline" className="font-medium px-2 py-0.5 shadow-sm">{status}</Badge>
-    }
+    return <StatusBadge status={status} statusMap={ROOM_STATUS_MAP} fallbackLabel={status} />
   }
 
   const getMarketplaceBadge = (status: string) => {
     if (status === 'PUBLISHED')
-      return (
-        <Badge variant="default" className="text-[10px] bg-slate-900 text-white font-semibold">
-          Marketplace
-        </Badge>
-      )
+      return <StatusBadge status={status} statusMap={MARKETPLACE_STATUS_MAP} fallbackLabel="Marketplace" className="text-[10px]" />
     return null
   }
 

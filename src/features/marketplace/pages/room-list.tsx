@@ -9,6 +9,7 @@ export function Component() {
 
   // Local state for filters
   const [filters, setFilters] = useState({
+    search: searchParams.get('search') || '',
     provinceCode: searchParams.get('provinceCode') || '',
     wardCode: searchParams.get('wardCode') || '',
     propertyType: searchParams.get('propertyType') || '',
@@ -24,6 +25,7 @@ export function Component() {
     limit: 12,
   }
 
+  if (filters.search) apiFilters.search = filters.search
   if (filters.provinceCode) apiFilters.provinceCode = filters.provinceCode
   if (filters.wardCode) apiFilters.wardCode = filters.wardCode
   if (filters.propertyType) apiFilters.propertyType = filters.propertyType
@@ -51,6 +53,7 @@ export function Component() {
 
   const handleApplyFilters = () => {
     const params = new URLSearchParams()
+    if (filters.search) params.set('search', filters.search)
     if (filters.provinceCode) params.set('provinceCode', filters.provinceCode)
     if (filters.wardCode) params.set('wardCode', filters.wardCode)
     if (filters.propertyType) params.set('propertyType', filters.propertyType)
@@ -99,6 +102,21 @@ export function Component() {
 
           <div className="space-y-6">
             <div>
+              <label className="font-label-md text-on-surface mb-2 block">Tìm kiếm</label>
+              <div className="relative">
+                <span className="material-symbols-outlined text-on-surface-variant pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px]">
+                  search
+                </span>
+                <input
+                  type="text"
+                  placeholder="Nhập tên khu vực, tên phòng..."
+                  value={filters.search}
+                  onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+                  className="bg-surface-container-lowest border-surface-border focus:border-primary font-body-md text-on-surface flex h-10 w-full rounded-lg border px-10 outline-none"
+                />
+              </div>
+            </div>
+            <div>
               <label className="font-label-md text-on-surface mb-2 block">Khu vực</label>
 
               {filters.lat ? (
@@ -143,6 +161,26 @@ export function Component() {
                     <span className="material-symbols-outlined text-[18px]">my_location</span>
                     Tìm quanh đây
                   </button>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <button
+                      onClick={() => setFilters(f => ({ ...f, provinceCode: '01', wardCode: '', lat: '', lng: '' }))}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filters.provinceCode === '01' ? 'bg-primary text-white' : 'bg-surface-container hover:bg-surface-container-high text-on-surface'}`}
+                    >
+                      Hà Nội
+                    </button>
+                    <button
+                      onClick={() => setFilters(f => ({ ...f, provinceCode: '79', wardCode: '', lat: '', lng: '' }))}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filters.provinceCode === '79' ? 'bg-primary text-white' : 'bg-surface-container hover:bg-surface-container-high text-on-surface'}`}
+                    >
+                      Hồ Chí Minh
+                    </button>
+                    <button
+                      onClick={() => setFilters(f => ({ ...f, provinceCode: '48', wardCode: '', lat: '', lng: '' }))}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filters.provinceCode === '48' ? 'bg-primary text-white' : 'bg-surface-container hover:bg-surface-container-high text-on-surface'}`}
+                    >
+                      Đà Nẵng
+                    </button>
+                  </div>
                   <AdministrativeAreaSelect
                     provinceCode={filters.provinceCode}
                     wardCode={filters.wardCode}

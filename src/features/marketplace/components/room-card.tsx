@@ -109,7 +109,9 @@ export function RoomCard({ room, variant = 'default', badge = null }: RoomCardPr
             
             <p className="font-body-md text-on-surface-variant flex items-center gap-1 mb-4">
               <span className="material-symbols-outlined text-[18px]">location_on</span>
-              {room.property.district}, {room.property.province}
+              <span className="line-clamp-1">
+                {[room.property?.addressDetail, room.property?.ward, room.property?.district, room.property?.province].filter(Boolean).join(', ') || 'Chưa cập nhật địa chỉ'}
+              </span>
             </p>
             
             <div className="flex flex-wrap gap-2 mb-6">
@@ -157,10 +159,12 @@ export function RoomCard({ room, variant = 'default', badge = null }: RoomCardPr
       <div className="p-5 flex-1 flex flex-col bg-white relative z-30 pointer-events-none">
         <p className="font-body-sm text-slate-500 flex items-center gap-1 mb-2">
           <span className="material-symbols-outlined text-[16px]">location_on</span>
-          <span className="line-clamp-1">{room.property.district}, {room.property.province}</span>
+          <span className="line-clamp-1">
+            {[room.property?.addressDetail, room.property?.ward, room.property?.district, room.property?.province].filter(Boolean).join(', ') || 'Chưa cập nhật địa chỉ'}
+          </span>
         </p>
         
-        <h3 className="font-headline-sm text-slate-900 line-clamp-2 mb-3 h-12 leading-tight">{room.title}</h3>
+        <h3 className="font-headline-sm text-slate-900 line-clamp-2 mb-3 leading-snug">{room.title}</h3>
         
         <div className="flex items-center gap-4 text-slate-500 mb-5 font-label-sm">
           <span className="flex items-center gap-1.5">

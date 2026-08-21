@@ -212,6 +212,26 @@ export const useUpdateRoomMarketplace = (id: number) => {
   })
 }
 
+export const useUploadPropertyVerification = () => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+
+  return useMutation({
+    mutationFn: async (files: File[]) => {
+      const formData = new FormData()
+      files.forEach((file) => formData.append('files', file))
+
+      const { data } = await apiClient.post<string[]>('/properties/upload-verification', formData, {
+        tenantId,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      return data
+    },
+  })
+}
+
 export const useUploadRoomImages = (id: number) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')

@@ -3,6 +3,8 @@ import { useTerminations, useApproveTermination, useRejectTermination } from '@/
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { TERMINATION_STATUS_MAP } from '@/shared/constants/status-config'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,13 +20,6 @@ import { Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ContractTerminationRequest } from '@/types/termination'
 
-const statusMap: Record<string, string> = {
-  PENDING: 'Chờ duyệt',
-  APPROVED: 'Đã duyệt',
-  REJECTED: 'Từ chối',
-  COMPLETED: 'Hoàn thành',
-  CANCELED: 'Đã hủy',
-}
 
 export default function TerminationList() {
   const { data, isLoading } = useTerminations()
@@ -82,26 +77,7 @@ export default function TerminationList() {
                     </p>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        item.status === 'PENDING'
-                          ? 'secondary'
-                          : item.status === 'APPROVED'
-                            ? 'default'
-                            : item.status === 'COMPLETED'
-                              ? 'default'
-                              : item.status === 'REJECTED'
-                                ? 'destructive'
-                                : 'outline'
-                      }
-                      className={
-                        item.status === 'APPROVED' || item.status === 'COMPLETED'
-                          ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                          : ''
-                      }
-                    >
-                      {statusMap[item.status] || item.status}
-                    </Badge>
+                    <StatusBadge status={item.status} statusMap={TERMINATION_STATUS_MAP} fallbackLabel={item.status} />
                   </TableCell>
                   <TableCell className="text-right">
                     {item.status === 'PENDING' ? (

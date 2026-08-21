@@ -86,7 +86,7 @@ export function Component() {
           Tạo tài khoản mới
         </h2>
         <p className="font-body-md text-body-md text-on-surface-variant">
-          Bắt đầu quản lý bất động sản của bạn một cách thông minh.
+          Bắt đầu quản lý cho thuê phòng của bạn một cách thông minh.
         </p>
       </div>
 

@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, MapPin, Building2, DoorOpen, Edit, Plus, Users, Wallet, Settings2 } from 'lucide-react'
 import { GoongMap } from '@/shared/components/goong-map'
 import type { Room } from '@/features/tenant-app/types'
-
+import { StatusBadge } from '@/components/ui/status-badge'
+import { ROOM_STATUS_MAP } from '@/shared/constants/status-config'
 export function Component() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -243,19 +244,7 @@ export function Component() {
                           </div>
                           <div className="font-label-md text-on-surface-variant mt-1">{room.floor?.name ?? 'Chưa xếp tầng'}</div>
                         </div>
-                        {room.status === 'AVAILABLE' ? (
-                          <Badge className="font-label-sm border-none bg-emerald-500/10 text-emerald-600 shadow-none hover:bg-emerald-500/20">
-                            Trống
-                          </Badge>
-                        ) : room.status === 'OCCUPIED' ? (
-                          <Badge className="bg-primary/10 text-primary hover:bg-primary/20 font-label-sm border-none shadow-none">
-                            Đang thuê
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-status-warning/10 text-status-warning hover:bg-status-warning/20 font-label-sm border-none shadow-none">
-                            Bảo trì
-                          </Badge>
-                        )}
+                        <StatusBadge status={room.status} statusMap={ROOM_STATUS_MAP} fallbackLabel={room.status} className="font-label-sm shadow-none border-none" />
                       </div>
 
                       <div className="border-surface-border text-on-surface-variant mb-4 flex items-center gap-4 border-y py-3">

@@ -12,6 +12,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { PROPERTY_STATUS_MAP, PROPERTY_TYPE_MAP } from '@/shared/constants/status-config'
 import { Plus, Search, Building2, MapPin, Grid, List } from 'lucide-react'
 import type { Property } from '@/features/tenant-app/types'
 
@@ -22,24 +24,11 @@ export function Component() {
   const { data, isLoading } = useProperties(searchTerm ? { search: searchTerm } : {})
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-label-sm uppercase tracking-wider shadow-none">Hoạt động</Badge>
-      case 'MAINTENANCE':
-        return <Badge className="bg-status-warning/10 text-status-warning hover:bg-status-warning/20 border-none font-label-sm uppercase tracking-wider shadow-none">Bảo trì</Badge>
-      default:
-        return <Badge variant="outline" className="text-on-surface-variant border-surface-border font-label-sm uppercase tracking-wider shadow-none">Đóng cửa</Badge>
-    }
+    return <StatusBadge status={status} statusMap={PROPERTY_STATUS_MAP} fallbackLabel={status} className="font-label-sm uppercase tracking-wider shadow-none border-none" />
   }
 
   const getTypeBadge = (type: string) => {
-    switch (type) {
-      case 'MINI_APARTMENT': return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">Chung cư mini</Badge>
-      case 'DORM': return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">Phòng trọ / KTX</Badge>
-      case 'HOUSE': return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">Nhà nguyên căn</Badge>
-      case 'APARTMENT': return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">Chung cư</Badge>
-      default: return <Badge variant="outline" className="font-label-sm text-on-surface-variant bg-surface-container-lowest shadow-none border-surface-border">{type}</Badge>
-    }
+    return <StatusBadge status={type} statusMap={PROPERTY_TYPE_MAP} fallbackLabel={type} className="font-label-sm shadow-none" />
   }
 
   return (

@@ -3,14 +3,8 @@ import { useRoomAssets } from '@/shared/api/assets'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-
-const conditionMap: Record<string, string> = {
-  NEW: 'Mới',
-  GOOD: 'Tốt',
-  NORMAL: 'Bình thường',
-  DAMAGED: 'Hư hỏng',
-  LOST: 'Thất lạc'
-}
+import { StatusBadge } from '@/components/ui/status-badge'
+import { ASSET_CONDITION_MAP } from '@/shared/constants/status-config'
 
 export default function RoomAssets() {
   const { roomId } = useParams()
@@ -44,9 +38,7 @@ export default function RoomAssets() {
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
                   <TableCell>
-                    <Badge variant={item.condition === 'DAMAGED' || item.condition === 'LOST' ? 'destructive' : 'default'}>
-                      {conditionMap[item.condition] || item.condition}
-                    </Badge>
+                    <StatusBadge status={item.condition} statusMap={ASSET_CONDITION_MAP} fallbackLabel={item.condition} />
                   </TableCell>
                   <TableCell>{item.description || '-'}</TableCell>
                 </TableRow>

@@ -3,6 +3,8 @@ import { useRentalRequest, useUpdateRentalRequestDecision } from '@/shared/api/r
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { RENTAL_REQUEST_STATUS_MAP } from '@/shared/constants/status-config'
 import { ArrowLeft, User, Phone, Mail, MapPin, Calendar, Clock, CheckCircle2, XCircle, Info, MessagesSquare, Check } from 'lucide-react'
 import type { RentalRequestStatus } from '@/types/rental-request'
 import { toast } from 'sonner'
@@ -35,14 +37,7 @@ export function Component() {
   }
 
   const getStatusBadge = (status: RentalRequestStatus) => {
-    switch (status) {
-      case 'PENDING':
-        return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none px-3 py-1 shadow-sm text-sm"><Clock className="w-4 h-4 mr-2" /> Chờ xét duyệt</Badge>
-      case 'APPROVED':
-        return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none px-3 py-1 shadow-sm text-sm"><CheckCircle2 className="w-4 h-4 mr-2" /> Đã phê duyệt</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
+    return <StatusBadge status={status} statusMap={RENTAL_REQUEST_STATUS_MAP} fallbackLabel={status} className="px-3 py-1 shadow-sm text-sm" />
   }
 
   return (

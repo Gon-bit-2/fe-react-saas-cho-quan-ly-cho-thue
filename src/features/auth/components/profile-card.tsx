@@ -6,6 +6,17 @@ interface ProfileCardProps {
 }
 
 export function ProfileCard({ user }: ProfileCardProps) {
+  const getRoleLabel = (role?: string | null) => {
+    if (!role) return 'Quản lý vận hành'
+    switch (role) {
+      case 'ADMIN': return 'Quản trị viên'
+      case 'MANAGER': return 'Quản lý vận hành'
+      case 'LANDLORD': return 'Chủ trọ'
+      case 'TENANT': return 'Người thuê'
+      case 'USER': return 'Người dùng'
+      default: return role
+    }
+  }
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-md flex flex-col items-center text-center">
@@ -38,7 +49,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
           {user.fullName}
         </h1>
         <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-6">
-          {user.systemRole || 'Thành viên'}
+          {getRoleLabel(user.systemRole)}
         </span>
 
         {/* Quick Stats / Badges */}

@@ -20,8 +20,14 @@ export function PaymentListPage() {
     fetchPayments()
   }, [])
 
+  const totalRevenue = payments.filter((p) => p.status === 'PAID').reduce((sum, p) => sum + (p.amount || 0), 0)
+  const successfulTransactions = payments.filter((p) => p.status === 'PAID').length
+  const pendingTransactions = payments.filter((p) => p.status === 'PENDING').length
+  const successRate = payments.length > 0 ? Math.round((successfulTransactions / payments.length) * 100) : 0
+
   const getStatusDisplay = (status: string) => {
     switch (status) {
+      case 'PAID':
       case 'SUCCESS':
         return (
           <span className="bg-tertiary-container/20 text-tertiary font-label-md text-label-md inline-flex items-center rounded-full px-2.5 py-1">
@@ -34,6 +40,12 @@ export function PaymentListPage() {
             <span className="material-symbols-outlined mr-1 text-[14px]">cancel</span> Thất bại
           </span>
         )
+      case 'EXPIRED':
+        return (
+          <span className="bg-error-container/50 text-on-error-container font-label-md text-label-md inline-flex items-center rounded-full px-2.5 py-1">
+            <span className="material-symbols-outlined mr-1 text-[14px]">timer_off</span> Hết hạn
+          </span>
+        )
       case 'PENDING':
         return (
           <span className="bg-surface-container-highest text-status-warning font-label-md text-label-md inline-flex items-center rounded-full px-2.5 py-1">
@@ -41,6 +53,7 @@ export function PaymentListPage() {
           </span>
         )
       case 'CANCELLED':
+      case 'CANCELED':
         return (
           <span className="bg-surface-variant text-on-surface-variant font-label-md text-label-md inline-flex items-center rounded-full px-2.5 py-1">
             <span className="material-symbols-outlined mr-1 text-[14px]">not_interested</span> Đã hủy
@@ -74,10 +87,10 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Tổng doanh thu</span>
             <span className="material-symbols-outlined text-[20px]">account_balance_wallet</span>
           </div>
-          <div className="font-display text-display text-on-surface">0đ</div>
-          <div className="font-body-md text-body-md text-status-info flex items-center gap-1">
-            <span className="material-symbols-outlined text-[16px]">trending_flat</span>
-            <span>Chưa có dữ liệu</span>
+          <div className="font-display text-display text-on-surface">{totalRevenue.toLocaleString('vi-VN')}đ</div>
+          <div className="font-body-md text-body-md flex items-center gap-1 text-on-surface-variant">
+            <span className="material-symbols-outlined text-[16px]">info</span>
+            <span>Tổng số tiền đã nhận</span>
           </div>
         </div>
         <div className="bg-surface flex flex-col gap-2 rounded-xl p-6 shadow-sm">
@@ -85,10 +98,10 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Giao dịch thành công</span>
             <span className="material-symbols-outlined text-[20px]">check_circle</span>
           </div>
-          <div className="font-display text-display text-on-surface">0</div>
-          <div className="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
-            <span className="material-symbols-outlined text-[16px]">schedule</span>
-            <span>Chưa có dữ liệu</span>
+          <div className="font-display text-display text-on-surface">{successfulTransactions}</div>
+          <div className="font-body-md text-body-md flex items-center gap-1 text-on-surface-variant">
+            <span className="material-symbols-outlined text-[16px]">info</span>
+            <span>Giao dịch hoàn tất</span>
           </div>
         </div>
         <div className="bg-surface flex flex-col gap-2 rounded-xl p-6 shadow-sm">
@@ -96,9 +109,10 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Đang chờ xử lý</span>
             <span className="material-symbols-outlined text-[20px]">hourglass_empty</span>
           </div>
-          <div className="font-display text-display text-status-warning">0</div>
-          <div className="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
-            <span>Chưa có dữ liệu</span>
+          <div className="font-display text-display text-status-warning">{pendingTransactions}</div>
+          <div className="font-body-md text-body-md flex items-center gap-1 text-on-surface-variant">
+            <span className="material-symbols-outlined text-[16px]">info</span>
+            <span>Chưa thanh toán</span>
           </div>
         </div>
         <div className="bg-surface flex flex-col gap-2 rounded-xl p-6 shadow-sm">
@@ -106,9 +120,9 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Tỷ lệ thành công</span>
             <span className="material-symbols-outlined text-[20px]">pie_chart</span>
           </div>
-          <div className="font-display text-display text-on-surface">0%</div>
+          <div className="font-display text-display text-on-surface">{successRate}%</div>
           <div className="bg-surface-container-high mt-2 h-2 w-full overflow-hidden rounded-full">
-            <div className="bg-status-info h-full rounded-full" style={{ width: '0%' }}></div>
+            <div className="bg-status-info h-full rounded-full transition-all duration-500" style={{ width: `${successRate}%` }}></div>
           </div>
         </div>
       </div>

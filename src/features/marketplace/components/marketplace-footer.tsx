@@ -22,7 +22,7 @@ export function MarketplaceFooter() {
               </div>
             </Link>
             <p className="text-on-surface-variant font-body-sm max-w-sm">
-              Nền tảng tìm kiếm và quản lý cho thuê bất động sản hiện đại, an toàn và minh bạch.
+              Nền tảng tìm kiếm và quản lý cho thuê phòng hiện đại, an toàn và minh bạch.
             </p>
           </div>
           
@@ -47,7 +47,7 @@ export function MarketplaceFooter() {
         
         <div className="mt-16 pt-6 border-t border-surface-border flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-on-surface-variant font-body-sm">
-            &copy; 2024 Rental SaaS. Mọi quyền được bảo lưu.
+            &copy; 2026 gondev. Mọi quyền được bảo lưu.
           </p>
           <div className="flex items-center gap-4 text-on-surface-variant relative">
             {/* Nút Quét QR Code — mở modal hiển thị QR */}

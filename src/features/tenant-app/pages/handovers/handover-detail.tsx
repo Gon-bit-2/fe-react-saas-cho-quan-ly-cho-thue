@@ -2,8 +2,11 @@ import { useParams, Link } from 'react-router'
 import { useState } from 'react'
 import { useHandover, useConfirmHandover } from '@/shared/api/handovers'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { HANDOVER_STATUS_MAP, ASSET_CONDITION_MAP } from '@/shared/constants/status-config'
+import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Loader2, Camera, User, FileSignature, CheckCircle } from 'lucide-react'
@@ -11,19 +14,7 @@ import type { HandoverAssetItem, AssetCondition } from '@/types/asset'
 import { Input } from '@/components/ui/input'
 
 const ConditionBadge = ({ condition }: { condition: string }) => {
-  const map: Record<string, { label: string; color: string }> = {
-    NEW: { label: 'Mới', color: 'bg-blue-100 text-blue-700' },
-    GOOD: { label: 'Tốt', color: 'bg-emerald-100 text-emerald-700' },
-    NORMAL: { label: 'Bình thường', color: 'bg-slate-100 text-slate-700' },
-    DAMAGED: { label: 'Hư hỏng', color: 'bg-red-100 text-red-700' },
-    LOST: { label: 'Mất', color: 'bg-gray-100 text-gray-700' },
-  }
-  const config = map[condition] || map.NORMAL
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.color}`}>
-      {config.label}
-    </span>
-  )
+  return <StatusBadge status={condition} statusMap={ASSET_CONDITION_MAP} fallbackLabel={condition} />
 }
 
 export default function HandoverDetail() {
@@ -94,9 +85,7 @@ export default function HandoverDetail() {
             </Button>
           ) : (
             <div className="flex items-center gap-2">
-              <Badge variant={isCompleted ? 'default' : 'secondary'} className="h-8 px-3">
-                {isCompleted ? 'Hoàn thành' : 'Đang thực hiện'}
-              </Badge>
+              <StatusBadge status={handover.status} statusMap={HANDOVER_STATUS_MAP} fallbackLabel={handover.status} />
               {!isCompleted && (
                 <Button
                   onClick={handleConfirm}

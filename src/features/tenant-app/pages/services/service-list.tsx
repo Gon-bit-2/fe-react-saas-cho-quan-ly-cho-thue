@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { SERVICE_STATUS_MAP } from '@/shared/constants/status-config'
 import { Plus } from 'lucide-react'
 
 export default function ServiceList() {
@@ -46,9 +48,7 @@ export default function ServiceList() {
                   <TableCell>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.defaultUnitPrice)}</TableCell>
                   <TableCell>{item.unitLabel}</TableCell>
                   <TableCell>
-                    <Badge variant={item.isActive ? 'default' : 'secondary'}>
-                      {item.isActive ? 'ACTIVE' : 'INACTIVE'}
-                    </Badge>
+                    <StatusBadge status={item.isActive ? 'ACTIVE' : 'INACTIVE'} statusMap={SERVICE_STATUS_MAP} fallbackLabel={item.isActive ? 'ACTIVE' : 'INACTIVE'} />
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" asChild>

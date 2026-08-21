@@ -2,19 +2,13 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { CalendarDays, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { APPOINTMENT_STATUS_MAP } from '@/shared/constants/status-config'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useViewingAppointments } from '@/shared/api/viewing-appointments'
 import type { AppointmentStatus } from '@/shared/api/generated/models'
 
-const statusLabel: Record<AppointmentStatus, string> = {
-  PENDING: 'Chờ xác nhận',
-  CONFIRMED: 'Đã xác nhận',
-  REJECTED: 'Đã từ chối',
-  RESCHEDULED: 'Đã dời lịch',
-  CANCELED: 'Đã hủy',
-  COMPLETED: 'Đã xem',
-}
 
 export function Component() {
   const navigate = useNavigate()
@@ -37,7 +31,7 @@ export function Component() {
           <SelectTrigger className="w-full sm:w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
-            {Object.entries(statusLabel).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+            {Object.keys(APPOINTMENT_STATUS_MAP).map((value) => <SelectItem key={value} value={value}>{APPOINTMENT_STATUS_MAP[value].label}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -59,7 +53,7 @@ export function Component() {
                   <td className="p-4"><div className="font-medium">{appointment.room.title}</div><div className="text-xs text-slate-500">{appointment.room.roomCode}</div></td>
                   <td className="p-4">{new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(appointment.scheduledAt))}</td>
                   <td className="p-4">{appointment.assignedStaff?.fullName ?? 'Chưa phân công'}</td>
-                  <td className="p-4"><Badge variant="secondary">{statusLabel[appointment.status]}</Badge></td>
+                  <td className="p-4"><StatusBadge status={appointment.status} statusMap={APPOINTMENT_STATUS_MAP} fallbackLabel={appointment.status} /></td>
                 </tr>
               ))}
             </tbody>

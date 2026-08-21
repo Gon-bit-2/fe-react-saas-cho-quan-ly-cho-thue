@@ -96,7 +96,7 @@ export function Component() {
         <img alt="Nhà Trọ Việt Logo" className="mb-4 h-16 w-auto object-contain" src="/logo.png" />
         <h2 className="font-headline-lg text-headline-lg text-on-surface">Nhà Trọ Việt</h2>
         <p className="font-body-md text-body-md text-on-surface-variant mt-2 text-center">
-          Đăng nhập vào tài khoản của bạn để quản lý bất động sản
+          Đăng nhập vào tài khoản của bạn để quản lý cho thuê phòng
         </p>
       </div>
 

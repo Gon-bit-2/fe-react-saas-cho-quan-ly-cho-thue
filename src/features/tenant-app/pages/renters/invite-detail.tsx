@@ -3,6 +3,8 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { INVITE_STATUS_MAP } from '@/shared/constants/status-config'
 
 import { useRenterInvitation } from '@/shared/api/renters'
 
@@ -19,17 +21,7 @@ export default function RenterInviteDetailPage() {
   }
 
   const getStatusBadge = () => {
-    switch (invite.status) {
-      case 'ACCEPTED':
-        return <Badge className="bg-green-100 text-green-700">Đã chấp nhận</Badge>
-      case 'EXPIRED':
-        return <Badge className="bg-slate-100 text-slate-700">Đã hết hạn</Badge>
-      case 'CANCELED':
-        return <Badge className="bg-red-100 text-red-700">Đã hủy</Badge>
-      case 'PENDING':
-      default:
-        return <Badge className="bg-yellow-100 text-yellow-700">Đang chờ</Badge>
-    }
+    return <StatusBadge status={invite.status} statusMap={INVITE_STATUS_MAP} fallbackLabel={invite.status} />
   }
 
   return (
@@ -60,33 +52,43 @@ export default function RenterInviteDetailPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Bỏ Link Invite vì API không còn trả về nữa */}
-        <Card className="md:col-span-2 flex flex-col justify-center items-center text-center p-8 bg-slate-50 border-dashed">
-            <p className="text-slate-500 mb-2">Lời mời đã được gửi đi qua email tới người dùng.</p>
-            <p className="text-sm text-slate-400">Người thuê sẽ nhận được email hướng dẫn và link đăng ký kèm theo.</p>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Thông tin người nhận</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Họ và tên</p>
+              <p className="text-base font-medium">{invite.fullName}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">Số điện thoại</p>
+              <p className="text-base font-medium">{invite.phone}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">Email</p>
+              <p className="text-base font-medium">{invite.email}</p>
+            </div>
+          </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Thông tin lời mời</CardTitle>
+            <CardTitle>Chi tiết phòng thuê</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <div className="text-xs text-slate-500 mb-1">Người nhận</div>
-              <div className="text-sm font-medium text-slate-900">{invite.fullName}</div>
+              <p className="text-sm font-medium text-slate-500">Phòng</p>
+              <p className="text-base font-medium">{invite.room?.title} ({invite.room?.roomCode})</p>
             </div>
             <div>
-              <div className="text-xs text-slate-500 mb-1">Thời gian gửi</div>
-              <div className="text-sm text-slate-900">
-                {new Date(invite.createdAt).toLocaleString('vi-VN')}
-              </div>
+              <p className="text-sm font-medium text-slate-500">Khu trọ / Tòa nhà</p>
+              <p className="text-base font-medium">{invite.property?.name}</p>
             </div>
             <div>
-              <div className="text-xs text-slate-500 mb-1">Hết hạn vào</div>
-              <div className="text-sm text-slate-900">
-                {new Date(invite.expiresAt).toLocaleString('vi-VN')}
-              </div>
+              <p className="text-sm font-medium text-slate-500">Vai trò</p>
+              <p className="text-base font-medium">Người thuê chính</p>
             </div>
           </CardContent>
         </Card>
