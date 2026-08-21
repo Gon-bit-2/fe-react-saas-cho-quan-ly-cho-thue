@@ -12,8 +12,13 @@ export interface ContractMember {
   /** @minimum 1 */
   id: number;
   /** @minimum 1 */
-  userId: number;
+  userId?: number | null;
+  fullName?: string | null;
+  phone?: string | null;
+  age?: number | null;
+  identityCard?: string | null;
+  identityCardImageUrl?: string | null;
   role: ContractMemberRole;
   createdAt: string;
-  user: UserSummary;
+  user?: UserSummary | null;
 }

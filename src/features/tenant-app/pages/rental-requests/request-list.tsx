@@ -118,7 +118,10 @@ export function Component() {
                         <User className="h-5 w-5" />
                       </div>
                       <div>
-                        <div className="font-semibold text-slate-900">Renter {req.renterId}</div>
+                        <div className="font-semibold text-slate-900">
+                          {/* @ts-ignore */}
+                          {req.renter?.fullName || `Khách thuê #${req.renterId}`}
+                        </div>
                         <div className="text-xs text-slate-500 mt-0.5">Ngày gửi: {formatDate(req.createdAt)}</div>
                       </div>
                     </div>

@@ -3,14 +3,15 @@ import { useParams, useNavigate, useSearchParams } from 'react-router'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useRoom, useProperties, useCreateRoom, useUpdateRoom, useFloors } from '@/shared/api/properties'
+import { useRoom, useProperties, useCreateRoom, useUpdateRoom, useFloors, useUploadRoomImages } from '@/shared/api/properties'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, Save, Building2, MapPin, Loader2 } from 'lucide-react'
+import { ArrowLeft, Save, Building2, MapPin, Loader2, ImageIcon } from 'lucide-react'
+import { useRef } from 'react'
 import type { Property, CreateRoomDto, UpdateRoomDto, Floor } from '@/features/tenant-app/types'
 import { toast } from 'sonner'
 
@@ -45,6 +46,8 @@ export function Component() {
 
   const createRoom = useCreateRoom()
   const updateRoom = useUpdateRoom(Number(id))
+  const uploadRoomImage = useUploadRoomImages(Number(id))
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const {
     register,
@@ -136,7 +139,28 @@ export function Component() {
     }
   }
 
-  const isSubmitting = createRoom.isPending || updateRoom.isPending
+  const isSubmitting = createRoom.isPending || updateRoom.isPending || uploadRoomImage.isPending
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!isEditing) {
+      toast.error('Vui lòng lưu thông tin phòng trước khi tải ảnh lên')
+      return
+    }
+
+    try {
+      await uploadRoomImage.mutateAsync([file])
+      toast.success('Tải ảnh phòng thành công!')
+    } catch {
+      toast.error('Có lỗi xảy ra khi tải ảnh lên!')
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
 
   if ((isEditing && loadingRoom) || loadingProps) {
     return (
@@ -186,6 +210,35 @@ export function Component() {
             <CardDescription>Cơ sở, tòa nhà và mã phòng định danh</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 bg-white p-6">
+            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 pb-2 border-b border-slate-100">
+              <div className="relative group">
+                <div className="h-24 w-24 overflow-hidden rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shadow-sm">
+                  {initialData?.images && initialData.images.length > 0 ? (
+                    <img src={initialData.images[0].url} alt="Cover" className="h-full w-full object-cover" />
+                  ) : (
+                    <Building2 className="h-10 w-10 text-slate-300" />
+                  )}
+                </div>
+                {isEditing && (
+                  <div 
+                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImageIcon className="h-6 w-6 text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col justify-center gap-2 flex-1 pt-2">
+                <Label className="font-medium text-slate-700">
+                  Ảnh đại diện phòng
+                </Label>
+                <p className="text-sm text-slate-500">
+                  {isEditing ? 'Nhấn vào ảnh bên cạnh để tải lên ảnh đại diện mới cho phòng.' : 'Bạn có thể tải ảnh đại diện sau khi hoàn tất tạo phòng.'}
+                </p>
+                <input type="file" className="hidden" ref={fileInputRef} accept="image/*" onChange={handleImageUpload} />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-2.5">
                 <Label htmlFor="propertyId" className="font-medium text-slate-700">

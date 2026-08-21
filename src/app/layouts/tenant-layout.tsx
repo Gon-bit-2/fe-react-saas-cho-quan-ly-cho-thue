@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { TenantSwitcher } from '@/features/tenant-app/components/tenant-switcher'
+import { useNotificationsControllerCountUnread } from '@/shared/api/generated/notifications/notifications'
 
 const navItems = [
   { name: 'Tổng quan', path: '/tong-quan', icon: 'grid_view' },
@@ -36,6 +37,8 @@ export function Component() {
   const { profile, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  
+  const { data: unreadCount = 0 } = useNotificationsControllerCountUnread()
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -100,9 +103,11 @@ export function Component() {
               onClick={() => navigate('/thong-bao')}
             >
               <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
-              <div className="bg-error text-on-error border-surface absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 text-[10px] font-bold">
-                3
-              </div>
+              {unreadCount > 0 && (
+                <div className="bg-error text-on-error border-surface absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 text-[10px] font-bold">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </div>
+              )}
             </div>
             <div className="border-surface-border flex items-center gap-3 border-l pl-2">
               <div className="hidden text-right sm:block">

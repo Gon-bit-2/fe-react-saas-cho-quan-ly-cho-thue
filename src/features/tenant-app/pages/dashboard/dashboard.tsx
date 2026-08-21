@@ -35,6 +35,12 @@ export function Component() {
   const { data: revenueTrend, isLoading: loadingTrend } = useRevenueTrend()
   const { data: recentActivity, isLoading: loadingActivity } = useRecentActivity(5)
 
+  const typeMap: Record<string, string> = {
+    INVOICE: 'Hóa đơn',
+    PAYMENT: 'Thanh toán',
+    TICKET: 'Sự cố',
+  }
+
   if (loadingSummary) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -213,7 +219,7 @@ export function Component() {
                       </p>
                       <div className="mt-1">
                         <Badge variant="outline" className="font-label-sm text-[10px] uppercase bg-surface-container text-on-surface-variant border-none">
-                          {activity.type}
+                          {typeMap[activity.type] || activity.type}
                         </Badge>
                       </div>
                     </div>

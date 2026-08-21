@@ -1,7 +1,6 @@
 import { useParams, useNavigate } from 'react-router'
-import { ArrowLeft, FileText, Mail, MapPin, Phone, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, FileText, Mail, MapPin, Phone, ShieldCheck, CheckCircle2, Clock, XCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { VERIFICATION_STATUS_MAP, CONTRACT_STATUS_MAP } from '@/shared/constants/status-config'
@@ -24,7 +23,12 @@ export default function Component() {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
           <Avatar className="h-20 w-20"><AvatarFallback className="text-xl">{renter.fullName.split(' ').slice(-2).map((part) => part[0]).join('')}</AvatarFallback></Avatar>
           <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-3"><h1 className="text-2xl font-bold">{renter.fullName}</h1><StatusBadge status={renter.verificationStatus} statusMap={VERIFICATION_STATUS_MAP} fallbackLabel={renter.verificationStatus} /></div>
+            <div className="flex flex-wrap items-center gap-3"><h1 className="text-2xl font-bold">{renter.fullName}</h1>
+              {renter.verificationStatus === 'VERIFIED' && <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 px-2.5 py-1 text-xs font-medium"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Đã xác minh</Badge>}
+              {renter.verificationStatus === 'PENDING' && <Badge className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 px-2.5 py-1 text-xs font-medium"><Clock className="w-3.5 h-3.5 mr-1" /> Chờ xác minh</Badge>}
+              {renter.verificationStatus === 'REJECTED' && <Badge className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 px-2.5 py-1 text-xs font-medium"><XCircle className="w-3.5 h-3.5 mr-1" /> Bị từ chối</Badge>}
+              {renter.verificationStatus === 'UNVERIFIED' && <Badge className="bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 px-2.5 py-1 text-xs font-medium"><AlertCircle className="w-3.5 h-3.5 mr-1" /> Chưa xác minh</Badge>}
+            </div>
             <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
               <p className="flex gap-2"><Mail className="h-4 w-4" />{renter.email}</p>
               <p className="flex gap-2"><Phone className="h-4 w-4" />{renter.phone ?? 'Chưa cập nhật'}</p>

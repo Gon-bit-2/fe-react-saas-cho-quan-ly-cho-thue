@@ -115,8 +115,12 @@ export function Component() {
                   <TableRow key={property.id} className="group hover:bg-surface-container-low/30 border-surface-border transition-colors">
                     <TableCell className="py-4">
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-primary-container text-on-primary-container flex items-center justify-center shrink-0 border border-primary/10 shadow-sm relative overflow-hidden group-hover:scale-105 transition-transform">
-                          <Building2 className="h-6 w-6" />
+                        <div className="h-12 w-12 rounded-xl bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0 border border-surface-border shadow-sm relative overflow-hidden group-hover:scale-105 transition-transform">
+                          {property.coverImageUrl ? (
+                            <img src={property.coverImageUrl} alt={property.name} className="h-full w-full object-cover" />
+                          ) : (
+                            <Building2 className="h-6 w-6" />
+                          )}
                           <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-10 transition-opacity"></div>
                         </div>
                         <div className="flex flex-col gap-1">

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
 import type { Contract, ListContractsQuery, CreateContractBody, UpdateContractBody } from '@/types/contract'
+import type { AddContractMemberBodyDTO } from './generated/models/addContractMemberBodyDTO'
 
 const CONTRACT_KEYS = {
   all: ['contracts'] as const,
@@ -126,8 +127,8 @@ export const useAddContractMember = (id: number) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (userId: number) => {
-      const { data } = await apiClient.post<Contract>(`/contracts/${id}/members`, { userId }, { tenantId })
+    mutationFn: async (payload: AddContractMemberBodyDTO) => {
+      const { data } = await apiClient.post<Contract>(`/contracts/${id}/members`, payload, { tenantId })
       return data
     },
     onSuccess: () => {
@@ -143,8 +144,8 @@ export const useRemoveContractMember = (id: number) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (userId: number) => {
-      const { data } = await apiClient.delete<Contract>(`/contracts/${id}/members/${userId}`, { tenantId })
+    mutationFn: async (memberId: number) => {
+      const { data } = await apiClient.delete<Contract>(`/contracts/${id}/members/${memberId}`, { tenantId })
       return data
     },
     onSuccess: () => {

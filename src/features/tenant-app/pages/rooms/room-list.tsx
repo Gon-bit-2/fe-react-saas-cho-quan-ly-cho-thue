@@ -130,8 +130,12 @@ export function Component() {
                   <TableRow key={room.id} className="group transition-colors hover:bg-slate-50/80 cursor-default">
                     <TableCell className="py-4">
                       <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/50">
-                          <DoorOpen className="h-6 w-6" />
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/50 overflow-hidden">
+                          {room.images && room.images.length > 0 ? (
+                            <img src={room.images[0].url} alt={room.roomCode} className="h-full w-full object-cover" />
+                          ) : (
+                            <DoorOpen className="h-6 w-6" />
+                          )}
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">

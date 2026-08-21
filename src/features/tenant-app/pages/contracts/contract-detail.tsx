@@ -20,9 +20,9 @@ export default function ContractDetailPage() {
   const { mutate: removeMember, isPending: isRemoving } = useRemoveContractMember(Number(id))
   const { mutate: signLandlord, isPending: isSigning } = useSignContractLandlord(Number(id))
 
-  const handleRemoveMember = (memberUserId: number) => {
+  const handleRemoveMember = (memberId: number) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa thành viên này khỏi hợp đồng?')) {
-      removeMember(memberUserId)
+      removeMember(memberId)
     }
   }
 
@@ -340,11 +340,11 @@ export default function ContractDetailPage() {
                       >
                         <div className="flex items-center gap-4">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-600">
-                            {member.user.fullName.charAt(0).toUpperCase()}
+                            {(member.user?.fullName || member.fullName || 'T').charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="text-base font-semibold text-slate-900">{member.user.fullName}</span>
+                              <span className="text-base font-semibold text-slate-900">{member.user?.fullName || member.fullName}</span>
                               <Badge
                                 variant="outline"
                                 className="border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-500 uppercase"
@@ -354,18 +354,18 @@ export default function ContractDetailPage() {
                             </div>
                             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
                               <span className="flex items-center gap-1.5">
-                                <Phone className="h-4 w-4 text-slate-400" /> {member.user.phone || 'Chưa có SĐT'}
+                                <Phone className="h-4 w-4 text-slate-400" /> {member.user?.phone || member.phone || 'Chưa có SĐT'}
                               </span>
                               <span className="flex items-center gap-1.5">
                                 <Mail className="h-4 w-4 text-slate-400" />
-                                {member.user.email || 'Chưa cập nhật email'}
+                                {member.user?.email || (member.identityCard ? `CCCD: ${member.identityCard}` : 'Chưa có email')}
                               </span>
                             </div>
                           </div>
                         </div>
                         <Button
                           variant="outline"
-                          onClick={() => handleRemoveMember(member.userId)}
+                          onClick={() => handleRemoveMember(member.id)}
                           disabled={isRemoving}
                           className="shrink-0 border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                         >

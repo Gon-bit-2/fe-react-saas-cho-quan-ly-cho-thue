@@ -191,6 +191,34 @@ export function Component() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 pb-2 border-b border-surface-border/50">
+            <div className="relative group">
+              <div className="h-24 w-24 overflow-hidden rounded-xl bg-surface-container-high border border-surface-border flex items-center justify-center shadow-sm">
+                {initialData?.coverImageUrl ? (
+                  <img src={initialData.coverImageUrl} alt="Cover" className="h-full w-full object-cover" />
+                ) : (
+                  <Building2 className="h-10 w-10 text-on-surface-variant/50" />
+                )}
+              </div>
+              {isEditing && (
+                <div 
+                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <ImageIcon className="h-6 w-6 text-white" />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col justify-center gap-2 flex-1 pt-2">
+              <Label className="font-label-md text-on-surface">
+                Ảnh đại diện khu trọ
+              </Label>
+              <p className="font-body-sm text-on-surface-variant">
+                {isEditing ? 'Nhấn vào ảnh bên cạnh để tải lên ảnh đại diện mới.' : 'Bạn có thể tải ảnh đại diện sau khi hoàn tất tạo khu trọ.'}
+              </p>
+              <input type="file" className="hidden" ref={fileInputRef} accept="image/*" onChange={handleImageUpload} />
+            </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="name" className="font-label-md text-on-surface">
               Tên tòa nhà / Nhà trọ <span className="text-error">*</span>

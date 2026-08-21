@@ -22,8 +22,8 @@ export default function ContractMembersPage() {
           <div className="divide-y">
             {contract.members.map((member) => (
               <div key={member.id} className="flex items-center gap-4 py-4">
-                <Avatar><AvatarImage alt={member.user.fullName} /><AvatarFallback>{member.user.fullName.split(' ').slice(-2).map((part) => part[0]).join('')}</AvatarFallback></Avatar>
-                <div className="min-w-0 flex-1"><p className="font-medium">{member.user.fullName}</p><div className="mt-1 flex flex-wrap gap-4 text-sm text-slate-500"><span className="flex gap-1"><Mail className="h-4 w-4" />{member.user.email}</span><span className="flex gap-1"><Phone className="h-4 w-4" />{member.user.phone || 'Chưa cập nhật'}</span></div></div>
+                <Avatar><AvatarImage alt={member.user?.fullName || member.fullName || 'T'} /><AvatarFallback>{(member.user?.fullName || member.fullName || 'T').split(' ').slice(-2).map((part) => part[0]).join('')}</AvatarFallback></Avatar>
+                <div className="min-w-0 flex-1"><p className="font-medium">{member.user?.fullName || member.fullName}</p><div className="mt-1 flex flex-wrap gap-4 text-sm text-slate-500"><span className="flex gap-1"><Mail className="h-4 w-4" />{member.user?.email || (member.identityCard ? `CCCD: ${member.identityCard}` : 'Chưa có email')}</span><span className="flex gap-1"><Phone className="h-4 w-4" />{member.user?.phone || member.phone || 'Chưa cập nhật'}</span></div></div>
                 <Badge variant="outline">{member.role}</Badge>
               </div>
             ))}

@@ -11,5 +11,10 @@ export interface AddContractMemberBodyDTO {
      * @maximum 9007199254740991
      * @exclusiveMinimum 0
      */
-  userId: number;
+  userId?: number;
+  fullName?: string;
+  phone?: string;
+  age?: number;
+  identityCard?: string;
+  identityCardImageUrl?: string;
 }

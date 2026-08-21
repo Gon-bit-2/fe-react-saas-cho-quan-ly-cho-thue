@@ -327,6 +327,11 @@ export const router = createBrowserRouter([
                   import('@/features/utilities/pages/meter-detail').then((m) => ({ Component: m.MeterDetailPage })),
               },
               {
+                path: 'dien-nuoc/cong-to/ghi-chi-so',
+                lazy: () =>
+                  import('@/features/utilities/pages/meter-reading-upload').then((m) => ({ Component: m.MeterReadingUploadPage })),
+              },
+              {
                 path: 'dien-nuoc/chi-so',
                 lazy: () =>
                   import('@/features/utilities/pages/meter-readings-list').then((m) => ({

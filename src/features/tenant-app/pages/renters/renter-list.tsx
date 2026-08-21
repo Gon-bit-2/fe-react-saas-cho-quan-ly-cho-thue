@@ -19,7 +19,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { VERIFICATION_STATUS_MAP } from '@/shared/constants/status-config'
-import { Plus, Search, MoreHorizontal } from 'lucide-react'
+import { Plus, Search, MoreHorizontal, CheckCircle2, Clock, XCircle, AlertCircle } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import {
   DropdownMenu,
@@ -32,7 +32,18 @@ import { useRenters } from '@/shared/api/renters'
 import type { RenterVerificationStatus } from '@/types/renter'
 
 const getStatusBadge = (status: RenterVerificationStatus) => {
-  return <StatusBadge status={status} statusMap={VERIFICATION_STATUS_MAP} fallbackLabel={status} />
+  switch (status) {
+    case 'VERIFIED':
+      return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 px-2.5 py-1 text-xs font-medium"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Đã xác minh</Badge>
+    case 'PENDING':
+      return <Badge className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 px-2.5 py-1 text-xs font-medium"><Clock className="w-3.5 h-3.5 mr-1" /> Chờ xác minh</Badge>
+    case 'REJECTED':
+      return <Badge className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 px-2.5 py-1 text-xs font-medium"><XCircle className="w-3.5 h-3.5 mr-1" /> Bị từ chối</Badge>
+    case 'UNVERIFIED':
+      return <Badge className="bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 px-2.5 py-1 text-xs font-medium"><AlertCircle className="w-3.5 h-3.5 mr-1" /> Chưa xác minh</Badge>
+    default:
+      return <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-200 border-none px-2.5 py-1 text-xs font-medium">{status}</Badge>
+  }
 }
 
 export default function RenterListPage() {

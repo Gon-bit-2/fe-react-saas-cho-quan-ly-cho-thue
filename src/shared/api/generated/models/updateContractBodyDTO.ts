@@ -7,6 +7,7 @@
  */
 import type { UpdateContractBodyDTOBillingCycle } from './updateContractBodyDTOBillingCycle';
 import type { UpdateContractBodyDTORenterInfo } from './updateContractBodyDTORenterInfo';
+import type { AddContractMemberBodyDTO } from './addContractMemberBodyDTO';
 
 export interface UpdateContractBodyDTO {
   startDate?: string;
@@ -23,11 +24,6 @@ export interface UpdateContractBodyDTO {
   paymentDueDay?: number;
   /** @minLength 1 */
   contentSnapshot?: string;
-  /**
-     * @maxItems 20
-     * @items.maximum 9007199254740991
-     * @items.exclusiveMinimum 0
-     */
-  coRenterIds?: number[];
+  coRenters?: AddContractMemberBodyDTO[];
   renterInfo?: UpdateContractBodyDTORenterInfo;
 }

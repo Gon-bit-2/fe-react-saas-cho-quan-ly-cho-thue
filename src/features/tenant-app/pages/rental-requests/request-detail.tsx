@@ -116,7 +116,8 @@ export function Component() {
                   <User className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="font-bold text-slate-900">Renter ID: {request.renterId}</div>
+                  {/* @ts-ignore */}
+                  <div className="font-bold text-slate-900">{request.renter?.fullName || `Khách thuê #${request.renterId}`}</div>
                   <div className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mt-1">
                     Khách hàng
                   </div>

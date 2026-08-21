@@ -10,7 +10,6 @@ import { METER_READING_STATUS_MAP } from '@/shared/constants/status-config'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useMeterReadingsControllerList, meterReadingsControllerUpdateStatus } from '../api'
-import { RecordReadingDialog } from '../components/record-reading-dialog'
 import { CreateMeterDialog } from '../components/create-meter-dialog'
 import { useRoomsControllerList } from '@/shared/api/generated/rooms/rooms'
 
@@ -74,12 +73,12 @@ export function MeterReadingsListPage() {
               Thêm Công Tơ
             </Button>
           </CreateMeterDialog>
-          <RecordReadingDialog>
-            <Button className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">add</span>
+          <Link to="/dien-nuoc/cong-to/ghi-chi-so">
+            <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm px-4">
+              <span className="material-symbols-outlined text-[18px]">add_a_photo</span>
               Ghi Chỉ Số
             </Button>
-          </RecordReadingDialog>
+          </Link>
         </div>
       </div>
 
