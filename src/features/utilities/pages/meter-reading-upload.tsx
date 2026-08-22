@@ -76,11 +76,11 @@ export function MeterReadingUploadPage() {
 
   const onSubmit = async (data: FormValues) => {
     // Nếu có hỗ trợ API upload ảnh công tơ, ta sẽ upload ở đây
-    let imageUrl = undefined
+    const imageUrl = undefined
     if (selectedFile) {
       // imageUrl = await uploadImageAPI(selectedFile)
       // Dùng Data URL tạm thời cho tới khi có API thực (backend có thể không nhận chuỗi quá dài)
-      // imageUrl = previewImage 
+      // imageUrl = previewImage
     }
 
     createReading({
@@ -102,7 +102,7 @@ export function MeterReadingUploadPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 pb-12 animate-in fade-in duration-500 p-8">
+    <div className="animate-in fade-in mx-auto max-w-5xl space-y-8 p-8 pb-12 duration-500">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -118,7 +118,7 @@ export function MeterReadingUploadPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         {/* Form Column */}
         <div className="space-y-6">
           <Card className="overflow-hidden rounded-xl border-slate-200 shadow-sm">
@@ -128,7 +128,9 @@ export function MeterReadingUploadPage() {
             </CardHeader>
             <CardContent className="space-y-6 bg-white p-6">
               <div className="space-y-2.5">
-                <Label htmlFor="billingMonth" className="font-medium text-slate-700">Kỳ ghi chỉ số <span className="text-red-500">*</span></Label>
+                <Label htmlFor="billingMonth" className="font-medium text-slate-700">
+                  Kỳ ghi chỉ số <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="billingMonth"
                   type="month"
@@ -138,19 +140,26 @@ export function MeterReadingUploadPage() {
                     setValue('billingMonth', e.target.value ? `${e.target.value}-01` : '')
                   }}
                 />
-                {errors.billingMonth && <p className="text-sm font-medium text-red-500">{errors.billingMonth.message}</p>}
+                {errors.billingMonth && (
+                  <p className="text-sm font-medium text-red-500">{errors.billingMonth.message}</p>
+                )}
               </div>
 
               <div className="space-y-2.5">
-                <Label htmlFor="meterId" className="font-medium text-slate-700">Công Tơ <span className="text-red-500">*</span></Label>
+                <Label htmlFor="meterId" className="font-medium text-slate-700">
+                  Công Tơ <span className="text-red-500">*</span>
+                </Label>
                 <Select onValueChange={(val) => setValue('meterId', Number(val))}>
-                  <SelectTrigger className={`border-slate-200 bg-slate-50 ${errors.meterId ? 'border-red-500 ring-red-500' : ''}`}>
+                  <SelectTrigger
+                    className={`border-slate-200 bg-slate-50 ${errors.meterId ? 'border-red-500 ring-red-500' : ''}`}
+                  >
                     <SelectValue placeholder={isLoadingMeters ? 'Đang tải...' : 'Chọn công tơ'} />
                   </SelectTrigger>
                   <SelectContent>
                     {meters.map((meter) => (
                       <SelectItem key={meter.id} value={meter.id.toString()}>
-                        {meter.meterCode} - Phòng {meter.room?.roomCode} ({meter.type === 'ELECTRICITY' ? 'Điện' : 'Nước'})
+                        {meter.meterCode} - Phòng {meter.room?.roomCode} (
+                        {meter.type === 'ELECTRICITY' ? 'Điện' : 'Nước'})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -160,7 +169,8 @@ export function MeterReadingUploadPage() {
 
               <div className="space-y-2.5">
                 <Label htmlFor="currentValue" className="font-medium text-slate-700">
-                  Chỉ số mới {selectedMeter?.unit ? `(${selectedMeter.unit})` : ''} <span className="text-red-500">*</span>
+                  Chỉ số mới {selectedMeter?.unit ? `(${selectedMeter.unit})` : ''}{' '}
+                  <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="currentValue"
@@ -171,7 +181,9 @@ export function MeterReadingUploadPage() {
                   placeholder="Nhập chỉ số ghi nhận trên đồng hồ"
                   {...register('currentValue')}
                 />
-                {errors.currentValue && <p className="text-sm font-medium text-red-500">{errors.currentValue.message}</p>}
+                {errors.currentValue && (
+                  <p className="text-sm font-medium text-red-500">{errors.currentValue.message}</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -195,58 +207,58 @@ export function MeterReadingUploadPage() {
         </div>
 
         {/* Image Upload Column */}
-        <div className="space-y-6 h-[500px]">
-          <Card className="h-full overflow-hidden rounded-xl border-slate-200 shadow-sm flex flex-col">
-            <CardHeader className="border-b border-slate-200/60 bg-slate-50/80 pb-4 shrink-0">
+        <div className="h-[500px] space-y-6">
+          <Card className="flex h-full flex-col overflow-hidden rounded-xl border-slate-200 shadow-sm">
+            <CardHeader className="shrink-0 border-b border-slate-200/60 bg-slate-50/80 pb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-xl text-slate-800">Ảnh minh chứng</CardTitle>
                   <CardDescription>Tải lên ảnh chụp công tơ thực tế</CardDescription>
                 </div>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="sm"
                   className="bg-white"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <ImagePlus className="w-4 h-4 mr-2" />
+                  <ImagePlus className="mr-2 h-4 w-4" />
                   {previewImage ? 'Đổi ảnh' : 'Chọn ảnh'}
                 </Button>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  ref={fileInputRef} 
-                  accept="image/*" 
-                  onChange={handleImageChange} 
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleImageChange}
                 />
               </div>
             </CardHeader>
-            <CardContent className="flex-1 p-0 bg-slate-100 flex items-center justify-center relative group min-h-0">
+            <CardContent className="group relative flex min-h-0 flex-1 items-center justify-center bg-slate-100 p-0">
               {previewImage ? (
                 <div className="absolute inset-0 p-4">
-                  <img 
-                    src={previewImage} 
-                    alt="Preview" 
-                    className="w-full h-full object-contain rounded-lg shadow-sm bg-white"
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="h-full w-full rounded-lg bg-white object-contain shadow-sm"
                   />
-                  <div 
-                    className="absolute inset-4 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center cursor-pointer"
+                  <div
+                    className="absolute inset-4 flex cursor-pointer items-center justify-center rounded-lg bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <span className="text-white font-medium flex items-center gap-2">
-                      <ImagePlus className="w-5 h-5" /> Tải ảnh khác
+                    <span className="flex items-center gap-2 font-medium text-white">
+                      <ImagePlus className="h-5 w-5" /> Tải ảnh khác
                     </span>
                   </div>
                 </div>
               ) : (
-                <div 
-                  className="w-full h-full min-h-[300px] flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-200/50 transition-colors m-4 rounded-lg border-2 border-dashed border-slate-300"
+                <div
+                  className="m-4 flex h-full min-h-[300px] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 text-slate-400 transition-colors hover:bg-slate-200/50"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <ImageIcon className="w-16 h-16 mb-4 text-slate-300" />
+                  <ImageIcon className="mb-4 h-16 w-16 text-slate-300" />
                   <p className="font-medium text-slate-500">Nhấp để chọn ảnh công tơ</p>
-                  <p className="text-sm mt-1 text-slate-400">Hỗ trợ JPG, PNG</p>
+                  <p className="mt-1 text-sm text-slate-400">Hỗ trợ JPG, PNG</p>
                 </div>
               )}
             </CardContent>

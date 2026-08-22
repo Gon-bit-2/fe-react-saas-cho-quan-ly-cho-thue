@@ -313,6 +313,13 @@ export const router = createBrowserRouter([
                     Component: m.default,
                   })),
               },
+              {
+                path: 'yeu-cau-ket-thuc-hop-dong/:id',
+                lazy: () =>
+                  import('@/features/tenant-app/pages/terminations/termination-detail').then((m) => ({
+                    Component: m.default,
+                  })),
+              },
               // Quản lý điện nước
               {
                 path: 'dien-nuoc/cong-to',
@@ -329,7 +336,9 @@ export const router = createBrowserRouter([
               {
                 path: 'dien-nuoc/cong-to/ghi-chi-so',
                 lazy: () =>
-                  import('@/features/utilities/pages/meter-reading-upload').then((m) => ({ Component: m.MeterReadingUploadPage })),
+                  import('@/features/utilities/pages/meter-reading-upload').then((m) => ({
+                    Component: m.MeterReadingUploadPage,
+                  })),
               },
               {
                 path: 'dien-nuoc/chi-so',

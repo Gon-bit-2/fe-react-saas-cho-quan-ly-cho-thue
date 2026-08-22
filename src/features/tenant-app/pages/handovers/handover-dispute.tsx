@@ -5,11 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { HANDOVER_STATUS_MAP, ASSET_CONDITION_MAP } from '@/shared/constants/status-config'
-import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { CheckCircle, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function HandoverDispute() {
@@ -63,7 +61,12 @@ export default function HandoverDispute() {
             Mã biên bản: #{handover.id} • Hợp đồng #{handover.contractId}
           </p>
         </div>
-        <StatusBadge status="DISPUTED" statusMap={HANDOVER_STATUS_MAP} fallbackLabel="Đang tranh chấp" className="h-8 px-3" />
+        <StatusBadge
+          status="DISPUTED"
+          statusMap={HANDOVER_STATUS_MAP}
+          fallbackLabel="Đang tranh chấp"
+          className="h-8 px-3"
+        />
       </div>
 
       <Card className="border-red-100 shadow-sm">
@@ -88,7 +91,12 @@ export default function HandoverDispute() {
                   </div>
                   <div>
                     Tình trạng:{' '}
-                    <StatusBadge status={item.condition} statusMap={ASSET_CONDITION_MAP} fallbackLabel={item.condition} className="font-medium shadow-none border-none bg-transparent hover:bg-transparent" />
+                    <StatusBadge
+                      status={item.condition}
+                      statusMap={ASSET_CONDITION_MAP}
+                      fallbackLabel={item.condition}
+                      className="border-none bg-transparent font-medium shadow-none hover:bg-transparent"
+                    />
                   </div>
                 </div>
               ))}

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useTerminations, useApproveTermination, useRejectTermination } from '@/shared/api/terminations'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { TERMINATION_STATUS_MAP } from '@/shared/constants/status-config'
 import { Button } from '@/components/ui/button'
@@ -19,7 +18,6 @@ import { Label } from '@/components/ui/label'
 import { Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ContractTerminationRequest } from '@/types/termination'
-
 
 export default function TerminationList() {
   const { data, isLoading } = useTerminations()

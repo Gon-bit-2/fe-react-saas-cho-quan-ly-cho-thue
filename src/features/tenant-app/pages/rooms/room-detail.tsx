@@ -39,7 +39,6 @@ import {
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { MARKETPLACE_STATUS_MAP } from '@/shared/constants/status-config'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

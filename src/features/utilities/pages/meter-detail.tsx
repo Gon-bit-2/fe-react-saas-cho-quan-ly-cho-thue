@@ -1,6 +1,5 @@
 import { useParams, Link } from 'react-router'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { METER_READING_STATUS_MAP, METER_STATUS_MAP } from '@/shared/constants/status-config'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'

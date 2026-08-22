@@ -66,6 +66,8 @@ export interface RenterInvitation {
   status: 'ACCEPTED' | 'CANCELED' | 'EXPIRED' | 'PENDING'
   tenant: { id: number; name: string }
   createdBy: { id: number; fullName: string }
+  room?: { id: number; roomCode: string; title: string }
+  property?: { id: number; name: string }
   createdAt: string
   updatedAt: string
 }

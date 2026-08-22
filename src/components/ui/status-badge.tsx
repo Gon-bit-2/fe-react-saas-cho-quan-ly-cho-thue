@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Badge, badgeVariants } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/badge'
 import { getStatusVisual, type StatusVisual } from '@/shared/constants/status-config'
 import { cn } from '@/shared/lib/utils'
 
@@ -10,14 +10,7 @@ export interface StatusBadgeProps extends React.ComponentProps<typeof Badge> {
   icon?: React.ReactNode
 }
 
-export function StatusBadge({
-  status,
-  statusMap,
-  fallbackLabel,
-  icon,
-  className,
-  ...props
-}: StatusBadgeProps) {
+export function StatusBadge({ status, statusMap, fallbackLabel, icon, className, ...props }: StatusBadgeProps) {
   const visual = getStatusVisual(statusMap, status, fallbackLabel)
 
   const toneClasses = {

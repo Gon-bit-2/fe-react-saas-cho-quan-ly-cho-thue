@@ -1,13 +1,19 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { useProperty, useCreateProperty, useUpdateProperty, useUploadPropertyCoverImage, useUploadPropertyVerification } from '@/shared/api/properties'
+import {
+  useProperty,
+  useCreateProperty,
+  useUpdateProperty,
+  useUploadPropertyCoverImage,
+  useUploadPropertyVerification,
+} from '@/shared/api/properties'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, ArrowRight, Building2, DoorOpen, ImageIcon, Save, Trash2, FileText, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Building2, ImageIcon, Save, Trash2, FileText, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { CreatePropertyDto } from '@/features/tenant-app/types'
 import { AddressPicker, type AddressSelection } from '@/shared/components/address-picker'
@@ -96,7 +102,7 @@ export function Component() {
         const idUrls = await uploadVerification.mutateAsync(idFiles)
         idCardFrontUrl = idUrls[0]
         idCardBackUrl = idUrls[1]
-        
+
         const docUrls = await uploadVerification.mutateAsync(verificationDocs)
         verificationDocuments = docUrls
       }
@@ -120,8 +126,8 @@ export function Component() {
           : undefined,
         floorsCount: formData.get('floorsCount') ? Number(formData.get('floorsCount')) : undefined,
         description: formData.get('description') ? (formData.get('description') as string) : undefined,
-        
-        ...(needsVerification ? { idCardFrontUrl, idCardBackUrl, verificationDocuments } : {})
+
+        ...(needsVerification ? { idCardFrontUrl, idCardBackUrl, verificationDocuments } : {}),
       }
 
       if (isEditing) {
@@ -137,7 +143,8 @@ export function Component() {
     }
   }
 
-  const isSubmitting = createProperty.isPending || updateProperty.isPending || uploadCoverImage.isPending || uploadVerification.isPending
+  const isSubmitting =
+    createProperty.isPending || updateProperty.isPending || uploadCoverImage.isPending || uploadVerification.isPending
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -164,16 +171,20 @@ export function Component() {
   }
 
   const renderStepIndicator = () => (
-    <div className="flex items-center justify-center gap-2 mb-8">
+    <div className="mb-8 flex items-center justify-center gap-2">
       {Array.from({ length: totalSteps }).map((_, idx) => {
         const s = idx + 1
         return (
           <div key={s} className="flex items-center">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold text-sm transition-colors ${step >= s ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>
+            <div
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors ${step >= s ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}
+            >
               {s}
             </div>
             {s < totalSteps && (
-              <div className={`h-1 w-12 mx-1 rounded-full transition-colors ${step > s ? 'bg-primary' : 'bg-surface-container-high'}`} />
+              <div
+                className={`mx-1 h-1 w-12 rounded-full transition-colors ${step > s ? 'bg-primary' : 'bg-surface-container-high'}`}
+              />
             )}
           </div>
         )
@@ -182,7 +193,7 @@ export function Component() {
   )
 
   const stepBasicInfo = (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+    <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
       <Card className="bg-surface-container-lowest border-surface-border rounded-2xl shadow-sm">
         <CardHeader className="border-surface-variant/30 border-b pb-4">
           <CardTitle className="font-headline-sm text-on-surface">Thông tin cơ bản</CardTitle>
@@ -191,30 +202,30 @@ export function Component() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 pb-2 border-b border-surface-border/50">
-            <div className="relative group">
-              <div className="h-24 w-24 overflow-hidden rounded-xl bg-surface-container-high border border-surface-border flex items-center justify-center shadow-sm">
+          <div className="border-surface-border/50 flex flex-col items-center gap-4 border-b pb-2 sm:flex-row sm:items-start sm:gap-6">
+            <div className="group relative">
+              <div className="bg-surface-container-high border-surface-border flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border shadow-sm">
                 {initialData?.coverImageUrl ? (
                   <img src={initialData.coverImageUrl} alt="Cover" className="h-full w-full object-cover" />
                 ) : (
-                  <Building2 className="h-10 w-10 text-on-surface-variant/50" />
+                  <Building2 className="text-on-surface-variant/50 h-10 w-10" />
                 )}
               </div>
               {isEditing && (
-                <div 
-                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center cursor-pointer"
+                <div
+                  className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-xl bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <ImageIcon className="h-6 w-6 text-white" />
                 </div>
               )}
             </div>
-            <div className="flex flex-col justify-center gap-2 flex-1 pt-2">
-              <Label className="font-label-md text-on-surface">
-                Ảnh đại diện khu trọ
-              </Label>
+            <div className="flex flex-1 flex-col justify-center gap-2 pt-2">
+              <Label className="font-label-md text-on-surface">Ảnh đại diện khu trọ</Label>
               <p className="font-body-sm text-on-surface-variant">
-                {isEditing ? 'Nhấn vào ảnh bên cạnh để tải lên ảnh đại diện mới.' : 'Bạn có thể tải ảnh đại diện sau khi hoàn tất tạo khu trọ.'}
+                {isEditing
+                  ? 'Nhấn vào ảnh bên cạnh để tải lên ảnh đại diện mới.'
+                  : 'Bạn có thể tải ảnh đại diện sau khi hoàn tất tạo khu trọ.'}
               </p>
               <input type="file" className="hidden" ref={fileInputRef} accept="image/*" onChange={handleImageUpload} />
             </div>
@@ -271,7 +282,7 @@ export function Component() {
         </CardContent>
       </Card>
 
-      <Card className="bg-surface-container-lowest border-surface-border rounded-2xl shadow-sm overflow-visible">
+      <Card className="bg-surface-container-lowest border-surface-border overflow-visible rounded-2xl shadow-sm">
         <CardHeader className="border-surface-variant/30 border-b pb-4">
           <CardTitle className="font-headline-sm text-on-surface">Vị trí & Địa chỉ</CardTitle>
           <CardDescription className="font-body-sm text-on-surface-variant">
@@ -297,7 +308,7 @@ export function Component() {
   )
 
   const stepVerification = (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+    <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
       <Card className="bg-surface-container-lowest border-surface-border rounded-2xl shadow-sm">
         <CardHeader className="border-surface-variant/30 border-b pb-4">
           <CardTitle className="font-headline-sm text-on-surface">Xác minh danh tính chủ trọ</CardTitle>
@@ -306,69 +317,96 @@ export function Component() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <Label className="font-label-md text-on-surface">Ảnh mặt trước CCCD <span className="text-error">*</span></Label>
-              <div 
-                className="border-2 border-dashed border-surface-border rounded-xl p-6 text-center cursor-pointer hover:bg-surface-container transition-colors"
+              <Label className="font-label-md text-on-surface">
+                Ảnh mặt trước CCCD <span className="text-error">*</span>
+              </Label>
+              <div
+                className="border-surface-border hover:bg-surface-container cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors"
                 onClick={() => idFrontRef.current?.click()}
               >
                 {idCardFront ? (
                   <div className="flex flex-col items-center">
-                    <CheckCircle2 className="w-8 h-8 text-primary mb-2" />
+                    <CheckCircle2 className="text-primary mb-2 h-8 w-8" />
                     <span className="text-sm font-medium">{idCardFront.name}</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <ImageIcon className="w-8 h-8 text-on-surface-variant mb-2" />
-                    <span className="text-sm text-on-surface-variant">Nhấn để chọn ảnh mặt trước</span>
+                    <ImageIcon className="text-on-surface-variant mb-2 h-8 w-8" />
+                    <span className="text-on-surface-variant text-sm">Nhấn để chọn ảnh mặt trước</span>
                   </div>
                 )}
               </div>
-              <input type="file" className="hidden" ref={idFrontRef} accept="image/*" onChange={(e) => e.target.files?.[0] && setIdCardFront(e.target.files[0])} />
+              <input
+                type="file"
+                className="hidden"
+                ref={idFrontRef}
+                accept="image/*"
+                onChange={(e) => e.target.files?.[0] && setIdCardFront(e.target.files[0])}
+              />
             </div>
 
             <div className="space-y-2">
-              <Label className="font-label-md text-on-surface">Ảnh mặt sau CCCD <span className="text-error">*</span></Label>
-              <div 
-                className="border-2 border-dashed border-surface-border rounded-xl p-6 text-center cursor-pointer hover:bg-surface-container transition-colors"
+              <Label className="font-label-md text-on-surface">
+                Ảnh mặt sau CCCD <span className="text-error">*</span>
+              </Label>
+              <div
+                className="border-surface-border hover:bg-surface-container cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors"
                 onClick={() => idBackRef.current?.click()}
               >
                 {idCardBack ? (
                   <div className="flex flex-col items-center">
-                    <CheckCircle2 className="w-8 h-8 text-primary mb-2" />
+                    <CheckCircle2 className="text-primary mb-2 h-8 w-8" />
                     <span className="text-sm font-medium">{idCardBack.name}</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <ImageIcon className="w-8 h-8 text-on-surface-variant mb-2" />
-                    <span className="text-sm text-on-surface-variant">Nhấn để chọn ảnh mặt sau</span>
+                    <ImageIcon className="text-on-surface-variant mb-2 h-8 w-8" />
+                    <span className="text-on-surface-variant text-sm">Nhấn để chọn ảnh mặt sau</span>
                   </div>
                 )}
               </div>
-              <input type="file" className="hidden" ref={idBackRef} accept="image/*" onChange={(e) => e.target.files?.[0] && setIdCardBack(e.target.files[0])} />
+              <input
+                type="file"
+                className="hidden"
+                ref={idBackRef}
+                accept="image/*"
+                onChange={(e) => e.target.files?.[0] && setIdCardBack(e.target.files[0])}
+              />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="font-label-md text-on-surface">Giấy tờ sở hữu/Quản lý nhà trọ <span className="text-error">*</span></Label>
-            <div 
-              className="border-2 border-dashed border-surface-border rounded-xl p-6 text-center cursor-pointer hover:bg-surface-container transition-colors"
+            <Label className="font-label-md text-on-surface">
+              Giấy tờ sở hữu/Quản lý nhà trọ <span className="text-error">*</span>
+            </Label>
+            <div
+              className="border-surface-border hover:bg-surface-container cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors"
               onClick={() => docsRef.current?.click()}
             >
               <div className="flex flex-col items-center">
-                <FileText className="w-8 h-8 text-on-surface-variant mb-2" />
-                <span className="text-sm text-on-surface-variant">
-                  {verificationDocs.length > 0 ? `Đã chọn ${verificationDocs.length} tệp` : 'Chọn sổ đỏ, hợp đồng thuê nhà hoặc giấy phép kinh doanh'}
+                <FileText className="text-on-surface-variant mb-2 h-8 w-8" />
+                <span className="text-on-surface-variant text-sm">
+                  {verificationDocs.length > 0
+                    ? `Đã chọn ${verificationDocs.length} tệp`
+                    : 'Chọn sổ đỏ, hợp đồng thuê nhà hoặc giấy phép kinh doanh'}
                 </span>
               </div>
             </div>
-            <input type="file" multiple className="hidden" ref={docsRef} accept="image/*" onChange={(e) => e.target.files && setVerificationDocs(Array.from(e.target.files))} />
+            <input
+              type="file"
+              multiple
+              className="hidden"
+              ref={docsRef}
+              accept="image/*"
+              onChange={(e) => e.target.files && setVerificationDocs(Array.from(e.target.files))}
+            />
             {verificationDocs.length > 0 && (
               <div className="mt-2 space-y-1">
                 {verificationDocs.map((file, i) => (
-                  <div key={i} className="text-sm text-on-surface-variant flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary" /> {file.name}
+                  <div key={i} className="text-on-surface-variant flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="text-primary h-4 w-4" /> {file.name}
                   </div>
                 ))}
               </div>
@@ -380,7 +418,7 @@ export function Component() {
   )
 
   const stepDetails = (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+    <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
       <Card className="bg-surface-container-lowest border-surface-border rounded-2xl shadow-sm">
         <CardHeader className="border-surface-variant/30 border-b pb-4">
           <CardTitle className="font-headline-sm text-on-surface">Chi tiết & Hình ảnh</CardTitle>
@@ -478,7 +516,7 @@ export function Component() {
           ) : (
             <div /> // placeholder to align right buttons
           )}
-          
+
           <div className="flex gap-4">
             <Button
               type="button"
@@ -489,7 +527,7 @@ export function Component() {
             >
               Hủy bỏ
             </Button>
-            
+
             <Button
               type="submit"
               className="font-label-md bg-primary text-on-primary hover:bg-primary/90 h-11 rounded-full px-8 shadow-md"
