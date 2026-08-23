@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { UserProfile } from '../api/types'
+import { useAuth } from '@/shared/hooks/use-auth'
 import { Settings, User, Mail, Phone, ChevronDown, ArrowRight } from 'lucide-react'
 
 const updateProfileSchema = z.object({
@@ -18,17 +19,26 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
-  const getRoleLabel = (role?: string | null) => {
-    if (!role) return 'Quản lý vận hành'
-    switch (role) {
-      case 'ADMIN': return 'Quản trị viên'
-      case 'MANAGER': return 'Quản lý vận hành'
-      case 'LANDLORD': return 'Chủ trọ'
-      case 'TENANT': return 'Người thuê'
-      case 'USER': return 'Người dùng'
-      default: return role
+  const { selectedMembership } = useAuth()
+
+  const getRoleLabel = (roleId?: string | null) => {
+    switch (roleId) {
+      case 'ADMIN':
+        return 'Quản trị viên'
+      case 'LANDLORD':
+        return 'Chủ trọ'
+      case 'MANAGER':
+        return 'Quản lý vận hành'
+      case 'TENANT':
+        return 'Người thuê'
+      case 'USER':
+        return 'Người dùng'
+      default:
+        return 'Người dùng'
     }
   }
+
+  const displayRole = getRoleLabel(selectedMembership?.roleId || user.systemRole)
   const form = useForm<UpdateProfileFormValues>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
@@ -38,92 +48,118 @@ export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
   })
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl shadow-sm p-6 md:p-8 flex-1">
-      <div className="flex items-center justify-between mb-8 pb-4 border-b border-surface-border">
+    <div className="bg-surface-container-lowest flex-1 rounded-2xl p-6 shadow-sm md:p-8">
+      <div className="border-surface-border mb-8 flex items-center justify-between border-b pb-4">
         <div>
           <h2 className="font-headline-md text-headline-md text-on-surface">Thông tin cá nhân</h2>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-1">Cập nhật thông tin và cài đặt tài khoản của bạn.</p>
+          <p className="font-body-md text-body-md text-on-surface-variant mt-1">
+            Cập nhật thông tin và cài đặt tài khoản của bạn.
+          </p>
         </div>
-        <div className="hidden md:flex h-12 w-12 rounded-full bg-primary-fixed items-center justify-center text-primary">
-          <Settings className="w-[24px] h-[24px]" />
+        <div className="bg-primary-fixed text-primary hidden h-12 w-12 items-center justify-center rounded-full md:flex">
+          <Settings className="h-[24px] w-[24px]" />
         </div>
       </div>
 
       <form className="flex flex-col gap-6" onSubmit={form.handleSubmit(onUpdate)}>
         {/* Form Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-6 md:grid-cols-2">
           {/* Full Name */}
-          <div className="flex flex-col gap-2 col-span-1 md:col-span-2">
-            <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" htmlFor="fullName">Họ và tên</label>
+          <div className="col-span-1 flex flex-col gap-2 md:col-span-2">
+            <label
+              className="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase"
+              htmlFor="fullName"
+            >
+              Họ và tên
+            </label>
             <div className="relative">
-              <input 
-                id="fullName" 
-                placeholder="Nhập họ và tên" 
-                type="text" 
+              <input
+                id="fullName"
+                placeholder="Nhập họ và tên"
+                type="text"
                 {...form.register('fullName')}
-                className="w-full h-10 px-4 bg-surface rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition-shadow" 
+                className="bg-surface font-body-md text-body-md text-on-surface focus:ring-primary h-10 w-full rounded-lg px-4 transition-shadow focus:ring-2 focus:outline-none"
               />
-              <User className="absolute right-3 top-2.5 text-outline w-5 h-5 pointer-events-none" />
+              <User className="text-outline pointer-events-none absolute top-2.5 right-3 h-5 w-5" />
             </div>
             {form.formState.errors.fullName && (
-              <span className="text-xs text-error">{form.formState.errors.fullName.message}</span>
+              <span className="text-error text-xs">{form.formState.errors.fullName.message}</span>
             )}
           </div>
 
           {/* Role (Read Only) */}
-          <div className="flex flex-col gap-2 col-span-1">
-            <label className="font-label-sm text-label-sm text-outline uppercase tracking-wider" htmlFor="role">Vai trò</label>
-            <input 
-              id="role" 
-              type="text" 
-              value={getRoleLabel(user.systemRole)} 
-              disabled 
-              className="w-full h-10 px-4 bg-surface-variant/30 rounded-lg font-body-md text-body-md text-on-surface-variant cursor-not-allowed border-none outline-none" 
+          <div className="col-span-1 flex flex-col gap-2">
+            <label className="font-label-sm text-label-sm text-outline tracking-wider uppercase" htmlFor="role">
+              Vai trò
+            </label>
+            <input
+              id="role"
+              type="text"
+              value={displayRole}
+              disabled
+              className="bg-surface-variant/30 font-body-md text-body-md text-on-surface-variant h-10 w-full cursor-not-allowed rounded-lg border-none px-4 outline-none"
             />
           </div>
 
           {/* Email */}
-          <div className="flex flex-col gap-2 col-span-1 md:col-span-2 mt-4">
-            <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" htmlFor="email">Địa chỉ Email</label>
+          <div className="col-span-1 mt-4 flex flex-col gap-2 md:col-span-2">
+            <label
+              className="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase"
+              htmlFor="email"
+            >
+              Địa chỉ Email
+            </label>
             <div className="relative">
-              <input 
-                id="email" 
-                type="email" 
-                value={user.email} 
-                disabled 
-                className="w-full h-10 px-4 bg-surface rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition-shadow" 
+              <input
+                id="email"
+                type="email"
+                value={user.email}
+                disabled
+                className="bg-surface font-body-md text-body-md text-on-surface focus:ring-primary h-10 w-full rounded-lg px-4 transition-shadow focus:ring-2 focus:outline-none"
               />
-              <Mail className="absolute right-3 top-2.5 text-outline w-5 h-5 pointer-events-none" />
+              <Mail className="text-outline pointer-events-none absolute top-2.5 right-3 h-5 w-5" />
             </div>
-            <p className="font-label-sm text-label-sm text-outline mt-1">Email này được sử dụng để đăng nhập và thông báo.</p>
+            <p className="font-label-sm text-label-sm text-outline mt-1">
+              Email này được sử dụng để đăng nhập và thông báo.
+            </p>
           </div>
 
           {/* Phone */}
-          <div className="flex flex-col gap-2 col-span-1 mt-4">
-            <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" htmlFor="phone">Số điện thoại</label>
+          <div className="col-span-1 mt-4 flex flex-col gap-2">
+            <label
+              className="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase"
+              htmlFor="phone"
+            >
+              Số điện thoại
+            </label>
             <div className="relative">
-              <input 
-                id="phone" 
-                placeholder="Nhập số điện thoại" 
-                type="tel" 
+              <input
+                id="phone"
+                placeholder="Nhập số điện thoại"
+                type="tel"
                 {...form.register('phone')}
-                className="w-full h-10 px-4 bg-surface rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition-shadow" 
+                className="bg-surface font-body-md text-body-md text-on-surface focus:ring-primary h-10 w-full rounded-lg px-4 transition-shadow focus:ring-2 focus:outline-none"
               />
-              <Phone className="absolute right-3 top-2.5 text-outline w-5 h-5 pointer-events-none" />
+              <Phone className="text-outline pointer-events-none absolute top-2.5 right-3 h-5 w-5" />
             </div>
           </div>
 
           {/* Timezone */}
-          <div className="flex flex-col gap-2 col-span-1 mt-4">
-            <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" htmlFor="timezone">Múi giờ</label>
+          <div className="col-span-1 mt-4 flex flex-col gap-2">
+            <label
+              className="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase"
+              htmlFor="timezone"
+            >
+              Múi giờ
+            </label>
             <div className="relative">
-              <select 
-                id="timezone" 
-                className="w-full h-10 pl-4 pr-10 bg-surface rounded-lg font-body-md text-body-md text-on-surface appearance-none focus:outline-none focus:ring-2 focus:ring-primary transition-shadow cursor-pointer"
+              <select
+                id="timezone"
+                className="bg-surface font-body-md text-body-md text-on-surface focus:ring-primary h-10 w-full cursor-pointer appearance-none rounded-lg pr-10 pl-4 transition-shadow focus:ring-2 focus:outline-none"
               >
                 <option value="ict">(GMT+07:00) Việt Nam</option>
               </select>
-              <ChevronDown className="absolute right-3 top-2.5 text-outline w-5 h-5 pointer-events-none" />
+              <ChevronDown className="text-outline pointer-events-none absolute top-2.5 right-3 h-5 w-5" />
             </div>
           </div>
         </div>
@@ -132,35 +168,41 @@ export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
         <hr className="border-surface-border my-4" />
 
         {/* Preferences Section */}
-        <h3 className="font-label-md text-label-md text-on-surface font-bold uppercase tracking-wider mb-2">Tùy chọn</h3>
-        <div className="flex items-center justify-between p-4 bg-surface rounded-xl">
+        <h3 className="font-label-md text-label-md text-on-surface mb-2 font-bold tracking-wider uppercase">
+          Tùy chọn
+        </h3>
+        <div className="bg-surface flex items-center justify-between rounded-xl p-4">
           <div className="flex flex-col gap-1">
             <span className="font-body-md text-body-md text-on-surface font-semibold">Thông báo Email</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Nhận tóm tắt công việc hàng ngày và cảnh báo.</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant">
+              Nhận tóm tắt công việc hàng ngày và cảnh báo.
+            </span>
           </div>
           {/* Toggle Switch (Visual) */}
-          <div className="w-12 h-6 bg-primary rounded-full relative cursor-pointer shadow-inner">
-            <div className="absolute right-1 top-1 w-4 h-4 bg-on-error rounded-full shadow-sm"></div>
+          <div className="bg-primary relative h-6 w-12 cursor-pointer rounded-full shadow-inner">
+            <div className="bg-on-error absolute top-1 right-1 h-4 w-4 rounded-full shadow-sm"></div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-surface-border">
-          <button 
-            type="button" 
-            className="px-5 py-2.5 rounded-lg bg-surface-container-lowest font-label-md text-label-md text-on-surface hover:bg-surface-container transition-colors shadow-sm"
+        <div className="border-surface-border mt-8 flex items-center justify-end gap-3 border-t pt-6">
+          <button
+            type="button"
+            className="bg-surface-container-lowest font-label-md text-label-md text-on-surface hover:bg-surface-container rounded-lg px-5 py-2.5 shadow-sm transition-colors"
             onClick={() => form.reset()}
             disabled={isUpdating}
           >
             Hủy
           </button>
-          <button 
-            type="submit" 
-            className="px-5 py-2.5 rounded-lg bg-primary font-label-md text-label-md text-on-primary hover:bg-primary-container transition-colors shadow-sm flex items-center gap-2 group/btn"
+          <button
+            type="submit"
+            className="bg-primary font-label-md text-label-md text-on-primary hover:bg-primary-container group/btn flex items-center gap-2 rounded-lg px-5 py-2.5 shadow-sm transition-colors"
             disabled={isUpdating || !form.formState.isDirty}
           >
             {isUpdating ? 'Đang lưu...' : 'Lưu thay đổi'}
-            {!isUpdating && <ArrowRight className="w-[18px] h-[18px] group-hover/btn:translate-x-1 transition-transform" />}
+            {!isUpdating && (
+              <ArrowRight className="h-[18px] w-[18px] transition-transform group-hover/btn:translate-x-1" />
+            )}
           </button>
         </div>
       </form>

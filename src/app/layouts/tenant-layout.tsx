@@ -34,11 +34,24 @@ const navItems = [
 ]
 
 export function Component() {
-  const { profile, logout } = useAuth()
+  const { profile, logout, selectedMembership } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   
   const { data: unreadCount = 0 } = useNotificationsControllerCountUnread()
+
+  const getRoleLabel = (roleId?: string | null) => {
+    switch (roleId) {
+      case 'ADMIN': return 'Quản trị viên'
+      case 'LANDLORD': return 'Chủ trọ'
+      case 'MANAGER': return 'Quản lý vận hành'
+      case 'TENANT': return 'Người thuê'
+      case 'USER': return 'Người dùng'
+      default: return 'Người dùng'
+    }
+  }
+  
+  const displayRole = getRoleLabel(selectedMembership?.roleId || profile?.systemRole)
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -114,7 +127,7 @@ export function Component() {
                 <div className="font-label-md text-label-md text-on-surface leading-none">
                   {profile?.fullName || profile?.email || 'Người dùng'}
                 </div>
-                <div className="text-on-surface-variant text-[11px]">{profile?.systemRole || 'Quản lý vận hành'}</div>
+                <div className="text-on-surface-variant text-[11px]">{displayRole}</div>
               </div>
 
               <DropdownMenu>
@@ -138,7 +151,7 @@ export function Component() {
                   <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/quan-ly/thong-tin-tai-khoan" className="cursor-pointer">
+                    <Link to="/tai-khoan" className="cursor-pointer">
                       <span className="material-symbols-outlined mr-2 text-[18px]">person</span>
                       Hồ sơ
                     </Link>

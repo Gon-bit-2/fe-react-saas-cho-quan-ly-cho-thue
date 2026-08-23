@@ -23,12 +23,12 @@ export const LandlordsPage = () => {
     queryFn: () => adminLandlordApi.list({ page: 1, limit: 100, ...(search ? { search } : {}) }).then((r) => r.data),
   })
 
-  // Mock stats based on the design
-  const stats = {
-    total: 12450,
-    active: 11892,
-    locked: 558,
-  }
+  const stats = useQuery({
+    queryKey: ['admin', 'landlords', 'stats'],
+    queryFn: () => adminLandlordApi.getStats().then((r) => r.data),
+  })
+
+  const statsData = stats.data || { total: 0, active: 0, locked: 0 }
 
   return (
     <div className="animate-in fade-in mx-auto flex w-full max-w-[1440px] flex-col gap-6 pb-12 duration-500">
@@ -39,10 +39,12 @@ export const LandlordsPage = () => {
             <Users className="h-6 w-6 text-white" />
           </div>
           <div className="mb-2 text-xs font-bold tracking-wider text-blue-800/70 uppercase">Tổng số chủ trọ</div>
-          <div className="mb-3 text-4xl font-black text-blue-950">{stats.total.toLocaleString()}</div>
+          <div className="mb-3 text-4xl font-black text-blue-950">
+            {stats.isLoading ? '...' : statsData.total.toLocaleString()}
+          </div>
           <div className="flex items-center gap-1 text-sm font-medium text-emerald-600">
             <span className="material-symbols-outlined text-[16px]">trending_up</span>
-            +12% so với tháng trước
+            Cập nhật liên tục
           </div>
         </div>
 
@@ -51,7 +53,9 @@ export const LandlordsPage = () => {
             <UserCheck className="h-6 w-6 text-white" />
           </div>
           <div className="mb-2 text-xs font-bold tracking-wider text-emerald-800/70 uppercase">Tài khoản hoạt động</div>
-          <div className="mb-3 text-4xl font-black text-emerald-950">{stats.active.toLocaleString()}</div>
+          <div className="mb-3 text-4xl font-black text-emerald-950">
+            {stats.isLoading ? '...' : statsData.active.toLocaleString()}
+          </div>
           <div className="flex items-center gap-1 text-sm font-medium text-emerald-700">
             <span className="material-symbols-outlined text-[16px]">show_chart</span>
             Tăng trưởng ổn định
@@ -63,10 +67,12 @@ export const LandlordsPage = () => {
             <UserMinus className="h-6 w-6 text-red-600" />
           </div>
           <div className="mb-2 text-xs font-bold tracking-wider text-red-800/70 uppercase">Khóa / Vô hiệu hóa</div>
-          <div className="mb-3 text-4xl font-black text-red-950">{stats.locked.toLocaleString()}</div>
+          <div className="mb-3 text-4xl font-black text-red-950">
+            {stats.isLoading ? '...' : statsData.locked.toLocaleString()}
+          </div>
           <div className="flex items-center gap-1 text-sm font-medium text-red-600">
             <span className="material-symbols-outlined text-[16px]">warning</span>
-            Cần xử lý 12 tài khoản
+            Cần theo dõi
           </div>
         </div>
       </div>
@@ -156,14 +162,21 @@ export const LandlordsPage = () => {
                 const verified = Boolean(landlord.emailVerifiedAt || landlord.phoneVerifiedAt)
                 const statusInfo = getStatusInfo(landlord.status)
 
-                // Mock Plan info for presentation
-                const mockPlan = landlord.id % 2 === 0 ? 'Pro' : landlord.id % 3 === 0 ? 'Enterprise' : 'Starter'
-                const mockPlanStatus =
-                  landlord.status === 'ACTIVE'
-                    ? 'Đang hoạt động'
-                    : landlord.status === 'INACTIVE'
-                      ? 'Sắp hết hạn'
-                      : 'Quá hạn'
+                // Get plan from the first owned tenant's active subscription
+                let activePlanName = 'Chưa đăng ký'
+                let planStatus = 'Quá hạn'
+                if (landlord.ownedTenants?.length > 0) {
+                  const firstTenant = landlord.ownedTenants[0]
+                  if (firstTenant.subscriptions && firstTenant.subscriptions.length > 0) {
+                    const sub = firstTenant.subscriptions[0]
+                    activePlanName = sub.plan.name
+                    if (sub.status === 'ACTIVE') {
+                      planStatus = 'Hoạt động'
+                    } else {
+                      planStatus = 'Quá hạn'
+                    }
+                  }
+                }
 
                 return (
                   <TableRow
@@ -218,18 +231,18 @@ export const LandlordsPage = () => {
                     </TableCell>
                     <TableCell className="py-4">
                       <div className="flex flex-col items-start gap-1">
-                        <span className="text-sm font-medium text-slate-700">{mockPlan}</span>
-                        {mockPlanStatus === 'Đang hoạt động' && (
+                        <span className="text-sm font-medium text-slate-700">{activePlanName}</span>
+                        {planStatus === 'Hoạt động' && (
                           <Badge className="border-transparent bg-emerald-100 px-1.5 py-0 text-[10px] font-bold tracking-wider text-emerald-700 uppercase hover:bg-emerald-200">
                             Hoạt động
                           </Badge>
                         )}
-                        {mockPlanStatus === 'Sắp hết hạn' && (
+                        {planStatus === 'Sắp hết hạn' && (
                           <Badge className="border-transparent bg-amber-100 px-1.5 py-0 text-[10px] font-bold tracking-wider text-amber-700 uppercase hover:bg-amber-200">
                             Sắp hết hạn
                           </Badge>
                         )}
-                        {mockPlanStatus === 'Quá hạn' && (
+                        {planStatus === 'Quá hạn' && (
                           <Badge className="border-transparent bg-red-100 px-1.5 py-0 text-[10px] font-bold tracking-wider text-red-700 uppercase hover:bg-red-200">
                             Quá hạn
                           </Badge>

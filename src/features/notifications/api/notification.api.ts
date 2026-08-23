@@ -24,14 +24,11 @@ export const notificationApi = {
     apiClient.get<PaginatedResponse<Notification>>('/notifications', { params }),
 
   /** Đánh dấu thông báo đã đọc */
-  markAsRead: (id: number) =>
-    apiClient.patch<{ success: boolean }>(`/notifications/${id}/read`),
+  markAsRead: (id: number) => apiClient.patch<{ success: boolean }>(`/notifications/${id}/read`, {}),
 
   /** Đánh dấu tất cả đã đọc */
-  markAllAsRead: () =>
-    apiClient.post<{ success: boolean }>('/notifications/read-all'),
+  markAllAsRead: () => apiClient.patch<{ success: boolean }>('/notifications/read-all', {}),
 
   /** Lấy số lượng thông báo chưa đọc */
-  getUnreadCount: () =>
-    apiClient.get<{ count: number }>('/notifications/unread-count'),
+  getUnreadCount: () => apiClient.get<{ count: number }>('/notifications/unread-count'),
 }

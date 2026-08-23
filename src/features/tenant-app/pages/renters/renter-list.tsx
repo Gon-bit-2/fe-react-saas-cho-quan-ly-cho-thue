@@ -69,7 +69,8 @@ export default function RenterListPage() {
       renter.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       renter.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (renter.phone && renter.phone.includes(searchTerm))
-    const matchStatus = statusFilter === 'ALL' || renter.verificationStatus === statusFilter
+    const currentStatus = renter.renterProfile?.verificationStatus || renter.verificationStatus
+    const matchStatus = statusFilter === 'ALL' || currentStatus === statusFilter
     return matchSearch && matchStatus
   })
 
@@ -155,7 +156,7 @@ export default function RenterListPage() {
                       {renter.phone && <span className="text-sm text-slate-500">{renter.phone}</span>}
                     </div>
                   </TableCell>
-                  <TableCell>{getStatusBadge(renter.verificationStatus)}</TableCell>
+                  <TableCell>{getStatusBadge(renter.renterProfile?.verificationStatus || renter.verificationStatus || 'UNVERIFIED')}</TableCell>
                   <TableCell>
                     <span className="text-sm text-slate-600">
                       {new Date(renter.createdAt).toLocaleDateString('vi-VN')}

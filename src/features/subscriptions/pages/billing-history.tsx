@@ -19,7 +19,7 @@ export const BillingHistoryPage = () => {
     const fetchHistory = async () => {
       try {
         const { data } = await planApi.getPaymentHistory(tenantId);
-        setTransactions(data || []);
+        setTransactions(data?.data || []);
       } catch (error) {
         console.error('Failed to fetch payment history', error);
       } finally {

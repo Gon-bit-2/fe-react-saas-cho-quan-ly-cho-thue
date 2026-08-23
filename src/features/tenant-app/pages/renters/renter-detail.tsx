@@ -47,26 +47,30 @@ export default function Component() {
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-bold">{renter.fullName}</h1>
-              {renter.verificationStatus === 'VERIFIED' && (
-                <Badge className="border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100">
-                  <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Đã xác minh
-                </Badge>
-              )}
-              {renter.verificationStatus === 'PENDING' && (
-                <Badge className="border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100">
-                  <Clock className="mr-1 h-3.5 w-3.5" /> Chờ xác minh
-                </Badge>
-              )}
-              {renter.verificationStatus === 'REJECTED' && (
-                <Badge className="border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100">
-                  <XCircle className="mr-1 h-3.5 w-3.5" /> Bị từ chối
-                </Badge>
-              )}
-              {renter.verificationStatus === 'UNVERIFIED' && (
-                <Badge className="border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100">
-                  <AlertCircle className="mr-1 h-3.5 w-3.5" /> Chưa xác minh
-                </Badge>
-              )}
+              {(() => {
+                const status = renter.renterProfile?.verificationStatus || renter.verificationStatus || 'UNVERIFIED'
+                if (status === 'VERIFIED') return (
+                  <Badge className="border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100">
+                    <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Đã xác minh
+                  </Badge>
+                )
+                if (status === 'PENDING') return (
+                  <Badge className="border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100">
+                    <Clock className="mr-1 h-3.5 w-3.5" /> Chờ xác minh
+                  </Badge>
+                )
+                if (status === 'REJECTED') return (
+                  <Badge className="border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100">
+                    <XCircle className="mr-1 h-3.5 w-3.5" /> Bị từ chối
+                  </Badge>
+                )
+                if (status === 'UNVERIFIED') return (
+                  <Badge className="border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100">
+                    <AlertCircle className="mr-1 h-3.5 w-3.5" /> Chưa xác minh
+                  </Badge>
+                )
+                return null
+              })()}
             </div>
             <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
               <p className="flex gap-2">

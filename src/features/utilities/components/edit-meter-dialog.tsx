@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { utilityMetersControllerCreate } from '../api'
+import { utilityMetersControllerUpdate } from '../api'
 import { useRoomsControllerList } from '@/shared/api/generated/rooms/rooms'
 
 const formSchema = z.object({
@@ -32,7 +32,17 @@ const formSchema = z.object({
 type FormInput = z.input<typeof formSchema>
 type FormValues = z.output<typeof formSchema>
 
-export function CreateMeterDialog({ children }: { children?: React.ReactNode }) {
+export interface MeterData {
+  id: number
+  roomId?: number
+  serialNumber?: string
+  meterCode?: string
+  unit?: string
+  type?: 'ELECTRICITY' | 'WATER'
+  status?: string
+}
+
+export function EditMeterDialog({ children, meter }: { children?: React.ReactNode; meter: MeterData }) {
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
 
@@ -53,15 +63,18 @@ export function CreateMeterDialog({ children }: { children?: React.ReactNode }) 
   } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      unit: 'kWh',
-      type: 'ELECTRICITY',
+      roomId: meter.roomId,
+      meterCode: meter.serialNumber || meter.meterCode,
+      unit: meter.unit || 'kWh',
+      type: meter.type || 'ELECTRICITY',
     },
   })
 
-  const { mutate: createMeter, isPending } = useMutation({
-    mutationFn: (data: Parameters<typeof utilityMetersControllerCreate>[0]) => utilityMetersControllerCreate(data),
+  const { mutate: updateMeter, isPending } = useMutation({
+    mutationFn: (data: Parameters<typeof utilityMetersControllerUpdate>[1]) =>
+      utilityMetersControllerUpdate(meter.id, data),
     onSuccess: () => {
-      toast.success('Thêm công tơ thành công')
+      toast.success('Cập nhật công tơ thành công')
       queryClient.invalidateQueries({ queryKey: ['utility-meters'] })
       queryClient.invalidateQueries({ queryKey: ['meter-readings'] })
       setOpen(false)
@@ -70,17 +83,14 @@ export function CreateMeterDialog({ children }: { children?: React.ReactNode }) 
     onError: (error: unknown) => {
       const err = error as { response?: { data?: { message?: string; errors?: unknown } } }
       console.error('Lỗi API:', err.response?.data)
-      toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi thêm công tơ')
+      toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật công tơ')
     },
   })
 
   const onSubmit = (data: FormValues) => {
-    createMeter({
-      roomId: data.roomId,
-      type: data.type,
+    updateMeter({
       meterCode: data.meterCode,
       unit: data.unit,
-      status: 'ACTIVE',
     })
   }
 
@@ -96,13 +106,17 @@ export function CreateMeterDialog({ children }: { children?: React.ReactNode }) 
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Thêm Công Tơ Mới</DialogTitle>
-          <DialogDescription>Tạo công tơ điện / nước cho các phòng chưa có.</DialogDescription>
+          <DialogTitle>Sửa Thông Tin Công Tơ</DialogTitle>
+          <DialogDescription>Cập nhật thông tin chi tiết của công tơ.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="roomId">Thuộc Phòng</Label>
-            <Select onValueChange={(val) => setValue('roomId', Number(val))}>
+            <Select
+              defaultValue={meter.roomId?.toString()}
+              onValueChange={(val) => setValue('roomId', Number(val))}
+              disabled
+            >
               <SelectTrigger>
                 <SelectValue placeholder={isLoadingRooms ? 'Đang tải...' : 'Chọn phòng'} />
               </SelectTrigger>
@@ -120,11 +134,12 @@ export function CreateMeterDialog({ children }: { children?: React.ReactNode }) 
           <div className="space-y-2">
             <Label htmlFor="type">Loại Tiện Ích</Label>
             <Select
-              defaultValue="ELECTRICITY"
+              defaultValue={meter.type || 'ELECTRICITY'}
               onValueChange={(val) => {
                 setValue('type', val as 'ELECTRICITY' | 'WATER')
                 setValue('unit', val === 'ELECTRICITY' ? 'kWh' : 'm3')
               }}
+              disabled
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn loại tiện ích" />
@@ -159,7 +174,7 @@ export function CreateMeterDialog({ children }: { children?: React.ReactNode }) 
               Hủy
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Đang lưu...' : 'Thêm Công Tơ'}
+              {isPending ? 'Đang lưu...' : 'Lưu Thay Đổi'}
             </Button>
           </DialogFooter>
         </form>

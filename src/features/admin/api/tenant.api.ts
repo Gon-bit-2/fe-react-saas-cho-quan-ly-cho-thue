@@ -18,6 +18,23 @@ export interface LandlordTenant {
   slug: string
   status: 'ACTIVE' | 'INACTIVE'
   verificationStatus: string
+  idCardFrontUrl: string | null
+  idCardBackUrl: string | null
+  portraitUrl: string | null
+  subscriptions: Array<{
+    id: number
+    status: string
+    expiredAt: string
+    plan: {
+      id: number
+      name: string
+      maxRooms: number
+      allowWebhookPayment: boolean
+    }
+  }>
+  _count: {
+    rooms: number
+  }
 }
 
 export interface Landlord {
@@ -25,6 +42,7 @@ export interface Landlord {
   fullName: string
   email: string | null
   phone: string | null
+  systemRole: string | null
   avatarUrl: string | null
   status: 'ACTIVE' | 'INACTIVE' | 'BANNED'
   emailVerifiedAt: string | null
@@ -54,6 +72,7 @@ export const adminTenantApi = {
 }
 
 export const adminLandlordApi = {
+  getStats: () => apiClient.get<{ total: number; active: number; locked: number }>('/users/landlords/stats'),
   list: (params?: Record<string, unknown>) =>
     apiClient.get<PaginatedResponse<Landlord>>('/users/landlords', { params }),
   get: (id: number) => apiClient.get<Landlord>(`/users/${id}`),

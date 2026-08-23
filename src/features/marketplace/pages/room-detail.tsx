@@ -5,6 +5,7 @@ import { useMarketplaceRoom, useRecordView } from '@/shared/api/marketplace'
 import { useEffect } from 'react'
 
 import { useAuth } from '@/shared/hooks/use-auth'
+import { toast } from 'sonner'
 import { BookViewingDrawer } from '../components/book-viewing-drawer'
 import { RentalRequestDrawer } from '../components/rental-request-drawer'
 import { FavoriteButton } from '../components/favorite-button'
@@ -336,7 +337,7 @@ export function Component() {
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-3">
               {!isAuthenticated ? (
                 <Link to={`/dang-nhap?returnUrl=/phong/${id}`} className="flex w-full">
                   <button className="bg-primary text-on-primary font-label-md w-full rounded-full px-4 py-2.5 shadow-sm transition-opacity hover:opacity-90">
@@ -346,19 +347,28 @@ export function Component() {
               ) : (
                 <>
                   <button
-                    onClick={() => setIsViewingOpen(true)}
-                    className="bg-surface-container text-on-surface font-label-md hover:bg-surface-container-high flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">calendar_month</span>
-                    Xem phòng
-                  </button>
-                  <button
                     onClick={() => setIsRequestOpen(true)}
-                    className="bg-primary text-on-primary font-label-md flex flex-[1.3] items-center justify-center gap-1.5 rounded-full px-2 py-2.5 shadow-sm transition-opacity hover:opacity-90"
+                    className="bg-primary text-on-primary font-label-md flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 shadow-sm transition-opacity hover:opacity-90"
                   >
-                    <span className="material-symbols-outlined text-[18px]">send</span>
-                    Gửi yêu cầu
+                    <span className="material-symbols-outlined text-[20px]">send</span>
+                    Gửi yêu cầu thuê
                   </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsViewingOpen(true)}
+                      className="bg-surface-container text-on-surface font-label-md hover:bg-surface-container-high flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 transition-colors border border-surface-border"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+                      Đặt lịch xem
+                    </button>
+                    <button
+                      onClick={() => toast.info('Tính năng chat đang được phát triển')}
+                      className="bg-secondary-container text-on-secondary-container font-label-md hover:bg-secondary-container/80 flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 transition-colors border border-surface-border"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">chat</span>
+                      Chat
+                    </button>
+                  </div>
                 </>
               )}
             </div>

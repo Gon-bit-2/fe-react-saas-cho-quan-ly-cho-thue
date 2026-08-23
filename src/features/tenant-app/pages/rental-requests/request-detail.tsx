@@ -70,22 +70,37 @@ export function Component() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            className="border-red-200 text-red-600 hover:bg-red-50"
-            onClick={() => handleAction('REJECTED')}
-          >
-            <X className="mr-2 h-4 w-4" /> Từ chối
-          </Button>
-          <Button variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-50">
-            <FileText className="mr-2 h-4 w-4" /> Yêu cầu bổ sung
-          </Button>
-          <Button
-            className="bg-blue-600 text-white shadow-sm hover:bg-blue-700"
-            onClick={() => handleAction('APPROVED')}
-          >
-            <Check className="mr-2 h-4 w-4" /> Duyệt yêu cầu
-          </Button>
+          {request.status === 'PENDING' || request.status === 'NEED_MORE_INFO' ? (
+            <>
+              <Button
+                variant="outline"
+                className="border-red-200 text-red-600 hover:bg-red-50"
+                onClick={() => handleAction('REJECTED')}
+              >
+                <X className="mr-2 h-4 w-4" /> Từ chối
+              </Button>
+              <Button variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-50">
+                <FileText className="mr-2 h-4 w-4" /> Yêu cầu bổ sung
+              </Button>
+              <Button
+                className="bg-blue-600 text-white shadow-sm hover:bg-blue-700"
+                onClick={() => handleAction('APPROVED')}
+              >
+                <Check className="mr-2 h-4 w-4" /> Duyệt yêu cầu
+              </Button>
+            </>
+          ) : request.status === 'APPROVED' ? (
+            <Button
+              className="bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
+              onClick={() =>
+                navigate(
+                  `/hop-dong/tao?renterId=${request.renterId}&roomId=${request.roomId}&rentalRequestId=${request.id}`,
+                )
+              }
+            >
+              <FileText className="mr-2 h-4 w-4" /> Tạo hợp đồng
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -108,7 +123,8 @@ export function Component() {
                     {request.renter?.fullName || `Khách thuê #${request.renterId}`}
                   </h2>
                   <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
-                    <Briefcase className="h-4 w-4" /> Nhân viên văn phòng - Công ty TNHH ABC
+                    <Briefcase className="h-4 w-4" />{' '}
+                    {request.renter?.renterProfile?.occupation || 'Chưa cập nhật công việc'}
                   </div>
                 </div>
               </div>
@@ -118,19 +134,25 @@ export function Component() {
                   <div className="mb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
                     Số điện thoại
                   </div>
-                  <div className="font-medium text-slate-900">{request.renter?.phone || '0912 345 678'}</div>
+                  <div className="font-medium text-slate-900">{request.renter?.phone || 'Chưa cập nhật'}</div>
                 </div>
                 <div>
                   <div className="mb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">Email</div>
-                  <div className="font-medium text-slate-900">{request.renter?.email || 'mai.nguyen@email.com'}</div>
+                  <div className="font-medium text-slate-900">{request.renter?.email || 'Chưa cập nhật'}</div>
                 </div>
                 <div>
                   <div className="mb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">Ngày sinh</div>
-                  <div className="font-medium text-slate-900">15/08/1995</div>
+                  <div className="font-medium text-slate-900">
+                    {request.renter?.renterProfile?.dateOfBirth
+                      ? new Date(request.renter.renterProfile.dateOfBirth).toLocaleDateString('vi-VN')
+                      : 'Chưa cập nhật'}
+                  </div>
                 </div>
                 <div>
                   <div className="mb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">Quê quán</div>
-                  <div className="font-medium text-slate-900">Thanh Hóa</div>
+                  <div className="font-medium text-slate-900">
+                    {request.renter?.renterProfile?.permanentAddress || 'Chưa cập nhật'}
+                  </div>
                 </div>
               </div>
 
@@ -171,22 +193,35 @@ export function Component() {
                 </div>
                 <div className="flex-1 space-y-4">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">Phòng {request.roomId} - Tòa A</h3>
-                    <p className="text-sm text-slate-500">Loại: Studio • 35m² • Đầy đủ nội thất</p>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      {request.room?.title || `Phòng ${request.roomId}`} -{' '}
+                      {request.room?.property?.name}
+                    </h3>
+                    <p className="text-sm text-slate-500">
+                      {request.room?.area ? `${request.room.area}m²` : 'Chưa cập nhật diện tích'} •
+                      Tối đa {request.room?.maxOccupants || 0} người
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
                     <div>
                       <div className="mb-1 text-xs text-slate-500">Giá thuê (tháng)</div>
-                      <div className="font-semibold text-slate-900">4,500,000 ₫</div>
+                      <div className="font-semibold text-slate-900">
+                        {request.room?.basePrice?.toLocaleString('vi-VN') || 0} ₫
+                      </div>
                     </div>
                     <div>
                       <div className="mb-1 text-xs text-slate-500">Tiền cọc (dự kiến)</div>
-                      <div className="font-semibold text-slate-900">4,500,000 ₫</div>
+                      <div className="font-semibold text-slate-900">
+                        {request.room?.depositAmount?.toLocaleString('vi-VN') || 0} ₫
+                      </div>
                     </div>
                     <div>
-                      <div className="mb-1 text-xs text-slate-500">Phí dịch vụ ~</div>
-                      <div className="font-semibold text-slate-900">300k/tháng</div>
+                      <div className="mb-1 text-xs text-slate-500">Tiền điện / nước</div>
+                      <div className="font-semibold text-slate-900">
+                        {request.room?.electricityPrice?.toLocaleString('vi-VN') || 0}đ /{' '}
+                        {request.room?.waterPrice?.toLocaleString('vi-VN') || 0}đ
+                      </div>
                     </div>
                   </div>
 
@@ -197,14 +232,14 @@ export function Component() {
                         <Calendar className="h-4 w-4 text-slate-400" />
                         {request.expectedStartDate
                           ? new Date(request.expectedStartDate).toLocaleDateString('vi-VN')
-                          : '01/11/2023'}
+                          : 'Chưa cập nhật'}
                       </div>
                     </div>
                     <div>
-                      <div className="mb-1 text-xs text-slate-500">Thời hạn thuê</div>
+                      <div className="mb-1 text-xs text-slate-500">Trạng thái phòng</div>
                       <div className="flex items-center gap-2 font-medium text-slate-900">
                         <Clock className="h-4 w-4 text-slate-400" />
-                        12 tháng
+                        {request.room?.status === 'AVAILABLE' ? 'Đang trống' : 'Đã cho thuê'}
                       </div>
                     </div>
                   </div>
@@ -222,10 +257,7 @@ export function Component() {
               <MessageSquare className="h-5 w-5" /> Lời nhắn từ khách
             </div>
             <div className="rounded-lg bg-blue-700/50 p-4 text-sm leading-relaxed text-blue-50 italic shadow-inner">
-              "
-              {request.message ||
-                'Chào anh/chị, em thấy phòng này phù hợp với nhu cầu. Em có nuôi một bé mèo nhỏ (đã triệt sản và ngoan), không biết bên mình có cho phép không ạ? Nếu được em muốn chuyển vào đầu tháng sau luôn. Cảm ơn anh/chị.'}
-              "
+              "{request.message || 'Không có lời nhắn'}"
             </div>
           </div>
 
@@ -256,8 +288,12 @@ export function Component() {
                     <Check className="h-3 w-3 text-white" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-slate-900">Hệ thống xác thực CCCD hợp lệ</h4>
-                    <p className="mt-1 text-xs text-slate-500">14:32, 24/10/2023</p>
+                    <h4 className="text-sm font-semibold text-slate-900">Hệ thống xác thực CCCD</h4>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {request.renter?.renterProfile?.verificationStatus === 'VERIFIED'
+                        ? 'Hợp lệ'
+                        : 'Chưa xác thực'}
+                    </p>
                   </div>
                 </div>
 

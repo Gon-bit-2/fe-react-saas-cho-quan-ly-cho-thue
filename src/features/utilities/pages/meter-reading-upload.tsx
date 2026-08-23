@@ -12,6 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ArrowLeft, ImageIcon, ImagePlus, Loader2, Save } from 'lucide-react'
 import { useUtilityMetersControllerList, meterReadingsControllerCreate } from '../api'
+import { useEffect } from 'react'
+import { useUploadOcr } from '@/shared/api/ocr'
+import { ocrControllerGetById } from '@/shared/api/generated/ocr/ocr'
 
 const formSchema = z.object({
   meterId: z.coerce.number().int().positive('Vui lòng chọn công tơ'),
@@ -22,6 +25,12 @@ const formSchema = z.object({
 type FormInput = z.input<typeof formSchema>
 type FormValues = z.output<typeof formSchema>
 
+interface OcrJobData {
+  id: number
+  status: 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED' | 'NEED_REVIEW'
+  recognizedValue?: number | null
+}
+
 export function MeterReadingUploadPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -29,6 +38,10 @@ export function MeterReadingUploadPage() {
 
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
+  const [ocrJobId, setOcrJobId] = useState<number | null>(null)
+  const [isPolling, setIsPolling] = useState(false)
+  const { mutateAsync: uploadOcr, isPending: isUploading } = useUploadOcr()
 
   const { data: metersResponse, isLoading: isLoadingMeters } = useUtilityMetersControllerList({
     limit: 100,
@@ -92,14 +105,64 @@ export function MeterReadingUploadPage() {
     })
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      const url = URL.createObjectURL(file)
-      setPreviewImage(url)
+    if (!file) return
+
+    if (!selectedMeterId) {
+      toast.error('Vui lòng chọn công tơ trước khi tải ảnh')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
+    setSelectedFile(file)
+    const url = URL.createObjectURL(file)
+    setPreviewImage(url)
+
+    try {
+      const data = (await uploadOcr({ meterId: Number(selectedMeterId), file })) as unknown as OcrJobData
+      setOcrJobId(data.id)
+      setIsPolling(true)
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
+      toast.error(error.response?.data?.message || 'Lỗi khi tải ảnh lên OCR')
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
+
+  useEffect(() => {
+    if (!ocrJobId || !isPolling) return
+    const interval = setInterval(async () => {
+      try {
+        const data = (await ocrControllerGetById(ocrJobId)) as unknown as OcrJobData
+        if (data.status === 'SUCCESS' || data.status === 'NEED_REVIEW') {
+          setIsPolling(false)
+          clearInterval(interval)
+          if (data.recognizedValue !== null && data.recognizedValue !== undefined) {
+            setValue('currentValue', data.recognizedValue, { shouldValidate: true })
+            if (data.status === 'SUCCESS') {
+              toast.success('Đã đọc được chỉ số từ ảnh')
+            } else {
+              toast.warning('AI đọc được chỉ số nhưng độ tin cậy thấp. Vui lòng kiểm tra lại.')
+            }
+          } else {
+            toast.error('AI không đọc được số, vui lòng nhập tay.')
+          }
+        } else if (data.status === 'FAILED') {
+          setIsPolling(false)
+          clearInterval(interval)
+          toast.error('AI không thể đọc được ảnh này. Bạn vui lòng nhập tay.')
+        }
+      } catch {
+        setIsPolling(false)
+        clearInterval(interval)
+        toast.error('Lỗi khi kiểm tra kết quả OCR')
+      }
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [ocrJobId, isPolling, setValue])
 
   return (
     <div className="animate-in fade-in mx-auto max-w-5xl space-y-8 p-8 pb-12 duration-500">
@@ -199,8 +262,12 @@ export function MeterReadingUploadPage() {
             >
               Hủy bỏ
             </Button>
-            <Button type="submit" size="lg" className="px-8 shadow-md" disabled={isPending}>
-              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            <Button type="submit" size="lg" className="px-8 shadow-md" disabled={isPending || isUploading || isPolling}>
+              {isPending || isUploading || isPolling ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
               Lưu Chỉ Số
             </Button>
           </div>
@@ -220,7 +287,14 @@ export function MeterReadingUploadPage() {
                   variant="outline"
                   size="sm"
                   className="bg-white"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => {
+                    if (!selectedMeterId) {
+                      toast.error('Vui lòng chọn công tơ trước khi tải ảnh')
+                      return
+                    }
+                    fileInputRef.current?.click()
+                  }}
+                  disabled={isUploading || isPolling}
                 >
                   <ImagePlus className="mr-2 h-4 w-4" />
                   {previewImage ? 'Đổi ảnh' : 'Chọn ảnh'}
@@ -242,6 +316,12 @@ export function MeterReadingUploadPage() {
                     alt="Preview"
                     className="h-full w-full rounded-lg bg-white object-contain shadow-sm"
                   />
+                  {(isUploading || isPolling) && (
+                    <div className="absolute inset-4 z-10 flex flex-col items-center justify-center rounded-lg bg-black/60 text-white backdrop-blur-sm">
+                      <Loader2 className="mb-2 h-8 w-8 animate-spin" />
+                      <p className="font-medium">{isUploading ? 'Đang tải ảnh...' : 'AI đang phân tích...'}</p>
+                    </div>
+                  )}
                   <div
                     className="absolute inset-4 flex cursor-pointer items-center justify-center rounded-lg bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
                     onClick={() => fileInputRef.current?.click()}

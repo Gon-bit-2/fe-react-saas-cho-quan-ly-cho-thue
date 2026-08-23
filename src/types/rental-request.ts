@@ -1,4 +1,5 @@
 import type { Renter } from './renter'
+import type { Room } from './room'
 
 export type RentalRequestStatus =
   'PENDING' | 'APPROVED' | 'REJECTED' | 'NEED_MORE_INFO' | 'CANCELED' | 'CONVERTED_TO_CONTRACT'
@@ -16,6 +17,7 @@ export interface RentalRequest {
   createdAt: string
   updatedAt: string
   renter?: Partial<Renter> & { avatarUrl?: string }
+  room?: Partial<Room> & { property?: { name: string } }
 }
 
 export interface ListRentalRequestsQuery {

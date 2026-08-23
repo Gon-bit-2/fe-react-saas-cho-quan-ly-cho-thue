@@ -18,12 +18,30 @@ export function Component() {
   const location = useLocation()
 
   // Lấy dữ liệu profile để hiển thị ở header
-  const { data: profileResponse } = useQuery({
+  useQuery({
     queryKey: ['auth', 'profile'],
     queryFn: () => profileApi.getProfile(),
   })
-  const user = profileResponse?.data
-  const { logout } = useAuth()
+  const { profile: user, logout, selectedMembership } = useAuth()
+
+  const getRoleLabel = (roleId?: string | null) => {
+    switch (roleId) {
+      case 'ADMIN':
+        return 'Quản trị viên'
+      case 'LANDLORD':
+        return 'Chủ trọ'
+      case 'MANAGER':
+        return 'Quản lý vận hành'
+      case 'TENANT':
+        return 'Người thuê'
+      case 'USER':
+        return 'Người dùng'
+      default:
+        return 'Người dùng'
+    }
+  }
+
+  const displayRole = getRoleLabel(selectedMembership?.roleId || user?.systemRole)
 
   const navItems = [
     { name: 'Hồ sơ', path: '/tai-khoan', icon: 'person', exact: true },
@@ -43,11 +61,7 @@ export function Component() {
       <aside className="w-sidebar-width bg-surface-container-lowest fixed top-0 left-0 z-50 flex h-full flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all">
         <div className="h-topbar-height border-surface-border flex items-center gap-3 border-b px-6">
           <Link to="/" className="flex items-center gap-3">
-            <img
-              alt="Nhà Trọ Việt Logo"
-              className="h-8 w-auto object-contain"
-              src="/logo.png"
-            />
+            <img alt="Nhà Trọ Việt Logo" className="h-8 w-auto object-contain" src="/logo.png" />
             <span className="font-headline-sm text-headline-sm text-primary tracking-tight">Nhà Trọ Việt</span>
           </Link>
         </div>
@@ -106,9 +120,7 @@ export function Component() {
                 <div className="font-label-md text-label-md text-on-surface leading-none">
                   {user?.fullName || 'Người dùng'}
                 </div>
-                <div className="text-on-surface-variant text-[11px]">
-                  {user?.systemRole === 'ADMIN' ? 'Quản trị viên' : 'Quản lý vận hành'}
-                </div>
+                <div className="text-on-surface-variant text-[11px]">{displayRole}</div>
               </div>
 
               <DropdownMenu>

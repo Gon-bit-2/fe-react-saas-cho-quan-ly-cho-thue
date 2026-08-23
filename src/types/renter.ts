@@ -17,7 +17,20 @@ export interface Renter {
   occupation?: string | null
   emergencyContactName?: string | null
   emergencyContactPhone?: string | null
-  verificationStatus: RenterVerificationStatus
+  verificationStatus?: RenterVerificationStatus
+  status?: string
+  renterProfile?: {
+    verificationStatus: RenterVerificationStatus
+    dateOfBirth?: string | null
+    gender?: Gender | null
+    identityNumber?: string | null
+    identityFrontUrl?: string | null
+    identityBackUrl?: string | null
+    permanentAddress?: string | null
+    occupation?: string | null
+    emergencyContactName?: string | null
+    emergencyContactPhone?: string | null
+  }
   createdAt: string
   updatedAt: string
 }

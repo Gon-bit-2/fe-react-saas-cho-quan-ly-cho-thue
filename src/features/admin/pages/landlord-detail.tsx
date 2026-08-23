@@ -5,7 +5,6 @@ import {
   Mail,
   Phone,
   Building2,
-  MapPin,
   Star,
   History,
   Lock,
@@ -108,7 +107,7 @@ export const LandlordDetailPage = () => {
             <div className="border-b border-slate-100 px-6 pt-16 pb-6 text-center">
               <h2 className="text-xl font-bold text-slate-900">{data.fullName}</h2>
               <p className="mt-1 text-sm text-slate-500">
-                {data.fullName.length > 20 ? 'Tài khoản Doanh nghiệp' : 'Chủ trọ cấp 2 (Silver)'}
+                {data.systemRole === 'SUPER_ADMIN' ? 'Quản trị viên' : 'Chủ trọ'}
               </p>
             </div>
 
@@ -141,46 +140,59 @@ export const LandlordDetailPage = () => {
                 </div>
                 <div className="text-sm font-medium text-slate-900">{data.phone || 'Chưa cập nhật'}</div>
               </div>
-
-              <div>
-                <div className="mb-1 flex items-center gap-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">
-                  <MapPin className="h-3.5 w-3.5" /> Địa chỉ đăng ký
-                </div>
-                <div className="text-sm font-medium text-slate-900">
-                  123 Đường Trần Hưng Đạo, Phường Cầu Ông Lãnh, Quận 1, TP. HCM
-                </div>
-              </div>
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900">Giấy tờ tùy thân</h3>
-              <Badge className="border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                Đã duyệt
-              </Badge>
+              {data.ownedTenants[0]?.verificationStatus === 'VERIFIED' && (
+                <Badge className="border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                  Đã duyệt
+                </Badge>
+              )}
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-blue-600">
-                  <FileText className="h-5 w-5" />
+              {data.ownedTenants[0]?.idCardFrontUrl ? (
+                <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-blue-600">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <a
+                      href={data.ownedTenants[0].idCardFrontUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-semibold text-blue-600 hover:underline"
+                    >
+                      Ảnh CCCD mặt trước
+                    </a>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm font-semibold text-slate-900">CCCD_MatTruoc.jpg</div>
-                  <div className="text-xs text-slate-500">Tải lên: 12/10/2023</div>
-                </div>
-              </div>
+              ) : null}
 
-              <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-blue-600">
-                  <FileText className="h-5 w-5" />
+              {data.ownedTenants[0]?.idCardBackUrl ? (
+                <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-blue-600">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <a
+                      href={data.ownedTenants[0].idCardBackUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-semibold text-blue-600 hover:underline"
+                    >
+                      Ảnh CCCD mặt sau
+                    </a>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm font-semibold text-slate-900">CCCD_MatSau.jpg</div>
-                  <div className="text-xs text-slate-500">Tải lên: 12/10/2023</div>
-                </div>
-              </div>
+              ) : null}
+
+              {!data.ownedTenants[0]?.idCardFrontUrl && !data.ownedTenants[0]?.idCardBackUrl && (
+                <div className="text-sm text-slate-500">Chưa cung cấp giấy tờ</div>
+              )}
             </div>
           </div>
         </div>
@@ -188,36 +200,53 @@ export const LandlordDetailPage = () => {
         {/* Right Column - Main Content */}
         <div className="space-y-6 lg:col-span-8">
           {/* Subscription Plan */}
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white shadow-md">
-            <div className="absolute top-0 right-0 p-8 opacity-10">
-              <TrendingUp className="h-32 w-32" />
-            </div>
-            <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
-              <div>
-                <div className="mb-1 text-sm font-semibold tracking-wider text-blue-200 uppercase">Gói hiện tại</div>
-                <h2 className="mb-2 text-3xl font-bold">Doanh nghiệp Pro</h2>
-                <ul className="space-y-1 text-sm text-blue-100">
-                  <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-blue-300"></div> Đăng tối đa 50 tin
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-blue-300"></div> Đẩy tin VIP tự động
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-blue-300"></div> Quản lý số phòng: Không giới hạn
-                  </li>
-                </ul>
+          {data.ownedTenants[0]?.subscriptions?.[0] ? (
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white shadow-md">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <TrendingUp className="h-32 w-32" />
               </div>
+              <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+                <div>
+                  <div className="mb-1 text-sm font-semibold tracking-wider text-blue-200 uppercase">Gói hiện tại</div>
+                  <h2 className="mb-2 text-3xl font-bold">{data.ownedTenants[0].subscriptions[0].plan.name}</h2>
+                  <ul className="space-y-1 text-sm text-blue-100">
+                    <li className="flex items-center gap-2">
+                      <div className="h-1.5 w-1.5 rounded-full bg-blue-300"></div> Đăng tối đa{' '}
+                      {data.ownedTenants[0].subscriptions[0].plan.maxRooms} phòng
+                    </li>
+                    {data.ownedTenants[0].subscriptions[0].plan.allowWebhookPayment && (
+                      <li className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-blue-300"></div> Cấu hình Webhook thanh toán tự động
+                      </li>
+                    )}
+                  </ul>
+                </div>
 
-              <div className="min-w-[200px] rounded-xl border border-white/20 bg-white/10 p-5 text-center backdrop-blur-sm">
-                <div className="mb-2 text-xs font-semibold tracking-wider text-blue-200 uppercase">Hết hạn vào</div>
-                <div className="mb-4 text-2xl font-bold">15/12/2024</div>
-                <Button variant="secondary" className="w-full bg-white font-bold text-blue-700 hover:bg-blue-50">
-                  Nâng cấp gói
-                </Button>
+                <div className="min-w-[200px] rounded-xl border border-white/20 bg-white/10 p-5 text-center backdrop-blur-sm">
+                  <div className="mb-2 text-xs font-semibold tracking-wider text-blue-200 uppercase">Hết hạn vào</div>
+                  <div className="mb-4 text-2xl font-bold">
+                    {new Date(data.ownedTenants[0].subscriptions[0].expiredAt).toLocaleDateString('vi-VN')}
+                  </div>
+                  <Button variant="secondary" className="w-full bg-white font-bold text-blue-700 hover:bg-blue-50">
+                    Nâng cấp gói
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-slate-600 to-slate-700 p-8 text-white shadow-md">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <TrendingUp className="h-32 w-32" />
+              </div>
+              <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+                <div>
+                  <div className="mb-1 text-sm font-semibold tracking-wider text-slate-200 uppercase">Gói hiện tại</div>
+                  <h2 className="mb-2 text-3xl font-bold">Chưa đăng ký gói</h2>
+                  <p className="text-sm text-slate-100">Khách hàng chưa đăng ký gói dịch vụ nào hoặc gói đã hết hạn.</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Account Status / Moderation Action */}
           <div className="overflow-hidden rounded-xl rounded-l-none border-l-4 border-slate-900 bg-white shadow-sm">
@@ -363,8 +392,10 @@ export const LandlordDetailPage = () => {
 
               <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
                 <div>
-                  <div className="mb-1 text-sm font-semibold text-slate-500">TỔNG SỐ PHÒNG (ƯỚC TÍNH)</div>
-                  <div className="text-3xl font-bold text-slate-900">{data.ownedTenants.length * 15}</div>
+                  <div className="mb-1 text-sm font-semibold text-slate-500">TỔNG SỐ PHÒNG (ĐANG QUẢN LÝ)</div>
+                  <div className="text-3xl font-bold text-slate-900">
+                    {data.ownedTenants.reduce((acc, t) => acc + (t._count?.rooms || 0), 0)}
+                  </div>
                 </div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                   <Home className="h-6 w-6" />
@@ -385,7 +416,7 @@ export const LandlordDetailPage = () => {
                   {/* Table Header mock */}
                   <div className="grid grid-cols-12 gap-4 bg-slate-50 px-6 py-3 text-xs font-bold tracking-wider text-slate-500 uppercase">
                     <div className="col-span-5">Tên cơ sở</div>
-                    <div className="col-span-3">Khu vực</div>
+                    <div className="col-span-3">Số lượng phòng</div>
                     <div className="col-span-4 text-right">Trạng thái</div>
                   </div>
 
@@ -406,12 +437,18 @@ export const LandlordDetailPage = () => {
                         </div>
                       </div>
                       <div className="col-span-3">
-                        <div className="text-sm font-medium text-slate-700">Quận 2, TP.HCM</div>
+                        <div className="text-sm font-medium text-slate-700">{tenant._count?.rooms || 0} phòng</div>
                       </div>
                       <div className="col-span-4 flex justify-end">
-                        <Badge className="border-transparent bg-emerald-100 text-emerald-700 shadow-sm hover:bg-emerald-100">
-                          Đang vận hành
-                        </Badge>
+                        {tenant.status === 'ACTIVE' ? (
+                          <Badge className="border-transparent bg-emerald-100 text-emerald-700 shadow-sm hover:bg-emerald-100">
+                            Đang vận hành
+                          </Badge>
+                        ) : (
+                          <Badge className="border-transparent bg-slate-100 text-slate-700 shadow-sm hover:bg-slate-200">
+                            Tạm dừng
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   ))}

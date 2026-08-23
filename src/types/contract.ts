@@ -3,15 +3,18 @@ export type ContractBillingCycle = 'MONTHLY' | 'QUARTERLY'
 
 export interface ContractMember {
   id: number
-  userId: number
+  userId?: number | null
+  fullName?: string | null
+  phone?: string | null
+  identityCard?: string | null
   role: string
   createdAt: string
-  user: {
+  user?: {
     id: number
     fullName: string
     email: string
-    phone: string
-  }
+    phone?: string | null
+  } | null
 }
 
 export interface ContractRoom {

@@ -5,6 +5,7 @@ import { METER_READING_STATUS_MAP, METER_STATUS_MAP } from '@/shared/constants/s
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useUtilityMetersControllerGetById, useMeterReadingsControllerList } from '../api'
 import { RecordReadingDialog } from '../components/record-reading-dialog'
+import { EditMeterDialog } from '../components/edit-meter-dialog'
 
 type MeterReading = {
   id: number
@@ -95,10 +96,12 @@ export function MeterDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">edit</span>
-            Sửa thông tin
-          </Button>
+          <EditMeterDialog meter={meter}>
+            <Button variant="outline" className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">edit</span>
+              Sửa thông tin
+            </Button>
+          </EditMeterDialog>
         </div>
       </div>
 

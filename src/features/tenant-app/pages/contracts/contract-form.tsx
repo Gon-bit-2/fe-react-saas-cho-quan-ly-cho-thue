@@ -18,6 +18,8 @@ export default function ContractFormPage() {
   const { id } = useParams()
   const [searchParams] = useSearchParams()
   const renterIdParam = searchParams.get('renterId')
+  const roomIdParam = searchParams.get('roomId')
+  const rentalRequestIdParam = searchParams.get('rentalRequestId')
   const isEditing = !!id
 
   const { data: contractData, isLoading: isLoadingContract } = useContract(Number(id))
@@ -29,8 +31,9 @@ export default function ContractFormPage() {
 
   // Form State
   const [formData, setFormData] = useState({
-    roomId: '',
+    roomId: roomIdParam || '',
     renterId: renterIdParam || '',
+    rentalRequestId: rentalRequestIdParam || '',
     startDate: '',
     endDate: '',
     monthlyPrice: '',
@@ -242,6 +245,7 @@ export default function ContractFormPage() {
           ...updatePayload,
           roomId: Number(formData.roomId),
           renterId: Number(formData.renterId),
+          rentalRequestId: formData.rentalRequestId ? Number(formData.rentalRequestId) : undefined,
           startDate: updatePayload.startDate!,
           endDate: updatePayload.endDate!,
           monthlyPrice: updatePayload.monthlyPrice!,

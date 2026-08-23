@@ -6,12 +6,14 @@ import type { Plan, Subscription } from '../api/plan.api'
 import { useAuth } from '@/shared/hooks/use-auth'
 import { useNavigate } from 'react-router'
 
-
-
 export const CurrentPlanPage = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [plan, setPlan] = useState<Plan | null>(null)
-  const [usageLimits, setUsageLimits] = useState<{ currentProperties: number; currentStorageGb: number; currentStaff: number } | null>(null)
+  const [usageLimits, setUsageLimits] = useState<{
+    currentProperties: number
+    currentRooms: number
+    currentStaff: number
+  } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const navigate = useNavigate()
 
@@ -48,12 +50,25 @@ export const CurrentPlanPage = () => {
 
   // Use real data from API or fallback to 0
   const currentProperties = usageLimits?.currentProperties ?? 0
-  const currentStorageGb = usageLimits?.currentStorageGb ?? 0
+  const currentRooms = usageLimits?.currentRooms ?? 0
   const currentStaff = usageLimits?.currentStaff ?? 0
 
-  const propertyUsage = Math.min((currentProperties / plan.maxProperties) * 100, 100)
-  const storageUsage = plan.storageLimitGb ? Math.min((currentStorageGb / plan.storageLimitGb) * 100, 100) : 0
-  const staffUsage = plan.maxUsers ? Math.min((currentStaff / plan.maxUsers) * 100, 100) : 0
+  const maxProperties = plan.maxProperties || 0
+  const maxRooms = plan.maxRooms || 0
+  const maxStaff = plan.maxStaff || 0
+
+  const propertyUsage =
+    maxProperties > 0 && maxProperties < 999999
+      ? Math.min((currentProperties / maxProperties) * 100, 100)
+      : currentProperties > 0
+        ? 100
+        : 0
+  const roomUsage =
+    maxRooms > 0 && maxRooms < 999999 ? Math.min((currentRooms / maxRooms) * 100, 100) : currentRooms > 0 ? 100 : 0
+  const staffUsage =
+    maxStaff > 0 && maxStaff < 999999 ? Math.min((currentStaff / maxStaff) * 100, 100) : currentStaff > 0 ? 100 : 0
+
+  const formatMax = (val: number) => (val === 0 || val >= 999999 ? 'Không giới hạn' : val)
 
   return (
     <div className="flex flex-col gap-6">
@@ -87,7 +102,7 @@ export const CurrentPlanPage = () => {
             <div className="flex flex-col gap-1 sm:items-end">
               <span className="text-primary text-3xl font-bold">
                 {new Intl.NumberFormat('vi-VN').format(
-                  subscription.billingCycle === 'YEARLY' ? plan.priceYearly : plan.priceMonthly
+                  subscription.billingCycle === 'YEARLY' ? plan.priceYearly : plan.priceMonthly,
                 )}
                 <span className="text-muted-foreground text-lg font-normal"> VNĐ</span>
               </span>
@@ -129,7 +144,11 @@ export const CurrentPlanPage = () => {
               <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
               Đổi gói
             </Button>
-            <Button variant="outline" className="bg-background flex items-center gap-2" onClick={() => navigate('/goi-dich-vu/lich-su-thanh-toan')}>
+            <Button
+              variant="outline"
+              className="bg-background flex items-center gap-2"
+              onClick={() => navigate('/goi-dich-vu/lich-su-thanh-toan')}
+            >
               <span className="material-symbols-outlined text-[18px]">credit_card</span>
               Quản lý thanh toán
             </Button>
@@ -190,8 +209,8 @@ export const CurrentPlanPage = () => {
                 </div>
               </div>
             )}
-            </div>
           </div>
+        </div>
 
         {/* Usage Limits */}
         <div className="flex flex-col gap-6">
@@ -207,10 +226,10 @@ export const CurrentPlanPage = () => {
                     <span className="material-symbols-outlined text-muted-foreground text-[16px]">
                       real_estate_agent
                     </span>
-                    Tòa nhà
+                    Tòa nhà / Khu trọ
                   </span>
                   <span className="text-muted-foreground text-sm tabular-nums">
-                    {currentProperties} / {plan.maxProperties}
+                    {currentProperties} / {formatMax(maxProperties)}
                   </span>
                 </div>
                 <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
@@ -223,17 +242,17 @@ export const CurrentPlanPage = () => {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-sm font-medium">
-                    <span className="material-symbols-outlined text-muted-foreground text-[16px]">folder_open</span>
-                    Dung lượng
+                    <span className="material-symbols-outlined text-muted-foreground text-[16px]">meeting_room</span>
+                    Phòng trọ
                   </span>
                   <span className="text-muted-foreground text-sm tabular-nums">
-                    {currentStorageGb} GB / {plan.storageLimitGb} GB
+                    {currentRooms} / {formatMax(maxRooms)}
                   </span>
                 </div>
                 <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
                   <div
                     className="h-full rounded-full bg-blue-500 transition-all"
-                    style={{ width: `${storageUsage}%` }}
+                    style={{ width: `${roomUsage}%` }}
                   ></div>
                 </div>
               </div>
@@ -244,7 +263,7 @@ export const CurrentPlanPage = () => {
                     Nhân viên
                   </span>
                   <span className="text-muted-foreground text-sm tabular-nums">
-                    {currentStaff} / {plan.maxUsers}
+                    {currentStaff} / {formatMax(maxStaff)}
                   </span>
                 </div>
                 <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
@@ -256,7 +275,12 @@ export const CurrentPlanPage = () => {
               </div>
               <div className="bg-secondary/30 mt-4 rounded-xl p-4 text-center">
                 <span className="text-muted-foreground mb-2 block text-sm">Cần thêm tài nguyên?</span>
-                <button className="text-primary text-sm font-medium hover:underline" onClick={() => navigate('/goi-dich-vu/so-sanh')}>Xem các gói nâng cấp</button>
+                <button
+                  className="text-primary text-sm font-medium hover:underline"
+                  onClick={() => navigate('/goi-dich-vu/so-sanh')}
+                >
+                  Xem các gói nâng cấp
+                </button>
               </div>
             </div>
           </div>
