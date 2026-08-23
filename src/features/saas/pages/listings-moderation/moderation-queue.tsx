@@ -1,219 +1,225 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { listingsModerationApi, type IListingModerationDTO } from '@/shared/api/listings-moderation'
+import { useAdminModerationRooms } from '@/shared/api/admin'
+import { Hourglass, CheckCircle2, XCircle, Search, CalendarDays, Eye, Image as ImageIcon } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export function ModerationQueuePage() {
-  const [listings, setListings] = useState<IListingModerationDTO[]>([])
-  const [loading, setLoading] = useState(true)
+  const [params, setParams] = useState({ page: 1, limit: 12 })
+  const { data: response, isLoading: loading } = useAdminModerationRooms(params)
+  const pending = useAdminModerationRooms({ page: 1, limit: 1, marketplaceStatus: 'PENDING_REVIEW' })
+  const published = useAdminModerationRooms({ page: 1, limit: 1, marketplaceStatus: 'PUBLISHED' })
+  const rejected = useAdminModerationRooms({ page: 1, limit: 1, marketplaceStatus: 'REJECTED' })
 
-  useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const response = await listingsModerationApi.list()
-        setListings(response.data)
-      } catch (error) {
-        console.error('Lỗi khi tải hàng chờ kiểm duyệt', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchListings()
-  }, [])
+  const listings = response?.data || []
 
   const getStatusDisplay = (status: string) => {
     switch (status) {
-      case 'PENDING':
+      case 'PENDING_REVIEW':
+        return <Badge className="border-transparent bg-blue-100 text-blue-700 hover:bg-blue-200">Chờ duyệt</Badge>
+      case 'PUBLISHED':
         return (
-          <span className="bg-primary-container/10 text-primary inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold">
-            Chờ duyệt
-          </span>
-        )
-      case 'APPROVED':
-        return (
-          <span className="bg-tertiary-container/10 text-tertiary inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold">
-            Đã duyệt
-          </span>
+          <Badge className="border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Đã duyệt</Badge>
         )
       case 'REJECTED':
-        return (
-          <span className="bg-error-container/20 text-error inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold">
-            Từ chối
-          </span>
-        )
+        return <Badge className="border-transparent bg-red-100 text-red-700 hover:bg-red-200">Từ chối</Badge>
       case 'HIDDEN':
-        return (
-          <span className="bg-status-warning/10 text-status-warning inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold">
-            Bị ẩn
-          </span>
-        )
+        return <Badge className="border-transparent bg-amber-100 text-amber-700 hover:bg-amber-200">Bị ẩn</Badge>
       default:
-        return <span>{status}</span>
+        return <Badge className="border-transparent bg-slate-100 text-slate-700 hover:bg-slate-200">Bản nháp</Badge>
     }
   }
 
   return (
-    <div className="font-body-md text-on-background p-page-padding-mobile md:p-page-padding-desktop animate-in fade-in flex w-full flex-col duration-500">
-      <div className="mb-gap-sections">
-        <h1 className="font-display text-display text-text-main">Hàng chờ kiểm duyệt tin phòng</h1>
-        <p className="font-body-lg text-body-lg text-on-surface-variant mt-2 max-w-3xl">
+    <div className="animate-in fade-in mx-auto flex w-full max-w-[1440px] flex-col gap-6 pb-12 duration-500">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900">Hàng chờ kiểm duyệt tin phòng</h1>
+        <p className="mt-2 text-sm text-slate-500">
           Quản lý và phê duyệt các tin đăng phòng từ các tenant trên marketplace.
         </p>
       </div>
 
-      <div className="mb-gap-sections grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="bg-surface-container flex items-center justify-between rounded-xl p-6 shadow-sm">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
           <div>
-            <p className="font-label-md text-label-md text-on-surface-variant mb-1 tracking-wider uppercase">
-              Chờ duyệt (Pending)
-            </p>
-            <p className="font-headline-lg text-headline-lg text-text-main tabular-nums">12</p>
+            <p className="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">PENDING</p>
+            <p className="text-4xl font-bold text-slate-900">{pending.data?.meta.total ?? '—'}</p>
           </div>
-          <div className="bg-status-warning/10 text-status-warning flex h-12 w-12 items-center justify-center rounded-full">
-            <span className="material-symbols-outlined text-2xl">hourglass_empty</span>
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-200 bg-amber-100">
+            <Hourglass className="h-6 w-6 text-amber-600" />
           </div>
         </div>
-        <div className="bg-surface-container flex items-center justify-between rounded-xl p-6 shadow-sm">
+
+        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
           <div>
-            <p className="font-label-md text-label-md text-on-surface-variant mb-1 tracking-wider uppercase">
-              Đã duyệt hôm nay
-            </p>
-            <p className="font-headline-lg text-headline-lg text-text-main tabular-nums">45</p>
+            <p className="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">TODAY'S APPROVED</p>
+            <p className="text-4xl font-bold text-slate-900">{published.data?.meta.total ?? '—'}</p>
           </div>
-          <div className="bg-tertiary-container/10 text-tertiary flex h-12 w-12 items-center justify-center rounded-full">
-            <span className="material-symbols-outlined text-2xl">check_circle</span>
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-200 bg-emerald-100">
+            <CheckCircle2 className="h-6 w-6 text-emerald-600" />
           </div>
         </div>
-        <div className="bg-surface-container flex items-center justify-between rounded-xl p-6 shadow-sm">
+
+        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
           <div>
-            <p className="font-label-md text-label-md text-on-surface-variant mb-1 tracking-wider uppercase">
-              Từ chối (Rejected)
-            </p>
-            <p className="font-headline-lg text-headline-lg text-text-main tabular-nums">3</p>
+            <p className="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">REJECTED</p>
+            <p className="text-4xl font-bold text-slate-900">{rejected.data?.meta.total ?? '—'}</p>
           </div>
-          <div className="bg-error-container/20 text-error flex h-12 w-12 items-center justify-center rounded-full">
-            <span className="material-symbols-outlined text-2xl">cancel</span>
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-red-200 bg-red-100">
+            <XCircle className="h-6 w-6 text-red-600" />
           </div>
         </div>
       </div>
 
-      <div className="bg-surface-container-lowest mb-8 overflow-hidden rounded-xl shadow-sm">
-        <div className="bg-surface-container-low flex flex-col items-end justify-between gap-4 p-6 md:flex-row md:items-center">
-          <div className="relative w-full flex-1 md:w-auto">
-            <span className="material-symbols-outlined text-on-surface-variant absolute top-1/2 left-3 -translate-y-1/2">
-              search
-            </span>
-            <input
-              className="bg-surface-container-lowest font-body-md text-text-main placeholder:text-outline-variant focus:ring-primary/20 h-10 w-full rounded-lg pr-4 pl-10 transition-shadow focus:ring-2 focus:outline-none"
-              placeholder="Tìm kiếm theo Tên phòng/Tenant..."
-              type="text"
-            />
+      {/* Main Table Area */}
+      <div className="flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
+        {/* Filters */}
+        <div className="flex flex-col items-center gap-4 rounded-t-xl border-b border-slate-100 bg-slate-50/50 p-4 md:flex-row">
+          <div className="relative w-full flex-1">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input placeholder="Tìm kiếm theo Tên phòng/Tenant..." className="border-slate-200 bg-white pl-9" />
           </div>
           <div className="flex w-full flex-wrap gap-4 md:w-auto">
-            <div className="relative">
-              <select className="bg-surface-container-lowest font-label-md text-text-main focus:ring-primary/20 h-10 cursor-pointer appearance-none rounded-lg pr-10 pl-4 focus:ring-2 focus:outline-none">
-                <option>Tất cả trạng thái</option>
-                <option>Chờ duyệt</option>
-                <option>Đã duyệt</option>
-                <option>Từ chối</option>
-                <option>Bị ẩn</option>
-              </select>
-              <span className="material-symbols-outlined text-on-surface-variant pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
-                expand_more
-              </span>
-            </div>
-            <button className="bg-surface-container-lowest font-label-md text-text-main hover:bg-surface-container-highest flex h-10 items-center gap-2 rounded-lg px-4 transition-colors">
-              <span className="material-symbols-outlined text-[18px]">calendar_month</span>
-              <span>Khoảng thời gian</span>
-            </button>
+            <Select defaultValue="all">
+              <SelectTrigger className="w-full border-slate-200 bg-white md:w-48">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="PENDING_REVIEW">Chờ duyệt</SelectItem>
+                <SelectItem value="PUBLISHED">Đã duyệt</SelectItem>
+                <SelectItem value="REJECTED">Từ chối</SelectItem>
+                <SelectItem value="HIDDEN">Bị ẩn</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
+              <CalendarDays className="mr-2 h-4 w-4 text-slate-500" />
+              Date Range
+            </Button>
           </div>
         </div>
 
+        {/* Data Table */}
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left">
-            <thead>
-              <tr className="bg-surface-container-low border-surface-border text-on-surface-variant font-label-md border-y">
-                <th className="px-6 py-4 font-semibold tracking-wider whitespace-nowrap uppercase">Hình ảnh</th>
-                <th className="min-w-[250px] px-6 py-4 font-semibold tracking-wider uppercase">Tên phòng</th>
-                <th className="px-6 py-4 font-semibold tracking-wider uppercase">Tenant (Chủ trọ)</th>
-                <th className="px-6 py-4 font-semibold tracking-wider whitespace-nowrap uppercase">Ngày gửi</th>
-                <th className="px-6 py-4 font-semibold tracking-wider uppercase">Trạng thái</th>
-                <th className="px-6 py-4 text-right font-semibold tracking-wider uppercase">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody className="divide-surface-border divide-y">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableHead className="pl-6 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  HÌNH ẢNH
+                </TableHead>
+                <TableHead className="text-xs font-bold tracking-wider text-slate-500 uppercase">TÊN PHÒNG</TableHead>
+                <TableHead className="text-xs font-bold tracking-wider text-slate-500 uppercase">TENANT</TableHead>
+                <TableHead className="text-xs font-bold tracking-wider text-slate-500 uppercase">NGÀY GỬI</TableHead>
+                <TableHead className="text-xs font-bold tracking-wider text-slate-500 uppercase">TRẠNG THÁI</TableHead>
+                <TableHead className="pr-6 text-right text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  THAO TÁC
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
-                <tr>
-                  <td colSpan={6} className="text-on-surface-variant p-8 text-center">
-                    <span className="material-symbols-outlined text-primary animate-spin text-[32px]">
-                      progress_activity
-                    </span>
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={6} className="h-48 text-center">
+                    <div className="flex flex-col items-center justify-center text-slate-500">
+                      <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                      Đang tải danh sách...
+                    </div>
+                  </TableCell>
+                </TableRow>
               ) : listings.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-on-surface-variant p-8 text-center">
-                    <span className="material-symbols-outlined mb-2 text-[48px] opacity-50">inbox</span>
-                    <p>Không có tin đăng nào</p>
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={6} className="h-48 text-center text-slate-500">
+                    Chưa có tin đăng nào cần kiểm duyệt.
+                  </TableCell>
+                </TableRow>
               ) : (
                 listings.map((listing) => (
-                  <tr key={listing.id} className="hover:bg-surface-container-low/50 group transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="bg-surface-variant h-12 w-16 overflow-hidden rounded-md">
-                        {listing.image ? (
-                          <img className="h-full w-full object-cover" src={listing.image} alt="Room thumbnail" />
+                  <TableRow key={listing.id} className="hover:bg-slate-50/80">
+                    <TableCell className="py-4 pl-6">
+                      <div className="flex h-14 w-20 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-100">
+                        {listing.images?.[0]?.url ? (
+                          <img src={listing.images[0].url} alt={listing.title} className="h-full w-full object-cover" />
                         ) : (
-                          <span className="material-symbols-outlined text-on-surface-variant flex h-full w-full items-center justify-center opacity-50">
-                            image
-                          </span>
+                          <ImageIcon className="h-6 w-6 text-slate-300" />
                         )}
                       </div>
-                    </td>
-                    <td className="font-label-md text-text-main px-6 py-4">{listing.roomName}</td>
-                    <td className="text-on-surface-variant px-6 py-4">{listing.tenantName}</td>
-                    <td className="text-on-surface-variant px-6 py-4 tabular-nums">
-                      {formatDistanceToNow(new Date(listing.submittedAt), { addSuffix: true, locale: vi })}
-                    </td>
-                    <td className="px-6 py-4">{getStatusDisplay(listing.status)}</td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        to={`/admin/kiem-duyet-tin-phong/${listing.id}`}
-                        className="text-on-surface-variant hover:bg-surface-container-high hover:text-primary inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-[20px]">visibility</span>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="max-w-xs truncate font-semibold text-slate-900" title={listing.title}>
+                        {listing.title}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="text-sm font-medium text-slate-600">
+                        {listing.property?.name || 'Tài khoản chưa cập nhật'}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="text-sm text-slate-500">
+                        {formatDistanceToNow(new Date(listing.createdAt || new Date()), {
+                          addSuffix: true,
+                          locale: vi,
+                        })}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">{getStatusDisplay(listing.marketplaceStatus || 'DRAFT')}</TableCell>
+                    <TableCell className="py-4 pr-6 text-right">
+                      <Link to={`/admin/kiem-duyet/chi-tiet/${listing.id}`}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-slate-500 hover:bg-blue-50 hover:text-blue-600"
+                        >
+                          <Eye className="h-5 w-5" />
+                        </Button>
                       </Link>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
-        <div className="border-surface-border text-on-surface-variant font-label-sm flex items-center justify-between border-t p-4">
-          <span>Hiển thị 1 đến 3 của 12 mục</span>
+        {/* Pagination */}
+        <div className="flex items-center justify-between rounded-b-xl border-t border-slate-100 bg-slate-50/30 p-4 text-sm text-slate-500">
+          <span>
+            Hiển thị {listings.length === 0 ? 0 : (params.page - 1) * params.limit + 1} đến{' '}
+            {(params.page - 1) * params.limit + listings.length} trong {response?.meta.total ?? 0} mục
+          </span>
           <div className="flex items-center gap-1">
-            <button
-              className="hover:bg-surface-container-highest flex h-8 w-8 items-center justify-center rounded transition-colors disabled:opacity-50"
-              disabled
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 border-slate-200 bg-white text-slate-600"
+              disabled={params.page <= 1}
+              onClick={() => setParams((current) => ({ ...current, page: current.page - 1 }))}
             >
-              <span className="material-symbols-outlined text-sm">chevron_left</span>
-            </button>
-            <button className="bg-primary text-on-primary flex h-8 w-8 items-center justify-center rounded font-medium">
-              1
-            </button>
-            <button className="hover:bg-surface-container-highest flex h-8 w-8 items-center justify-center rounded transition-colors">
-              2
-            </button>
-            <button className="hover:bg-surface-container-highest flex h-8 w-8 items-center justify-center rounded transition-colors">
-              3
-            </button>
-            <button className="hover:bg-surface-container-highest flex h-8 w-8 items-center justify-center rounded transition-colors">
-              <span className="material-symbols-outlined text-sm">chevron_right</span>
-            </button>
+              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 rounded-md border-blue-600 bg-blue-600 p-0 font-medium text-white hover:bg-blue-700 hover:text-white"
+            >
+              {params.page}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 border-slate-200 bg-white text-slate-600"
+              disabled={params.page >= (response?.meta.totalPages ?? 1)}
+              onClick={() => setParams((current) => ({ ...current, page: current.page + 1 }))}
+            >
+              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            </Button>
           </div>
         </div>
       </div>

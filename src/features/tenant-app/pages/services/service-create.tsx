@@ -5,23 +5,28 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ServiceType, type Service } from '@/types/service'
+
+type ServiceFormData = Pick<Service, 'code' | 'name' | 'defaultUnitPrice' | 'unitLabel' | 'itemType' | 'isActive'>
 
 export default function ServiceCreate() {
   const navigate = useNavigate()
   const { mutateAsync: createService, isPending } = useCreateService()
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ServiceFormData>({
+    code: '',
     name: '',
-    price: 0,
-    unit: '',
-    type: 'SERVICE'
+    defaultUnitPrice: 0,
+    unitLabel: '',
+    itemType: ServiceType.SERVICE,
+    isActive: true
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       await createService(formData)
-      navigate('/app/dich-vu')
+      navigate('/dich-vu')
     } catch (err) {
       console.error(err)
     }
@@ -40,6 +45,16 @@ export default function ServiceCreate() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="code">Mã dịch vụ</Label>
+              <Input
+                id="code"
+                placeholder="Ví dụ: DIEN, NUOC, INTERNET"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="name">Tên dịch vụ</Label>
               <Input 
                 id="name" 
@@ -50,22 +65,22 @@ export default function ServiceCreate() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Đơn giá (VND)</Label>
+                <Label htmlFor="defaultUnitPrice">Đơn giá (VND)</Label>
                 <Input 
-                  id="price" 
+                  id="defaultUnitPrice" 
                   type="number" 
-                  value={formData.price} 
-                  onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} 
+                  value={formData.defaultUnitPrice} 
+                  onChange={(e) => setFormData({...formData, defaultUnitPrice: Number(e.target.value)})} 
                   required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="unit">Đơn vị tính</Label>
+                <Label htmlFor="unitLabel">Đơn vị tính</Label>
                 <Input 
-                  id="unit" 
+                  id="unitLabel" 
                   placeholder="Ví dụ: phòng, người, xe..." 
-                  value={formData.unit} 
-                  onChange={(e) => setFormData({...formData, unit: e.target.value})} 
+                  value={formData.unitLabel} 
+                  onChange={(e) => setFormData({...formData, unitLabel: e.target.value})} 
                   required 
                 />
               </div>

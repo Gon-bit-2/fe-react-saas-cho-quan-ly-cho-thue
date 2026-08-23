@@ -86,7 +86,7 @@ export function Component() {
           Tạo tài khoản mới
         </h2>
         <p className="font-body-md text-body-md text-on-surface-variant">
-          Bắt đầu quản lý bất động sản của bạn một cách thông minh.
+          Bắt đầu quản lý cho thuê phòng của bạn một cách thông minh.
         </p>
       </div>
 
@@ -227,13 +227,13 @@ export function Component() {
             </div>
             <label className="font-body-md text-body-md text-on-surface-variant cursor-pointer" htmlFor="terms">
               Tôi đồng ý với các{' '}
-              <a className="text-primary hover:underline font-label-md text-label-md" href="#">
+              <Link className="text-primary hover:underline font-label-md text-label-md" to="/terms">
                 Điều khoản
-              </a>{' '}
+              </Link>{' '}
               và{' '}
-              <a className="text-primary hover:underline font-label-md text-label-md" href="#">
+              <Link className="text-primary hover:underline font-label-md text-label-md" to="/privacy">
                 Chính sách bảo mật
-              </a>{' '}
+              </Link>{' '}
               của hệ thống.
             </label>
           </div>

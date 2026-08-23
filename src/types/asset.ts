@@ -1,21 +1,24 @@
-export enum AssetCondition {
-  NEW = 'NEW',
-  GOOD = 'GOOD',
-  NORMAL = 'NORMAL',
-  DAMAGED = 'DAMAGED',
-  LOST = 'LOST',
-}
+export const AssetCondition = {
+  NEW: 'NEW',
+  GOOD: 'GOOD',
+  NORMAL: 'NORMAL',
+  DAMAGED: 'DAMAGED',
+  LOST: 'LOST',
+} as const
+export type AssetCondition = (typeof AssetCondition)[keyof typeof AssetCondition]
 
-export enum HandoverType {
-  CHECKIN = 'CHECKIN',
-  CHECKOUT = 'CHECKOUT',
-}
+export const HandoverType = {
+  CHECKIN: 'CHECKIN',
+  CHECKOUT: 'CHECKOUT',
+} as const
+export type HandoverType = (typeof HandoverType)[keyof typeof HandoverType]
 
-export enum HandoverStatus {
-  DRAFT = 'DRAFT',
-  CONFIRMED = 'CONFIRMED',
-  DISPUTED = 'DISPUTED',
-}
+export const HandoverStatus = {
+  DRAFT: 'DRAFT',
+  CONFIRMED: 'CONFIRMED',
+  DISPUTED: 'DISPUTED',
+} as const
+export type HandoverStatus = (typeof HandoverStatus)[keyof typeof HandoverStatus]
 
 export interface AssetCategory {
   id: number
@@ -29,35 +32,46 @@ export interface AssetCategory {
 
 export interface RoomAsset {
   id: number
+  tenantId: number
   roomId: number
   categoryId: number
   category?: AssetCategory
+  name: string
   quantity: number
   condition: AssetCondition
-  notes?: string
+  description?: string
+  imageUrl?: string
   createdAt: string
   updatedAt: string
 }
 
 export interface HandoverAssetItem {
   id: number
-  handoverId: number
-  categoryId: number
-  category?: AssetCategory
-  quantity: number
+  handoverRecordId: number
+  roomAssetId: number
+  assetName: string
+  categoryName: string
+  expectedQuantity: number
+  actualQuantity: number
   condition: AssetCondition
-  notes?: string
+  note?: string | null
+  imageUrl?: string | null
 }
 
 export interface HandoverRecord {
   id: number
+  version: number
+  tenantId: number
   contractId: number
   roomId: number
   type: HandoverType
   status: HandoverStatus
   handoverDate: string
-  notes?: string
-  createdById?: number
+  note?: string | null
+  signedByLandlordAt?: string | null
+  signedByRenterAt?: string | null
+  signedByLandlordId?: number | null
+  signedByRenterId?: number | null
   items: HandoverAssetItem[]
   createdAt: string
   updatedAt: string

@@ -1,17 +1,21 @@
-export enum PaymentMethod {
-  BANK_TRANSFER = 'BANK_TRANSFER',
-  QR = 'QR',
-  CASH = 'CASH',
-  WALLET = 'WALLET',
-}
+export const PaymentMethod = {
+  BANK_TRANSFER: 'BANK_TRANSFER',
+  QR: 'QR',
+  CASH: 'CASH',
+  WALLET: 'WALLET',
+} as const;
 
-export enum PaymentStatus {
-  PENDING = 'PENDING',
-  SUCCESS = 'SUCCESS',
-  FAILED = 'FAILED',
-  CANCELED = 'CANCELED',
-  REFUNDED = 'REFUNDED',
-}
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
+
+export const PaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  CANCELED: 'CANCELED',
+  REFUNDED: 'REFUNDED',
+} as const;
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
 
 export interface PaymentQrCode {
   id: number;
@@ -106,4 +110,16 @@ export interface PaymentListResponse {
     total: number;
     totalPages: number;
   };
+}
+
+export interface PaymentListParams {
+  page?: number;
+  limit?: number;
+  status?: PaymentStatus;
+  method?: PaymentMethod;
+  invoiceId?: number;
+  renterId?: number;
+  from?: string;
+  to?: string;
+  search?: string;
 }

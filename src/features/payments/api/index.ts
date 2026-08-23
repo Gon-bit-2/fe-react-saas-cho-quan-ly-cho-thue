@@ -1,14 +1,15 @@
 import { apiClient } from '@/shared/api/axios-client';
-import {
+import type {
   PaymentListResponse,
   Payment,
   ManualConfirmationDto,
   ApprovePaymentDto,
   RejectPaymentDto,
   PaymentQrCode,
+  PaymentListParams,
 } from '../types';
 
-export const getPayments = async (params?: Record<string, unknown>): Promise<PaymentListResponse> => {
+export const getPayments = async (params?: PaymentListParams): Promise<PaymentListResponse> => {
   const response = await apiClient.get<PaymentListResponse>('/payments', { params });
   return response.data;
 };

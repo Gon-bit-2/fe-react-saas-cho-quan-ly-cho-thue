@@ -17,7 +17,20 @@ export interface Renter {
   occupation?: string | null
   emergencyContactName?: string | null
   emergencyContactPhone?: string | null
-  verificationStatus: RenterVerificationStatus
+  verificationStatus?: RenterVerificationStatus
+  status?: string
+  renterProfile?: {
+    verificationStatus: RenterVerificationStatus
+    dateOfBirth?: string | null
+    gender?: Gender | null
+    identityNumber?: string | null
+    identityFrontUrl?: string | null
+    identityBackUrl?: string | null
+    permanentAddress?: string | null
+    occupation?: string | null
+    emergencyContactName?: string | null
+    emergencyContactPhone?: string | null
+  }
   createdAt: string
   updatedAt: string
 }
@@ -51,6 +64,25 @@ export interface InviteRenterBody {
   fullName: string
   email: string
   phone?: string
+}
+
+export interface RenterInvitation {
+  id: number
+  tenantId: number
+  email: string
+  fullName: string
+  phone?: string | null
+  expiresAt: string
+  acceptedAt?: string | null
+  acceptedUserId?: number | null
+  revokedAt?: string | null
+  status: 'ACCEPTED' | 'CANCELED' | 'EXPIRED' | 'PENDING'
+  tenant: { id: number; name: string }
+  createdBy: { id: number; fullName: string }
+  room?: { id: number; roomCode: string; title: string }
+  property?: { id: number; name: string }
+  createdAt: string
+  updatedAt: string
 }
 
 export interface AcceptRenterInvitationBody {

@@ -20,7 +20,7 @@ export default function AssignmentForm() {
     e.preventDefault()
     try {
       await assignService(formData)
-      navigate('/app/dich-vu-da-gan')
+      navigate('/dich-vu-da-gan')
     } catch (err) {
       console.error(err)
     }

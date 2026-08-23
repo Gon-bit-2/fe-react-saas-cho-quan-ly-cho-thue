@@ -4,11 +4,11 @@ import { useRooms, useProperties } from '@/shared/api/properties'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { ROOM_STATUS_MAP, MARKETPLACE_STATUS_MAP } from '@/shared/constants/status-config'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, Search, DoorOpen, Building2, MapPin } from 'lucide-react'
-import type { Room } from '@/types/room'
-import type { Property } from '@/features/tenant-app/types'
+import type { Property, Room } from '@/features/tenant-app/types'
 
 export function Component() {
   const navigate = useNavigate()
@@ -24,64 +24,50 @@ export function Component() {
   })
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'AVAILABLE':
-        return <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 shadow-sm">Phòng trống</Badge>
-      case 'OCCUPIED':
-        return (
-          <Badge variant="secondary" className="border-blue-200 bg-blue-50 text-blue-700 font-medium px-2 py-0.5 shadow-sm">
-            Đang thuê
-          </Badge>
-        )
-      case 'MAINTENANCE':
-        return (
-          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 font-medium px-2 py-0.5 shadow-sm">
-            Bảo trì
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline" className="font-medium px-2 py-0.5 shadow-sm">{status}</Badge>
-    }
+    return <StatusBadge status={status} statusMap={ROOM_STATUS_MAP} fallbackLabel={status} />
   }
 
   const getMarketplaceBadge = (status: string) => {
     if (status === 'PUBLISHED')
       return (
-        <Badge variant="default" className="text-[10px] bg-slate-900 text-white font-semibold">
-          Marketplace
-        </Badge>
+        <StatusBadge
+          status={status}
+          statusMap={MARKETPLACE_STATUS_MAP}
+          fallbackLabel="Marketplace"
+          className="text-[10px]"
+        />
       )
     return null
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="animate-in fade-in space-y-8 duration-500">
       {/* Header Section */}
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">Danh sách phòng</h2>
-          <p className="text-slate-500 mt-1">Quản lý trạng thái và thông tin của tất cả các phòng trong hệ thống</p>
+          <p className="mt-1 text-slate-500">Quản lý trạng thái và thông tin của tất cả các phòng trong hệ thống</p>
         </div>
-        <Button size="lg" className="shadow-sm" onClick={() => navigate('/app/quan-ly-phong/tao-moi')}>
+        <Button size="lg" className="shadow-sm" onClick={() => navigate('/quan-ly-phong/tao-moi')}>
           <Plus className="mr-2 h-4 w-4" /> Thêm phòng mới
         </Button>
       </div>
 
       {/* Filters Section */}
-      <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <div className="relative flex-1 min-w-[280px]">
-          <Search className="absolute top-1/2 -translate-y-1/2 left-3 h-4 w-4 text-slate-400" />
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="relative min-w-[280px] flex-1">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             type="search"
             placeholder="Tìm theo mã phòng hoặc tên..."
-            className="pl-9 bg-slate-50/50 border-slate-200"
+            className="border-slate-200 bg-slate-50/50 pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
         <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger className="w-[220px] bg-slate-50/50 border-slate-200">
+          <SelectTrigger className="w-[220px] border-slate-200 bg-slate-50/50">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-slate-400" />
               <SelectValue placeholder="Tất cả nhà trọ" />
@@ -98,7 +84,7 @@ export function Component() {
         </Select>
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[200px] bg-slate-50/50 border-slate-200">
+          <SelectTrigger className="w-[200px] border-slate-200 bg-slate-50/50">
             <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
@@ -113,14 +99,14 @@ export function Component() {
       {/* Table Section */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <Table>
-          <TableHeader className="bg-slate-50 border-b border-slate-200">
+          <TableHeader className="border-b border-slate-200 bg-slate-50">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[300px] py-4 text-slate-600 font-semibold">Phòng</TableHead>
-              <TableHead className="py-4 text-slate-600 font-semibold">Nhà trọ / Tòa nhà</TableHead>
-              <TableHead className="text-right py-4 text-slate-600 font-semibold">Giá thuê</TableHead>
-              <TableHead className="text-center py-4 text-slate-600 font-semibold">Diện tích</TableHead>
-              <TableHead className="py-4 text-slate-600 font-semibold">Trạng thái</TableHead>
-              <TableHead className="text-right py-4 text-slate-600 font-semibold">Thao tác</TableHead>
+              <TableHead className="w-[300px] py-4 font-semibold text-slate-600">Phòng</TableHead>
+              <TableHead className="py-4 font-semibold text-slate-600">Nhà trọ / Tòa nhà</TableHead>
+              <TableHead className="py-4 text-right font-semibold text-slate-600">Giá thuê</TableHead>
+              <TableHead className="py-4 text-center font-semibold text-slate-600">Diện tích</TableHead>
+              <TableHead className="py-4 font-semibold text-slate-600">Trạng thái</TableHead>
+              <TableHead className="py-4 text-right font-semibold text-slate-600">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -128,7 +114,7 @@ export function Component() {
               <TableRow>
                 <TableCell colSpan={6} className="h-48 text-center">
                   <div className="flex flex-col items-center justify-center space-y-4">
-                    <div className="border-slate-200 border-t-slate-900 h-8 w-8 animate-spin rounded-full border-4" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
                     <p className="text-sm text-slate-500">Đang tải dữ liệu...</p>
                   </div>
                 </TableCell>
@@ -138,7 +124,7 @@ export function Component() {
                 <TableCell colSpan={6} className="h-48 text-center">
                   <div className="flex flex-col items-center justify-center space-y-2">
                     <DoorOpen className="h-12 w-12 text-slate-300" />
-                    <p className="text-slate-500 font-medium">Không tìm thấy phòng nào phù hợp</p>
+                    <p className="font-medium text-slate-500">Không tìm thấy phòng nào phù hợp</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -147,18 +133,22 @@ export function Component() {
                 const property = propertiesData?.data.find((p: Property) => p.id === room.propertyId)
 
                 return (
-                  <TableRow key={room.id} className="group transition-colors hover:bg-slate-50/80 cursor-default">
+                  <TableRow key={room.id} className="group cursor-default transition-colors hover:bg-slate-50/80">
                     <TableCell className="py-4">
                       <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100/80 text-slate-600 border border-slate-200/50">
-                          <DoorOpen className="h-6 w-6" />
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200/50 bg-slate-100/80 text-slate-600">
+                          {room.images && room.images.length > 0 ? (
+                            <img src={room.images[0].url} alt={room.roomCode} className="h-full w-full object-cover" />
+                          ) : (
+                            <DoorOpen className="h-6 w-6" />
+                          )}
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-slate-900 text-base">{room.roomCode}</span>
+                            <span className="text-base font-semibold text-slate-900">{room.roomCode}</span>
                             {getMarketplaceBadge(room.marketplaceStatus)}
                           </div>
-                          <div className="text-sm text-slate-500 font-medium">
+                          <div className="text-sm font-medium text-slate-500">
                             {room.title || `Phòng ${room.roomCode}`} • Tầng {room.floorId || 'N/A'}
                           </div>
                         </div>
@@ -174,19 +164,19 @@ export function Component() {
                       <span className="font-semibold text-slate-900">
                         {new Intl.NumberFormat('vi-VN').format(room.basePrice)}
                       </span>
-                      <span className="text-slate-500 text-sm ml-1">đ</span>
+                      <span className="ml-1 text-sm text-slate-500">đ</span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="text-slate-700 font-medium">{room.area}</span>
-                      <span className="text-slate-500 text-sm ml-1">m²</span>
+                      <span className="font-medium text-slate-700">{room.area}</span>
+                      <span className="ml-1 text-sm text-slate-500">m²</span>
                     </TableCell>
                     <TableCell>{getStatusBadge(room.status)}</TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="opacity-0 group-hover:opacity-100 transition-opacity font-medium"
-                        onClick={() => navigate(`/app/quan-ly-phong/${room.id}/chi-tiet`)}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="font-medium opacity-0 transition-opacity group-hover:opacity-100"
+                        onClick={() => navigate(`/quan-ly-phong/${room.id}/chi-tiet`)}
                       >
                         Chi tiết
                       </Button>

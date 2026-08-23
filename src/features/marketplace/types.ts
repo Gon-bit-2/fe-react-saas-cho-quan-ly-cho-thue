@@ -3,23 +3,26 @@ export interface MarketplaceRoom {
   title: string
   roomCode: string
   basePrice: number
-  deposit: number | null
+  depositAmount: number | null
   electricityPrice: number | null
   waterPrice: number | null
-  area: number
+  area: number | null
   maxOccupants: number
   status: string
   marketplaceStatus: string
+  description?: string | null
   property: {
     id: number
     name: string
-    address: string
     province: string
-    district: string
+    provinceCode?: string | null
+    district: string | null
     ward: string
-    propertyType: string
-    latitude: number | null
-    longitude: number | null
+    wardCode?: string | null
+    addressDetail?: string
+    latitude?: number | null
+    longitude?: number | null
+    type: string
   }
   images: Array<{
     id: number
@@ -39,8 +42,10 @@ export interface MarketplaceFilters {
   limit?: number
   search?: string
   province?: string
+  provinceCode?: string
   district?: string
   ward?: string
+  wardCode?: string
   propertyType?: string
   minPrice?: number
   maxPrice?: number
@@ -48,13 +53,15 @@ export interface MarketplaceFilters {
   maxArea?: number
   maxOccupants?: number
   amenityIds?: number[] | string
+  lat?: number
+  lng?: number
+  radius?: number
 }
 
 export interface CreateViewingBody {
   scheduledAt: string // ISO date
   note?: string | null
 }
-
 export interface CreateRentalRequestBody {
   expectedStartDate: string // YYYY-MM-DD
   message?: string | null

@@ -1,19 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
-import type { AssetCategory, RoomAsset } from '@/types/asset'
-
-// Mock Data
-export const MOCK_ASSET_CATEGORIES: AssetCategory[] = [
-  { id: 1, tenantId: 10, code: 'AC-01', name: 'Điều hoà', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  { id: 2, tenantId: 10, code: 'AC-02', name: 'Tủ lạnh', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  { id: 3, tenantId: 10, code: 'AC-03', name: 'Giường', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-]
-
-export const MOCK_ROOM_ASSETS: RoomAsset[] = [
-  { id: 1, roomId: 201, categoryId: 1, quantity: 1, condition: 'GOOD', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', category: MOCK_ASSET_CATEGORIES[0] },
-  { id: 2, roomId: 201, categoryId: 3, quantity: 2, condition: 'NEW', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', category: MOCK_ASSET_CATEGORIES[2] },
-]
+import type { AssetCategory, RoomAsset, AssetCondition } from '@/types/asset'
 
 const ASSET_KEYS = {
   allCategories: ['asset-categories'] as const,
@@ -32,50 +20,152 @@ interface PaginatedResponse<T> {
   }
 }
 
-export const useAssetCategories = (params: Record<string, unknown> = {}) => {
+export interface CreateAssetCategoryDto {
+  name: string
+  description?: string | null
+}
+
+export type UpdateAssetCategoryDto = Partial<CreateAssetCategoryDto>
+
+export interface CreateRoomAssetDto {
+  categoryId: number
+  name: string
+  quantity: number
+  condition?: AssetCondition
+  description?: string | null
+  imageUrl?: string | null
+}
+
+export type UpdateRoomAssetDto = Partial<CreateRoomAssetDto>
+
+export const useAssetCategories = (params: { page?: number; limit?: number; search?: string } = {}) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const cleanParams = params.search ? params : { ...params, search: undefined }
 
   return useQuery({
-    queryKey: [...ASSET_KEYS.categories(tenantId), params],
+    queryKey: [...ASSET_KEYS.categories(tenantId), cleanParams],
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<PaginatedResponse<AssetCategory>>('/asset-categories', {
-          params,
-          tenantId,
-        })
-        if (!data.data || data.data.length === 0) {
-          return { data: MOCK_ASSET_CATEGORIES, meta: { page: 1, limit: 10, total: MOCK_ASSET_CATEGORIES.length, totalPages: 1 } }
-        }
-        return data
-      } catch {
-        return { data: MOCK_ASSET_CATEGORIES, meta: { page: 1, limit: 10, total: MOCK_ASSET_CATEGORIES.length, totalPages: 1 } }
-      }
+      const { data } = await apiClient.get<PaginatedResponse<AssetCategory>>('/asset-categories', {
+        params: cleanParams,
+        tenantId,
+      })
+      return data
     },
     enabled: !!tenantId,
   })
 }
 
-export const useRoomAssets = (roomId: number, params: Record<string, unknown> = {}) => {
+export const useCreateAssetCategory = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CreateAssetCategoryDto) => {
+      const { data } = await apiClient.post<AssetCategory>('/asset-categories', payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.categories(tenantId) })
+    },
+  })
+}
+
+export const useUpdateAssetCategory = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: UpdateAssetCategoryDto) => {
+      const { data } = await apiClient.patch<AssetCategory>(`/asset-categories/${id}`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.categories(tenantId) })
+    },
+  })
+}
+
+export const useDeleteAssetCategory = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await apiClient.delete(`/asset-categories/${id}`, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.categories(tenantId) })
+    },
+  })
+}
+
+export const useRoomAssets = (roomId: number, params: { page?: number; limit?: number; search?: string; condition?: AssetCondition; categoryId?: number } = {}) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const cleanParams = params.search ? params : { ...params, search: undefined }
 
   return useQuery({
-    queryKey: [...ASSET_KEYS.roomAssets(tenantId, roomId), params],
+    queryKey: [...ASSET_KEYS.roomAssets(tenantId, roomId), cleanParams],
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<PaginatedResponse<RoomAsset>>(`/rooms/${roomId}/assets`, {
-          params,
-          tenantId,
-        })
-        if (!data.data || data.data.length === 0) {
-          return { data: MOCK_ROOM_ASSETS, meta: { page: 1, limit: 10, total: MOCK_ROOM_ASSETS.length, totalPages: 1 } }
-        }
-        return data
-      } catch {
-        return { data: MOCK_ROOM_ASSETS, meta: { page: 1, limit: 10, total: MOCK_ROOM_ASSETS.length, totalPages: 1 } }
-      }
+      const { data } = await apiClient.get<PaginatedResponse<RoomAsset>>(`/rooms/${roomId}/assets`, {
+        params: cleanParams,
+        tenantId,
+      })
+      return data
     },
     enabled: !!tenantId && !!roomId,
+  })
+}
+
+export const useCreateRoomAsset = (roomId: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CreateRoomAssetDto) => {
+      const { data } = await apiClient.post<RoomAsset>(`/rooms/${roomId}/assets`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.roomAssets(tenantId, roomId) })
+    },
+  })
+}
+
+export const useUpdateRoomAsset = (roomId: number, assetId: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: UpdateRoomAssetDto) => {
+      const { data } = await apiClient.patch<RoomAsset>(`/rooms/${roomId}/assets/${assetId}`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.roomAssets(tenantId, roomId) })
+    },
+  })
+}
+
+export const useDeleteRoomAsset = (roomId: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (assetId: number) => {
+      const { data } = await apiClient.delete(`/rooms/${roomId}/assets/${assetId}`, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.roomAssets(tenantId, roomId) })
+    },
   })
 }

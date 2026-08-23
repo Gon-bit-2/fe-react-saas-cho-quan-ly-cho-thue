@@ -1,12 +1,14 @@
 import { Link } from 'react-router'
 import type { MarketplaceRoom } from '../types'
+import { FavoriteButton } from './favorite-button'
 
 interface RoomCardProps {
   room: MarketplaceRoom
-  variant?: 'default' | 'featured'
+  variant?: 'default' | 'featured' | 'featured-large'
+  badge?: 'new' | 'hot' | null
 }
 
-export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
+export function RoomCard({ room, variant = 'default', badge = null }: RoomCardProps) {
   const thumbnail = room.images.find(img => img.isThumbnail) || room.images[0]
   
   // Format currency
@@ -16,17 +18,76 @@ export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
     maximumFractionDigits: 0
   }).format(room.basePrice)
 
+  const renderBadge = () => {
+    if (badge === 'new') {
+      return (
+        <div className="absolute top-4 left-4 bg-emerald-600 text-white px-2.5 py-1 rounded shadow-sm font-label-sm font-medium z-10">
+          Mới cập nhật
+        </div>
+      )
+    }
+    if (badge === 'hot') {
+      return (
+        <div className="absolute top-4 left-4 bg-amber-500 text-white px-2.5 py-1 rounded shadow-sm font-label-sm font-medium z-10">
+          Hot
+        </div>
+      )
+    }
+    return null
+  }
+
+  if (variant === 'featured-large') {
+    return (
+      <article className="col-span-1 h-full bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group flex flex-col relative border border-slate-200/50">
+        <Link to={`/phong/${room.id}`} className="absolute inset-0 z-20"><span className="sr-only">Xem chi tiết</span></Link>
+        <div className="w-full flex-1 min-h-[300px] relative overflow-hidden">
+          <div 
+            className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700" 
+            style={{ backgroundImage: `url('${thumbnail?.url || 'https://placehold.co/600x800/png'}')` }}
+          />
+          {renderBadge()}
+          
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
+        </div>
+        
+        <div className="p-6 flex flex-col justify-between bg-white relative z-30 pointer-events-none">
+          <div>
+            <p className="font-body-sm text-slate-500 flex items-center gap-1 mb-2">
+              <span className="material-symbols-outlined text-[16px]">location_on</span>
+              {room.property.district}, {room.property.province}
+            </p>
+            
+            <h3 className="font-headline-sm text-slate-900 line-clamp-2 mb-4 leading-tight">{room.title}</h3>
+            
+            <div className="flex flex-wrap gap-4 text-slate-500 font-label-sm mb-6">
+              <span className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[18px]">aspect_ratio</span> {room.area} m²
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[18px]">bed</span> {room.maxOccupants} Giường
+              </span>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+            <span className="font-headline-sm text-primary">{formattedPrice}<span className="text-sm font-normal text-slate-500"> đ/tháng</span></span>
+            <FavoriteButton roomId={room.id} />
+          </div>
+        </div>
+      </article>
+    )
+  }
+
   if (variant === 'featured') {
     return (
       <article className="col-span-1 md:col-span-2 lg:col-span-2 bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group flex flex-col md:flex-row relative">
+        {/* code here was for the horizontal card, keeping it mostly intact just in case */}
         <div className="w-full md:w-1/2 aspect-video md:aspect-auto h-full relative overflow-hidden">
           <div 
             className="w-full h-full min-h-[240px] bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
             style={{ backgroundImage: `url('${thumbnail?.url || 'https://placehold.co/600x400/png'}')` }}
           />
-          <div className="absolute top-4 left-4 bg-tertiary text-on-tertiary px-2 py-1 rounded font-label-sm shadow-sm">
-            Nổi bật
-          </div>
+          {renderBadge()}
           <div className="absolute bottom-4 left-4 flex gap-2">
             <div className="bg-surface-container-lowest/90 backdrop-blur text-text-main px-2 py-1 rounded font-label-sm flex items-center gap-1">
               <span className="material-symbols-outlined text-[14px]">photo_camera</span>
@@ -38,17 +99,19 @@ export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
         <div className="w-full md:w-1/2 p-6 flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-start mb-2">
-              <span className="font-label-sm text-primary uppercase tracking-wider">{room.property.propertyType?.replace('_', ' ') || ''}</span>
+              <span className="font-label-sm text-primary uppercase tracking-wider">{room.property.type.replaceAll('_', ' ')}</span>
               <span className="font-headline-sm text-primary">{formattedPrice}<span className="text-sm font-normal text-on-surface-variant">/tháng</span></span>
             </div>
             
-            <Link to={`/rooms/${room.id}`} className="group-hover:text-primary transition-colors">
+            <Link to={`/phong/${room.id}`} className="group-hover:text-primary transition-colors">
               <h3 className="font-headline-sm text-text-main line-clamp-2 mb-2">{room.title}</h3>
             </Link>
             
             <p className="font-body-md text-on-surface-variant flex items-center gap-1 mb-4">
               <span className="material-symbols-outlined text-[18px]">location_on</span>
-              {room.property.district}, {room.property.province}
+              <span className="line-clamp-1">
+                {[room.property?.addressDetail, room.property?.ward, room.property?.district, room.property?.province].filter(Boolean).join(', ') || 'Chưa cập nhật địa chỉ'}
+              </span>
             </p>
             
             <div className="flex flex-wrap gap-2 mb-6">
@@ -58,17 +121,6 @@ export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
               <span className="inline-flex items-center gap-1 bg-surface-container-low text-on-surface-variant px-2 py-1 rounded font-label-sm">
                 <span className="material-symbols-outlined text-[14px]">group</span> Tối đa {room.maxOccupants}
               </span>
-              {room.amenities.slice(0, 2).map(amenity => (
-                <span key={amenity.id} className="inline-flex items-center gap-1 bg-surface-container-low text-on-surface-variant px-2 py-1 rounded font-label-sm">
-                  {amenity.icon && <span className="material-symbols-outlined text-[14px]">{amenity.icon}</span>}
-                  {amenity.name}
-                </span>
-              ))}
-              {room.amenities.length > 2 && (
-                <span className="inline-flex items-center bg-surface-container-low text-on-surface-variant px-2 py-1 rounded font-label-sm">
-                  +{room.amenities.length - 2}
-                </span>
-              )}
             </div>
           </div>
           
@@ -80,7 +132,7 @@ export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
               <span className="font-label-md text-text-main line-clamp-1">{room.property.name}</span>
             </div>
             <Link 
-              to={`/rooms/${room.id}`}
+              to={`/phong/${room.id}`}
               className="font-label-md text-primary hover:text-primary-container transition-colors flex items-center gap-1"
             >
               Chi tiết <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -93,46 +145,40 @@ export function RoomCard({ room, variant = 'default' }: RoomCardProps) {
 
   // Default variant
   return (
-    <article className="bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group flex flex-col relative border border-surface-border">
+    <article className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group flex flex-col relative border border-slate-200/50">
+      <Link to={`/phong/${room.id}`} className="absolute inset-0 z-20"><span className="sr-only">Xem chi tiết</span></Link>
+      
       <div className="w-full aspect-[4/3] relative overflow-hidden">
         <div 
-          className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
+          className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700" 
           style={{ backgroundImage: `url('${thumbnail?.url || 'https://placehold.co/400x300/png'}')` }}
         />
-        <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur text-text-main px-2 py-1 rounded font-label-sm shadow-sm">
-          {room.property.propertyType?.replace('_', ' ') || ''}
-        </div>
-        <div className="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-text-main px-2 py-1 rounded font-label-sm flex items-center gap-1">
-          <span className="material-symbols-outlined text-[14px]">photo_camera</span>
-          {room.images.length}
-        </div>
+        {renderBadge()}
       </div>
       
-      <div className="p-4 flex-1 flex flex-col">
-        <div className="flex justify-between items-start mb-2">
-          <span className="font-headline-sm text-primary">{formattedPrice}<span className="text-sm font-normal text-on-surface-variant">/tháng</span></span>
-        </div>
-        
-        <Link to={`/rooms/${room.id}`} className="group-hover:text-primary transition-colors">
-          <h3 className="font-label-md text-text-main line-clamp-2 mb-2 h-8">{room.title}</h3>
-        </Link>
-        
-        <p className="font-body-md text-on-surface-variant flex items-center gap-1 mb-4">
+      <div className="p-5 flex-1 flex flex-col bg-white relative z-30 pointer-events-none">
+        <p className="font-body-sm text-slate-500 flex items-center gap-1 mb-2">
           <span className="material-symbols-outlined text-[16px]">location_on</span>
-          <span className="line-clamp-1">{room.property.district}, {room.property.province}</span>
+          <span className="line-clamp-1">
+            {[room.property?.addressDetail, room.property?.ward, room.property?.district, room.property?.province].filter(Boolean).join(', ') || 'Chưa cập nhật địa chỉ'}
+          </span>
         </p>
         
-        <div className="flex items-center gap-4 text-on-surface-variant mb-4 font-label-sm">
-          <span className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-[16px]">aspect_ratio</span> {room.area}m²
+        <h3 className="font-headline-sm text-slate-900 line-clamp-2 mb-3 leading-snug">{room.title}</h3>
+        
+        <div className="flex items-center gap-4 text-slate-500 mb-5 font-label-sm">
+          <span className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px]">aspect_ratio</span> {room.area} m²
           </span>
-          <span className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-[16px]">group</span> Lên đến {room.maxOccupants}
-          </span>
+          {room.amenities.find(a => a.name.toLowerCase().includes('ban công')) && (
+            <span className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px]">balcony</span> Có ban công
+            </span>
+          )}
         </div>
         
-        <div className="mt-auto pt-4 border-t border-surface-border flex items-center justify-between">
-           <span className="font-label-md text-on-surface-variant line-clamp-1">{room.property.name}</span>
+        <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+           <span className="font-headline-sm text-primary">{formattedPrice}<span className="text-sm font-normal text-slate-500"> đ/tháng</span></span>
         </div>
       </div>
     </article>

@@ -1,21 +1,8 @@
-export type TicketCategory =
-  | 'ELECTRICITY'
-  | 'WATER'
-  | 'INTERNET'
-  | 'FURNITURE'
-  | 'SECURITY'
-  | 'CLEANING'
-  | 'OTHER'
+export type TicketCategory = 'ELECTRICITY' | 'WATER' | 'INTERNET' | 'FURNITURE' | 'SECURITY' | 'CLEANING' | 'OTHER'
 
 export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 
-export type TicketStatus =
-  | 'OPEN'
-  | 'IN_PROGRESS'
-  | 'WAITING_RENTER'
-  | 'RESOLVED'
-  | 'CLOSED'
-  | 'CANCELED'
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'WAITING_RENTER' | 'RESOLVED' | 'CLOSED' | 'CANCELED'
 
 export interface TicketRoom {
   id: number
@@ -30,6 +17,8 @@ export interface TicketUser {
   id: number
   fullName: string
   avatarUrl?: string | null
+  email?: string
+  phone?: string | null
 }
 
 export interface TicketSummary {
@@ -54,6 +43,16 @@ export interface TicketSummary {
   createdAt: string
   updatedAt: string
   deletedAt?: string | null
+}
+
+export interface TicketAttachment {
+  id: number
+  ticketId: number
+  fileUrl: string
+  fileName?: string
+  fileType?: string
+  fileSize?: number
+  createdAt: string
 }
 
 export interface TicketDetail extends TicketSummary {

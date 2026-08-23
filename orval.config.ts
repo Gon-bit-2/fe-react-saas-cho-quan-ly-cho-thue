@@ -17,7 +17,7 @@ import { defineConfig } from 'orval'
 export default defineConfig({
   api: {
     input: {
-      target: 'http://localhost:1174/docs-json',
+      target: './docs/api/openapi.json',
     },
     output: {
       mode: 'tags-split',

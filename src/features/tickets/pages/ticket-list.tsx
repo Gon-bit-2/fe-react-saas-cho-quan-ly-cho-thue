@@ -3,7 +3,8 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { TICKET_STATUS_MAP, TICKET_PRIORITY_MAP } from '@/shared/constants/status-config'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ticketApi, type GetTicketsParams } from '../api/ticket.api'
@@ -44,36 +45,11 @@ export function TicketListPage() {
   }, [filters])
 
   const getPriorityBadge = (priority: TicketPriority) => {
-    switch (priority) {
-      case 'URGENT':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Khẩn cấp</Badge>
-      case 'HIGH':
-        return <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">Cao</Badge>
-      case 'MEDIUM':
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Trung bình</Badge>
-      case 'LOW':
-      default:
-        return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100">Thấp</Badge>
-    }
+    return <StatusBadge status={priority} statusMap={TICKET_PRIORITY_MAP} fallbackLabel={priority} />
   }
 
   const getStatusBadge = (status: TicketStatus) => {
-    switch (status) {
-      case 'OPEN':
-        return <Badge className="border border-blue-200 bg-blue-100 text-blue-800 hover:bg-blue-100">Mới tạo</Badge>
-      case 'IN_PROGRESS':
-        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Đang xử lý</Badge>
-      case 'WAITING_RENTER':
-        return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">Chờ phản hồi</Badge>
-      case 'RESOLVED':
-        return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Đã giải quyết</Badge>
-      case 'CLOSED':
-        return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100">Đã đóng</Badge>
-      case 'CANCELED':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Đã hủy</Badge>
-      default:
-        return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100">{status}</Badge>
-    }
+    return <StatusBadge status={status} statusMap={TICKET_STATUS_MAP} fallbackLabel={status} />
   }
 
   return (
@@ -83,12 +59,6 @@ export function TicketListPage() {
           <h1 className="mb-1 text-3xl font-bold text-slate-900">Danh Sách Hỗ Trợ (Tickets)</h1>
           <p className="text-sm text-slate-500">Quản lý và xử lý các yêu cầu hỗ trợ từ người thuê.</p>
         </div>
-        <Link to="/app/ho-tro/tao-moi">
-          <Button className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            Tạo Ticket
-          </Button>
-        </Link>
       </div>
 
       <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -178,7 +148,7 @@ export function TicketListPage() {
                 tickets.map((ticket) => (
                   <TableRow key={ticket.id} className="group cursor-pointer hover:bg-slate-50">
                     <TableCell className="font-medium text-slate-500">
-                      <Link to={`/app/ho-tro/${ticket.id}`}>#TK-{ticket.id}</Link>
+                      <Link to={`/ho-tro/${ticket.id}`}>#TK-{ticket.id}</Link>
                     </TableCell>
                     <TableCell>
                       <div className="mb-1 font-medium text-slate-900">{ticket.title}</div>
@@ -222,7 +192,7 @@ export function TicketListPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <Link to={`/app/ho-tro/${ticket.id}`}>
+                          <Link to={`/ho-tro/${ticket.id}`}>
                             <DropdownMenuItem>
                               <span className="material-symbols-outlined mr-2 text-[18px]">visibility</span>
                               Xem chi tiết

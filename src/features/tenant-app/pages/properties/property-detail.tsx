@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, MapPin, Building2, DoorOpen, Edit, Plus, Users, Wallet, Settings2 } from 'lucide-react'
+import { GoongMap } from '@/shared/components/goong-map'
 import type { Room } from '@/features/tenant-app/types'
-
+import { StatusBadge } from '@/components/ui/status-badge'
+import { ROOM_STATUS_MAP } from '@/shared/constants/status-config'
 export function Component() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -29,7 +31,7 @@ export function Component() {
           <Building2 className="h-8 w-8" />
         </div>
         <p className="font-body-md text-on-surface-variant">Không tìm thấy nhà trọ.</p>
-        <Button variant="outline" onClick={() => navigate('/app/khu-tro')} className="rounded-full">
+        <Button variant="outline" onClick={() => navigate('/khu-tro')} className="rounded-full">
           Quay lại danh sách
         </Button>
       </div>
@@ -83,7 +85,7 @@ export function Component() {
               </div>
               <p className="font-body-md text-on-surface-variant mt-0.5 flex items-center gap-1.5">
                 <MapPin className="text-tertiary h-4 w-4 shrink-0" />
-                {property.address}, {property.ward}, {property.district}, {property.province}
+                {property.addressDetail}
               </p>
             </div>
           </div>
@@ -91,14 +93,14 @@ export function Component() {
             <Button
               variant="outline"
               size="icon"
-              onClick={() => navigate('/app/khu-tro')}
+              onClick={() => navigate('/khu-tro')}
               className="bg-surface border-surface-border hover:bg-surface-container rounded-full"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Button
               variant="outline"
-              onClick={() => navigate(`/app/khu-tro/${property.id}/chinh-sua`)}
+              onClick={() => navigate(`/khu-tro/${property.id}/chinh-sua`)}
               className="bg-surface border-surface-border hover:bg-surface-container font-label-md rounded-full shadow-sm"
             >
               <Edit className="text-on-surface-variant mr-2 h-4 w-4" /> Cập nhật
@@ -115,7 +117,7 @@ export function Component() {
           </div>
           <div>
             <div className="font-label-sm text-on-surface-variant mb-1 tracking-wider uppercase">Tổng phòng</div>
-            <div className="font-display text-on-surface text-2xl font-bold">{property.roomsCount}</div>
+            <div className="font-display text-on-surface text-2xl font-bold">{property._count?.rooms || 0}</div>
           </div>
         </Card>
 
@@ -136,7 +138,7 @@ export function Component() {
           <div>
             <div className="font-label-sm text-on-surface-variant mb-1 tracking-wider uppercase">Người thuê</div>
             <div className="font-display text-on-surface text-2xl font-bold">
-              {property.roomsCount - availableRoomsCount}
+              {(property._count?.rooms || 0) - availableRoomsCount}
             </div>
           </div>
         </Card>
@@ -178,9 +180,13 @@ export function Component() {
                 </div>
                 <CardTitle className="font-headline-sm text-on-surface">Quản lý các phòng</CardTitle>
               </div>
+              {property.latitude !== null && property.latitude !== undefined &&
+              property.longitude !== null && property.longitude !== undefined && (
+                <GoongMap latitude={property.latitude} longitude={property.longitude} className="mt-4 h-56" />
+              )}
               <Button
                 size="sm"
-                onClick={() => navigate(`/app/rooms/new?propertyId=${property.id}`)}
+                onClick={() => navigate(`/quan-ly-phong/tao-moi?propertyId=${property.id}`)}
                 className="bg-primary text-on-primary hover:bg-primary/90 font-label-md h-9 rounded-full shadow-sm"
               >
                 <Plus className="mr-2 h-4 w-4" /> Thêm phòng mới
@@ -200,7 +206,7 @@ export function Component() {
                   </p>
                   <Button
                     variant="outline"
-                    onClick={() => navigate(`/app/rooms/new?propertyId=${property.id}`)}
+                    onClick={() => navigate(`/quan-ly-phong/tao-moi?propertyId=${property.id}`)}
                     className="font-label-md border-surface-border text-primary hover:bg-primary/5 rounded-full"
                   >
                     Thêm phòng ngay
@@ -218,7 +224,7 @@ export function Component() {
                             ? 'bg-surface border-surface-border hover:border-primary/50'
                             : 'bg-surface-container-low border-surface-variant hover:border-surface-variant/80'
                       } `}
-                      onClick={() => navigate(`/app/rooms/${room.id}/edit`)}
+                      onClick={() => navigate(`/quan-ly-phong/${room.id}/chinh-sua`)}
                     >
                       {/* Top banner color strip based on status */}
                       <div
@@ -236,21 +242,9 @@ export function Component() {
                           <div className="font-display text-on-surface group-hover:text-primary text-2xl leading-none font-bold transition-colors">
                             {room.roomCode}
                           </div>
-                          <div className="font-label-md text-on-surface-variant mt-1">Tầng {room.floor}</div>
+                          <div className="font-label-md text-on-surface-variant mt-1">{room.floor?.name ?? 'Chưa xếp tầng'}</div>
                         </div>
-                        {room.status === 'AVAILABLE' ? (
-                          <Badge className="font-label-sm border-none bg-emerald-500/10 text-emerald-600 shadow-none hover:bg-emerald-500/20">
-                            Trống
-                          </Badge>
-                        ) : room.status === 'OCCUPIED' ? (
-                          <Badge className="bg-primary/10 text-primary hover:bg-primary/20 font-label-sm border-none shadow-none">
-                            Đang thuê
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-status-warning/10 text-status-warning hover:bg-status-warning/20 font-label-sm border-none shadow-none">
-                            Bảo trì
-                          </Badge>
-                        )}
+                        <StatusBadge status={room.status} statusMap={ROOM_STATUS_MAP} fallbackLabel={room.status} className="font-label-sm shadow-none border-none" />
                       </div>
 
                       <div className="border-surface-border text-on-surface-variant mb-4 flex items-center gap-4 border-y py-3">

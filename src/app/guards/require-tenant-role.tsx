@@ -17,7 +17,7 @@ export function RequireTenantRole({
   const hasAccess = roles.some((role) => hasTenantRole(role))
 
   if (!hasAccess) {
-    return <Navigate to="/403" replace />
+    return <Navigate to="/loi-truy-cap" replace />
   }
 
   return <Outlet />

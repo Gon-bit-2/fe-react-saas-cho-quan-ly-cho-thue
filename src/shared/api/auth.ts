@@ -13,13 +13,13 @@ export interface SendOTPBody {
 
 export interface LoginBody {
   email: string
-  passwordHash: string
+  password: string
   code?: string
 }
 
 export interface RegisterBody {
   email: string
-  passwordHash: string
+  password: string
   fullName: string
   phone: string
   confirmPassword: string

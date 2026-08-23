@@ -1,38 +1,7 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
-import type { Renter, ListRentersQuery, InviteRenterBody } from '@/types/renter'
-
-// Mock Data
-export const MOCK_RENTERS: Renter[] = [
-  {
-    id: 1,
-    userId: 101,
-    fullName: 'Nguyễn Văn A',
-    email: 'nguyenvana@example.com',
-    phone: '0987654321',
-    dateOfBirth: '1995-05-20',
-    gender: 'MALE',
-    identityNumber: '001095001234',
-    permanentAddress: '123 Đường B, Phường C, Quận D, TP HCM',
-    occupation: 'Nhân viên IT',
-    emergencyContactName: 'Nguyễn Thị E',
-    emergencyContactPhone: '0911222333',
-    verificationStatus: 'VERIFIED',
-    createdAt: '2026-08-01T10:00:00Z',
-    updatedAt: '2026-08-01T10:00:00Z',
-  },
-  {
-    id: 2,
-    userId: 102,
-    fullName: 'Trần Thị B',
-    email: 'tranthib@example.com',
-    phone: '0912345678',
-    verificationStatus: 'PENDING',
-    createdAt: '2026-08-05T14:30:00Z',
-    updatedAt: '2026-08-05T14:30:00Z',
-  },
-]
+import type { Renter, RenterInvitation, ListRentersQuery, InviteRenterBody, UpdateRenterForLandlordBody } from '@/types/renter'
 
 const RENTER_KEYS = {
   all: ['renters'] as const,
@@ -40,6 +9,20 @@ const RENTER_KEYS = {
   list: (tenantId: string, params: ListRentersQuery) => [...RENTER_KEYS.lists(tenantId), params] as const,
   details: (tenantId: string) => [...RENTER_KEYS.all, 'detail', tenantId] as const,
   detail: (tenantId: string, id: number) => [...RENTER_KEYS.details(tenantId), id] as const,
+  roommates: (tenantId: string, renterId: number) => [...RENTER_KEYS.detail(tenantId, renterId), 'roommates'] as const,
+  invitationDetail: (tenantId: string, id: number | string) => [...RENTER_KEYS.all, 'invitation', tenantId, id] as const,
+  history: (tenantId: string, id: number) => [...RENTER_KEYS.detail(tenantId, id), 'history'] as const,
+}
+
+interface RentalHistoryItem {
+  id: number
+  roomId: number
+  contractId: number
+  startedAt: string
+  endedAt?: string | null
+  status: 'ACTIVE' | 'ENDED' | 'TERMINATED'
+  room: { id: number; roomCode: string; title: string; property: { id: number; name: string } }
+  contract: { id: number; contractCode?: string | null; status: string }
 }
 
 interface PaginatedResponse<T> {
@@ -55,28 +38,16 @@ interface PaginatedResponse<T> {
 export const useRenters = (params: ListRentersQuery = {}) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const cleanParams = params.search ? params : { ...params, search: undefined }
 
   return useQuery({
-    queryKey: RENTER_KEYS.list(tenantId, params),
+    queryKey: RENTER_KEYS.list(tenantId, cleanParams),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<PaginatedResponse<Renter>>('/renters', {
-          params,
-          tenantId,
-        })
-        if (!data.data || data.data.length === 0) {
-          return {
-            data: MOCK_RENTERS,
-            meta: { page: 1, limit: 10, total: MOCK_RENTERS.length, totalPages: 1 },
-          }
-        }
-        return data
-      } catch {
-        return {
-          data: MOCK_RENTERS,
-          meta: { page: 1, limit: 10, total: MOCK_RENTERS.length, totalPages: 1 },
-        }
-      }
+      const { data } = await apiClient.get<PaginatedResponse<Renter>>('/renters', {
+        params: cleanParams,
+        tenantId,
+      })
+      return data
     },
     enabled: !!tenantId,
   })
@@ -89,30 +60,102 @@ export const useRenter = (id: number) => {
   return useQuery({
     queryKey: RENTER_KEYS.detail(tenantId, id),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<Renter>(`/renters/${id}`, { tenantId })
-        return data
-      } catch (error: unknown) {
-        const err = error as { response?: { status?: number } }
-        if (err.response?.status === 404) { // Fallback for demo
-          const mock = MOCK_RENTERS.find((r) => r.id === id)
-          if (mock) return mock
-        }
-        throw error
-      }
+      const { data } = await apiClient.get<Renter>(`/renters/${id}`, { tenantId })
+      return data
     },
     enabled: !!tenantId && !!id,
+  })
+}
+
+export const useRenterHistory = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  return useQuery({
+    queryKey: RENTER_KEYS.history(tenantId, id),
+    queryFn: async () => {
+      const { data } = await apiClient.get<PaginatedResponse<RentalHistoryItem>>(`/renters/${id}/history`, {
+        params: { page: 1, limit: 50 },
+        tenantId,
+      })
+      return data
+    },
+    enabled: Boolean(tenantId && id),
   })
 }
 
 export const useCreateRenterInvite = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (payload: InviteRenterBody) => {
-      const { data } = await apiClient.post('/renters/invite', payload, { tenantId })
+      const { data } = await apiClient.post<RenterInvitation>('/renters/invitations', payload, { tenantId })
       return data
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RENTER_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useUpdateRenter = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: UpdateRenterForLandlordBody) => {
+      const { data } = await apiClient.patch<Renter>(`/renters/${id}`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RENTER_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: RENTER_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const getInvitation = async (tenantId: string, id: number | string) => {
+  const { data } = await apiClient.get<RenterInvitation>(`/renters/invitations/${id}`, {
+    tenantId,
+  })
+  return data
+}
+
+export const useRenterInvitation = (id: number | string) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+
+  return useQuery({
+    queryKey: RENTER_KEYS.invitationDetail(tenantId, id),
+    queryFn: () => getInvitation(tenantId, id),
+    enabled: !!tenantId && !!id,
+  })
+}
+
+/**
+ * Hook upload ảnh CCCD (mặt trước, mặt sau) của người thuê lên Cloudinary.
+ * Trả về mảng { url, publicId } cho mỗi file đã upload.
+ */
+export const useUploadRenterImages = () => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+
+  return useMutation({
+    mutationFn: async ({ renterId, files }: { renterId: number; files: File[] }) => {
+      const formData = new FormData()
+      files.forEach((file) => formData.append('files', file))
+
+      const { data } = await apiClient.post<{ url: string; publicId: string }[]>(
+        `/renters/${renterId}/images`,
+        formData,
+        {
+          tenantId,
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
+      )
+      return data
+    },
   })
 }

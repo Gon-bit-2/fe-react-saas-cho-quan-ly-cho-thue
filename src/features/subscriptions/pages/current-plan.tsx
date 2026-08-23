@@ -1,56 +1,44 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { planApi } from '../api/plan.api'
 import type { Plan, Subscription } from '../api/plan.api'
-
-// Mock data based on the design
-const mockSubscription: Subscription = {
-  id: 'sub_123',
-  tenantId: 'tenant_1',
-  planId: 'plan_pro',
-  status: 'ACTIVE',
-  billingCycle: 'YEARLY',
-  startDate: '2023-10-01',
-  endDate: '2024-09-30',
-  nextBillingDate: '2024-10-01',
-  autoRenew: true,
-  createdAt: '2023-10-01T00:00:00Z',
-  updatedAt: '2023-10-01T00:00:00Z',
-}
-
-const mockPlan: Plan = {
-  id: 'plan_pro',
-  name: 'Professional',
-  description: 'Gói dành cho nhà quản lý chuyên nghiệp',
-  price: 199,
-  billingCycle: 'YEARLY',
-  features: [
-    'Quản lý không giới hạn số lượng nhà trọ',
-    'Phân tích và báo cáo chuyên sâu',
-    'Cổng thông tin bảo trì & sự cố',
-    'Thanh toán tự động',
-  ],
-  maxProperties: 20,
-  maxUsers: 10,
-  storageLimitGb: 10,
-  isActive: true,
-  createdAt: '2023-01-01T00:00:00Z',
-  updatedAt: '2023-01-01T00:00:00Z',
-}
+import { useAuth } from '@/shared/hooks/use-auth'
+import { useNavigate } from 'react-router'
 
 export const CurrentPlanPage = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [plan, setPlan] = useState<Plan | null>(null)
+  const [usageLimits, setUsageLimits] = useState<{
+    currentProperties: number
+    currentRooms: number
+    currentStaff: number
+  } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const navigate = useNavigate()
+
+  const { selectedMembership } = useAuth()
+  const tenantId = Number(selectedMembership?.tenantId || 0)
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setSubscription(mockSubscription)
-      setPlan(mockPlan)
-      setIsLoading(false)
-    }, 500)
-  }, [])
+    if (!tenantId) return
+
+    const fetchData = async () => {
+      try {
+        const { data } = await planApi.getCurrentSubscription(tenantId)
+        setSubscription(data.subscription)
+        setUsageLimits(data.usageLimits)
+        if (data.subscription?.plan) {
+          setPlan(data.subscription.plan)
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [tenantId])
 
   if (isLoading) {
     return <div className="flex items-center justify-center p-8">Đang tải thông tin gói...</div>
@@ -60,14 +48,27 @@ export const CurrentPlanPage = () => {
     return <div className="text-destructive p-8">Không tìm thấy thông tin gói.</div>
   }
 
-  // Calculate limits (Mocked current usage)
-  const currentProperties = 12
-  const currentStorageGb = 2.1
-  const currentStaff = 5
+  // Use real data from API or fallback to 0
+  const currentProperties = usageLimits?.currentProperties ?? 0
+  const currentRooms = usageLimits?.currentRooms ?? 0
+  const currentStaff = usageLimits?.currentStaff ?? 0
 
-  const propertyUsage = Math.min((currentProperties / plan.maxProperties) * 100, 100)
-  const storageUsage = Math.min((currentStorageGb / plan.storageLimitGb) * 100, 100)
-  const staffUsage = Math.min((currentStaff / plan.maxUsers) * 100, 100)
+  const maxProperties = plan.maxProperties || 0
+  const maxRooms = plan.maxRooms || 0
+  const maxStaff = plan.maxStaff || 0
+
+  const propertyUsage =
+    maxProperties > 0 && maxProperties < 999999
+      ? Math.min((currentProperties / maxProperties) * 100, 100)
+      : currentProperties > 0
+        ? 100
+        : 0
+  const roomUsage =
+    maxRooms > 0 && maxRooms < 999999 ? Math.min((currentRooms / maxRooms) * 100, 100) : currentRooms > 0 ? 100 : 0
+  const staffUsage =
+    maxStaff > 0 && maxStaff < 999999 ? Math.min((currentStaff / maxStaff) * 100, 100) : currentStaff > 0 ? 100 : 0
+
+  const formatMax = (val: number) => (val === 0 || val >= 999999 ? 'Không giới hạn' : val)
 
   return (
     <div className="flex flex-col gap-6">
@@ -100,38 +101,54 @@ export const CurrentPlanPage = () => {
             </div>
             <div className="flex flex-col gap-1 sm:items-end">
               <span className="text-primary text-3xl font-bold">
-                ${plan.price}
-                <span className="text-muted-foreground text-lg font-normal">/năm</span>
+                {new Intl.NumberFormat('vi-VN').format(
+                  subscription.billingCycle === 'YEARLY' ? plan.priceYearly : plan.priceMonthly,
+                )}
+                <span className="text-muted-foreground text-lg font-normal"> VNĐ</span>
               </span>
-              <span className="text-muted-foreground text-sm">Thanh toán theo năm</span>
+              <span className="text-muted-foreground text-sm">
+                Thanh toán theo {subscription.billingCycle === 'YEARLY' ? 'năm' : 'tháng'}
+              </span>
             </div>
           </div>
 
           <div className="bg-muted/50 border-l-primary mb-8 grid grid-cols-1 gap-8 rounded-xl border-l-4 p-6 pb-8 sm:grid-cols-2 md:grid-cols-4">
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs font-medium">Chu kỳ thanh toán</span>
-              <span className="text-base font-medium">Hàng năm</span>
+              <span className="text-base font-medium">
+                {subscription.billingCycle === 'YEARLY' ? 'Hàng năm' : 'Hàng tháng'}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs font-medium">Hóa đơn tiếp theo</span>
-              <span className="font-mono text-base font-medium">1 Thg 10, 2024</span>
+              <span className="font-mono text-base font-medium">
+                {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(new Date(subscription.expiredAt))}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs font-medium">Bắt đầu chu kỳ</span>
-              <span className="font-mono text-base font-medium">1 Thg 10, 2023</span>
+              <span className="font-mono text-base font-medium">
+                {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(new Date(subscription.startedAt))}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs font-medium">Kết thúc chu kỳ</span>
-              <span className="font-mono text-base font-medium">30 Thg 9, 2024</span>
+              <span className="font-mono text-base font-medium">
+                {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(new Date(subscription.expiredAt))}
+              </span>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2" onClick={() => navigate('/goi-dich-vu/so-sanh')}>
               <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
               Đổi gói
             </Button>
-            <Button variant="outline" className="bg-background flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="bg-background flex items-center gap-2"
+              onClick={() => navigate('/goi-dich-vu/lich-su-thanh-toan')}
+            >
               <span className="material-symbols-outlined text-[18px]">credit_card</span>
               Quản lý thanh toán
             </Button>
@@ -153,8 +170,10 @@ export const CurrentPlanPage = () => {
                 <span className="material-symbols-outlined text-[20px]">domain</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold">Tòa nhà không giới hạn</span>
-                <span className="text-muted-foreground text-sm">Quản lý không giới hạn số phòng</span>
+                <span className="text-sm font-semibold">
+                  Tối đa {plan.maxRooms >= 999999 ? 'Không giới hạn' : plan.maxRooms} phòng
+                </span>
+                <span className="text-muted-foreground text-sm">Quản lý số phòng trọ theo gói</span>
               </div>
             </div>
             <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
@@ -162,28 +181,34 @@ export const CurrentPlanPage = () => {
                 <span className="material-symbols-outlined text-[20px]">monitoring</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold">Phân tích nâng cao</span>
-                <span className="text-muted-foreground text-sm">Báo cáo chi tiết doanh thu</span>
+                <span className="text-sm font-semibold">
+                  Tối đa {plan.maxStaff >= 999999 ? 'Không giới hạn' : plan.maxStaff} nhân viên
+                </span>
+                <span className="text-muted-foreground text-sm">Phân quyền quản lý nhà trọ</span>
               </div>
             </div>
-            <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
-              <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                <span className="material-symbols-outlined text-[20px]">build</span>
+            {plan.allowAiOcr && (
+              <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
+                <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                  <span className="material-symbols-outlined text-[20px]">document_scanner</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold">AI & OCR</span>
+                  <span className="text-muted-foreground text-sm">Quét CCCD & Hóa đơn điện nước</span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">Quản lý bảo trì</span>
-                <span className="text-muted-foreground text-sm">Hệ thống ticket cho người thuê</span>
+            )}
+            {plan.allowWebhookPayment && (
+              <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
+                <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                  <span className="material-symbols-outlined text-[20px]">autorenew</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold">Thanh toán tự động</span>
+                  <span className="text-muted-foreground text-sm">Tự động nhận diện thanh toán</span>
+                </div>
               </div>
-            </div>
-            <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
-              <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                <span className="material-symbols-outlined text-[20px]">autorenew</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">Thanh toán tự động</span>
-                <span className="text-muted-foreground text-sm">Tự động tạo & gửi hóa đơn</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -201,10 +226,10 @@ export const CurrentPlanPage = () => {
                     <span className="material-symbols-outlined text-muted-foreground text-[16px]">
                       real_estate_agent
                     </span>
-                    Tòa nhà
+                    Tòa nhà / Khu trọ
                   </span>
                   <span className="text-muted-foreground text-sm tabular-nums">
-                    {currentProperties} / {plan.maxProperties}
+                    {currentProperties} / {formatMax(maxProperties)}
                   </span>
                 </div>
                 <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
@@ -217,17 +242,17 @@ export const CurrentPlanPage = () => {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-sm font-medium">
-                    <span className="material-symbols-outlined text-muted-foreground text-[16px]">folder_open</span>
-                    Dung lượng
+                    <span className="material-symbols-outlined text-muted-foreground text-[16px]">meeting_room</span>
+                    Phòng trọ
                   </span>
                   <span className="text-muted-foreground text-sm tabular-nums">
-                    {currentStorageGb} GB / {plan.storageLimitGb} GB
+                    {currentRooms} / {formatMax(maxRooms)}
                   </span>
                 </div>
                 <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
                   <div
                     className="h-full rounded-full bg-blue-500 transition-all"
-                    style={{ width: `${storageUsage}%` }}
+                    style={{ width: `${roomUsage}%` }}
                   ></div>
                 </div>
               </div>
@@ -238,7 +263,7 @@ export const CurrentPlanPage = () => {
                     Nhân viên
                   </span>
                   <span className="text-muted-foreground text-sm tabular-nums">
-                    {currentStaff} / {plan.maxUsers}
+                    {currentStaff} / {formatMax(maxStaff)}
                   </span>
                 </div>
                 <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
@@ -250,7 +275,12 @@ export const CurrentPlanPage = () => {
               </div>
               <div className="bg-secondary/30 mt-4 rounded-xl p-4 text-center">
                 <span className="text-muted-foreground mb-2 block text-sm">Cần thêm tài nguyên?</span>
-                <button className="text-primary text-sm font-medium hover:underline">Xem các gói nâng cấp</button>
+                <button
+                  className="text-primary text-sm font-medium hover:underline"
+                  onClick={() => navigate('/goi-dich-vu/so-sanh')}
+                >
+                  Xem các gói nâng cấp
+                </button>
               </div>
             </div>
           </div>

@@ -22,16 +22,17 @@ function ServiceEditForm({ service }: { service: Service }) {
   const { mutateAsync: updateService, isPending } = useUpdateService(service.id)
   
   const [formData, setFormData] = useState({
+    code: service.code,
     name: service.name,
-    price: service.price,
-    unit: service.unit,
+    defaultUnitPrice: service.defaultUnitPrice,
+    unitLabel: service.unitLabel,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       await updateService(formData)
-      navigate('/app/dich-vu')
+      navigate('/dich-vu')
     } catch (err) {
       console.error(err)
     }
@@ -50,6 +51,15 @@ function ServiceEditForm({ service }: { service: Service }) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="code">Mã dịch vụ</Label>
+              <Input
+                id="code"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="name">Tên dịch vụ</Label>
               <Input 
                 id="name" 
@@ -60,21 +70,21 @@ function ServiceEditForm({ service }: { service: Service }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Đơn giá (VND)</Label>
+                <Label htmlFor="defaultUnitPrice">Đơn giá (VND)</Label>
                 <Input 
-                  id="price" 
+                  id="defaultUnitPrice" 
                   type="number" 
-                  value={formData.price} 
-                  onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} 
+                  value={formData.defaultUnitPrice} 
+                  onChange={(e) => setFormData({...formData, defaultUnitPrice: Number(e.target.value)})} 
                   required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="unit">Đơn vị tính</Label>
+                <Label htmlFor="unitLabel">Đơn vị tính</Label>
                 <Input 
-                  id="unit" 
-                  value={formData.unit} 
-                  onChange={(e) => setFormData({...formData, unit: e.target.value})} 
+                  id="unitLabel" 
+                  value={formData.unitLabel} 
+                  onChange={(e) => setFormData({...formData, unitLabel: e.target.value})} 
                   required 
                 />
               </div>

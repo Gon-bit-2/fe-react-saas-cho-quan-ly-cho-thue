@@ -16,7 +16,7 @@ export function RequireGuest() {
 
   if (state === 'authenticated') {
     // Redirect về trang trước đó hoặc về home
-    const returnUrl = (location.state as { from?: string })?.from ?? '/tai-khoan'
+    const returnUrl = (location.state as { from?: string })?.from ?? '/'
     return <Navigate to={returnUrl} replace />
   }
 

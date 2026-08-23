@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.0",
+  "openapi": "3.1.0",
   "paths": {
     "/": {
       "get": {
@@ -648,7 +648,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -978,7 +977,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -1203,6 +1201,65 @@
         },
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "Endpoint-specific response. See controller response DTO and examples."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Tenants"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/tenants/register": {
+      "post": {
+        "operationId": "TenantsController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterTenantBodyDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
             "description": "",
             "content": {
               "application/json": {
@@ -2079,7 +2136,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -2299,7 +2355,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -2357,6 +2412,24 @@
             "schema": {
               "minLength": 1,
               "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "provinceCode",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "wardCode",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{5}$",
               "type": "string"
             }
           },
@@ -3075,6 +3148,426 @@
         ]
       }
     },
+    "/properties/{id}/cover-image": {
+      "post": {
+        "operationId": "PropertiesController_uploadCoverImage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-tenant-id",
+            "in": "header",
+            "required": true,
+            "description": "Active tenant ID selected from the authenticated profile memberships",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Property"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Properties"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/locations/provinces": {
+      "get": {
+        "operationId": "LocationsController_listProvinces",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "Endpoint-specific response. See controller response DTO and examples."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Locations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/locations/wards": {
+      "get": {
+        "operationId": "LocationsController_listWards",
+        "parameters": [
+          {
+            "name": "provinceCode",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{2}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "Endpoint-specific response. See controller response DTO and examples."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Locations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/locations/autocomplete": {
+      "get": {
+        "operationId": "LocationsController_autocomplete",
+        "parameters": [
+          {
+            "name": "input",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 2,
+              "maxLength": 250,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sessionToken",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 8,
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "provinceCode",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "wardCode",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{5}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "Endpoint-specific response. See controller response DTO and examples."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Locations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/locations/place-detail": {
+      "get": {
+        "operationId": "LocationsController_placeDetail",
+        "parameters": [
+          {
+            "name": "placeId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 500,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sessionToken",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 8,
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "provinceCode",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "wardCode",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{5}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "Endpoint-specific response. See controller response DTO and examples."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Locations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/locations/reverse-geocode": {
+      "get": {
+        "operationId": "LocationsController_reverseGeocode",
+        "parameters": [
+          {
+            "name": "latitude",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": -90,
+              "maximum": 90,
+              "type": "number"
+            }
+          },
+          {
+            "name": "longitude",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": -180,
+              "maximum": 180,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "Endpoint-specific response. See controller response DTO and examples."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Locations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/rooms": {
       "get": {
         "operationId": "RoomsController_list",
@@ -3106,7 +3599,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -4483,7 +4975,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -5417,7 +5908,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -5448,6 +5938,24 @@
             "schema": {
               "minLength": 1,
               "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "provinceCode",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "wardCode",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{5}$",
               "type": "string"
             }
           },
@@ -5529,6 +6037,36 @@
                   }
                 }
               ]
+            }
+          },
+          {
+            "name": "lat",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": -90,
+              "maximum": 90,
+              "type": "number"
+            }
+          },
+          {
+            "name": "lng",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": -180,
+              "maximum": 180,
+              "type": "number"
+            }
+          },
+          {
+            "name": "radius",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "exclusiveMinimum": 0,
+              "type": "number"
             }
           }
         ],
@@ -5802,7 +6340,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -6172,6 +6709,281 @@
         },
         "tags": [
           "MarketplaceAdmin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/marketplace/favorites": {
+      "get": {
+        "operationId": "FavoriteController_getFavorites",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Favorite"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/marketplace/favorites/{roomId}": {
+      "post": {
+        "operationId": "FavoriteController_addFavorite",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Favorite"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "FavoriteController_removeFavorite",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Favorite"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/marketplace/view-history": {
+      "get": {
+        "operationId": "ViewLogController_getViewHistory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "ViewLog"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/marketplace/rooms/{roomId}/views": {
+      "post": {
+        "operationId": "ViewLogController_recordView",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "ViewLog"
         ],
         "security": [
           {
@@ -7398,6 +8210,20 @@
             }
           },
           {
+            "name": "method",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BANK_TRANSFER",
+                "QR",
+                "CASH",
+                "WALLET"
+              ]
+            }
+          },
+          {
             "name": "invoiceId",
             "required": false,
             "in": "query",
@@ -7460,7 +8286,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           }
@@ -7700,6 +8525,82 @@
         ]
       }
     },
+    "/invoices/{id}/payment-qr": {
+      "post": {
+        "operationId": "PaymentsController_createPaymentQr",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-tenant-id",
+            "in": "header",
+            "required": true,
+            "description": "Active tenant ID selected from the authenticated profile memberships",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentQrBodyDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentQrCode"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/invoices/me/{id}/payment-confirmations": {
       "post": {
         "operationId": "PaymentsController_submitMyConfirmation",
@@ -7808,6 +8709,20 @@
             }
           },
           {
+            "name": "method",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BANK_TRANSFER",
+                "QR",
+                "CASH",
+                "WALLET"
+              ]
+            }
+          },
+          {
             "name": "invoiceId",
             "required": false,
             "in": "query",
@@ -7870,7 +8785,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -8126,6 +9040,82 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/invoices/{id}/manual-payments": {
+      "post": {
+        "operationId": "PaymentsController_recordManualPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-tenant-id",
+            "in": "header",
+            "required": true,
+            "description": "Active tenant ID selected from the authenticated profile memberships",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordManualPaymentBodyDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
                 }
               }
             }
@@ -8439,7 +9429,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -8585,6 +9574,72 @@
                   "type": "object",
                   "additionalProperties": true,
                   "description": "Endpoint-specific response. See controller response DTO and examples."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Renters"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/renters/invitations/{id}": {
+      "get": {
+        "operationId": "RentersController_getInvitation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-tenant-id",
+            "in": "header",
+            "required": true,
+            "description": "Active tenant ID selected from the authenticated profile memberships",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RenterInvitation"
                 }
               }
             }
@@ -8838,6 +9893,64 @@
         ]
       }
     },
+    "/renters/{id}/images": {
+      "post": {
+        "operationId": "RentersController_uploadImages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "Endpoint-specific response. See controller response DTO and examples."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Renters"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/service-catalog": {
       "get": {
         "operationId": "ServiceChargesController_listCatalog",
@@ -8877,7 +9990,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           }
@@ -9354,7 +10466,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           }
@@ -9419,6 +10530,60 @@
       }
     },
     "/rental-requests/me/{id}": {
+      "get": {
+        "operationId": "RentalRequestsController_getMine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RentalRequest"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "RentalRequests"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
       "patch": {
         "operationId": "RentalRequestsController_updateMine",
         "parameters": [
@@ -9617,7 +10782,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -9977,6 +11141,62 @@
         ]
       }
     },
+    "/room-viewing-appointments/me/{id}": {
+      "get": {
+        "operationId": "ViewingAppointmentsController_getMine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Appointment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "ViewingAppointments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/room-viewing-appointments/me/{id}/cancel": {
       "patch": {
         "operationId": "ViewingAppointmentsController_cancelMine",
@@ -10177,6 +11397,72 @@
                     }
                   },
                   "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "ViewingAppointments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/room-viewing-appointments/{id}": {
+      "get": {
+        "operationId": "ViewingAppointmentsController_getForLandlord",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-tenant-id",
+            "in": "header",
+            "required": true,
+            "description": "Active tenant ID selected from the authenticated profile memberships",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentDetail"
                 }
               }
             }
@@ -11523,7 +12809,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           }
@@ -11643,6 +12928,72 @@
         ]
       }
     },
+    "/contracts/me/{id}/sign": {
+      "post": {
+        "operationId": "ContractsController_signRenter",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignContractBodyDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contract"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Contracts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/contracts": {
       "get": {
         "operationId": "ContractsController_listForLandlord",
@@ -11721,7 +13072,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -12001,6 +13351,82 @@
         ]
       }
     },
+    "/contracts/{id}/sign-landlord": {
+      "post": {
+        "operationId": "ContractsController_signLandlord",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-tenant-id",
+            "in": "header",
+            "required": true,
+            "description": "Active tenant ID selected from the authenticated profile memberships",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignContractBodyDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contract"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Contracts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/contracts/{id}/activate": {
       "patch": {
         "operationId": "ContractsController_activate",
@@ -12153,6 +13579,146 @@
             "schema": {
               "type": "integer",
               "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contract"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Contracts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/contracts/{id}/members": {
+      "post": {
+        "operationId": "ContractsController_addMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-tenant-id",
+            "in": "header",
+            "required": true,
+            "description": "Active tenant ID selected from the authenticated profile memberships",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddContractMemberBodyDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contract"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Contracts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/contracts/{id}/members/{userId}": {
+      "delete": {
+        "operationId": "ContractsController_removeMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13884,6 +15450,64 @@
         ]
       }
     },
+    "/dashboard/action-center": {
+      "get": {
+        "operationId": "DashboardController_getActionCenter",
+        "parameters": [
+          {
+            "name": "x-tenant-id",
+            "in": "header",
+            "required": true,
+            "description": "Active tenant ID selected from the authenticated profile memberships",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionCenterResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/dashboard/revenue-trend": {
       "get": {
         "operationId": "DashboardController_getRevenueTrend",
@@ -14361,7 +15985,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -14625,7 +16248,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -14651,23 +16273,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "data",
-                    "meta"
-                  ],
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Debt"
-                      }
-                    },
-                    "meta": {
-                      "$ref": "#/components/schemas/PaginationMeta"
-                    }
-                  },
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/DebtListResponse"
                 }
               }
             }
@@ -14832,7 +16438,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -14868,23 +16473,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "data",
-                    "meta"
-                  ],
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Debt"
-                      }
-                    },
-                    "meta": {
-                      "$ref": "#/components/schemas/PaginationMeta"
-                    }
-                  },
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/DebtListResponse"
                 }
               }
             }
@@ -15049,7 +16638,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -15304,6 +16892,63 @@
         },
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Invoices"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/invoices/preview": {
+      "post": {
+        "operationId": "InvoicesController_preview",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvoiceBodyDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
             "description": "",
             "content": {
               "application/json": {
@@ -15706,7 +17351,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           },
@@ -15888,7 +17532,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "minLength": 1,
               "type": "string"
             }
           }
@@ -17279,7 +18922,7 @@
   "tags": [],
   "servers": [
     {
-      "url": "http://localhost:3000",
+      "url": "http://localhost:1174",
       "description": "Local development"
     }
   ],
@@ -17301,7 +18944,13 @@
             "format": "email",
             "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
           },
-          "passwordHash": {
+          "fullName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "password": {
             "minLength": 8,
             "maxLength": 100,
             "allOf": [
@@ -17318,12 +18967,6 @@
                 "pattern": "[^A-Za-z0-9]"
               }
             ]
-          },
-          "fullName": {
-            "type": "string"
-          },
-          "phone": {
-            "type": "string"
           },
           "confirmPassword": {
             "minLength": 8,
@@ -17358,8 +19001,8 @@
         },
         "required": [
           "email",
-          "passwordHash",
           "fullName",
+          "password",
           "confirmPassword",
           "code",
           "roleCode"
@@ -17374,23 +19017,9 @@
             "format": "email",
             "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
           },
-          "passwordHash": {
-            "minLength": 8,
-            "maxLength": 100,
-            "allOf": [
-              {
-                "pattern": "[A-Z]"
-              },
-              {
-                "pattern": "[a-z]"
-              },
-              {
-                "pattern": "[0-9]"
-              },
-              {
-                "pattern": "[^A-Za-z0-9]"
-              }
-            ]
+          "password": {
+            "type": "string",
+            "minLength": 1
           },
           "code": {
             "type": "string",
@@ -17400,7 +19029,7 @@
         },
         "required": [
           "email",
-          "passwordHash"
+          "password"
         ],
         "additionalProperties": false
       },
@@ -17563,14 +19192,19 @@
             "type": "number",
             "minimum": 0
           },
+          "maxProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
           "maxRooms": {
             "type": "integer",
-            "exclusiveMinimum": 0,
+            "minimum": 0,
             "maximum": 9007199254740991
           },
           "maxStaff": {
             "type": "integer",
-            "exclusiveMinimum": 0,
+            "minimum": 0,
             "maximum": 9007199254740991
           },
           "allowAiOcr": {
@@ -17616,14 +19250,19 @@
             "type": "number",
             "minimum": 0
           },
+          "maxProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
           "maxRooms": {
             "type": "integer",
-            "exclusiveMinimum": 0,
+            "minimum": 0,
             "maximum": 9007199254740991
           },
           "maxStaff": {
             "type": "integer",
-            "exclusiveMinimum": 0,
+            "minimum": 0,
             "maximum": 9007199254740991
           },
           "allowAiOcr": {
@@ -17726,6 +19365,39 @@
           "password",
           "tenantName",
           "planId"
+        ],
+        "additionalProperties": false
+      },
+      "RegisterTenantBodyDTO": {
+        "type": "object",
+        "properties": {
+          "tenantName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 255
+          },
+          "taxCode": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "tenantPhone": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 50
+          },
+          "tenantEmail": {
+            "type": "string",
+            "maxLength": 255,
+            "format": "email",
+            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "tenantName"
         ],
         "additionalProperties": false
       },
@@ -17916,9 +19588,16 @@
             "maxLength": 100
           },
           "district": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "ward": {
             "type": "string",
@@ -17959,14 +19638,45 @@
               "INACTIVE",
               "MAINTENANCE"
             ]
+          },
+          "floorsCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "provinceCode": {
+                "type": "string",
+                "pattern": "^\\d{2}$"
+              },
+              "wardCode": {
+                "type": "string",
+                "pattern": "^\\d{5}$"
+              },
+              "placeId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "sessionToken": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 200
+              }
+            },
+            "required": [
+              "provinceCode",
+              "wardCode",
+              "placeId"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
           "name",
           "type",
-          "province",
-          "district",
-          "ward",
           "addressDetail"
         ],
         "additionalProperties": false
@@ -17994,9 +19704,16 @@
             "maxLength": 100
           },
           "district": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "ward": {
             "type": "string",
@@ -18037,6 +19754,40 @@
               "INACTIVE",
               "MAINTENANCE"
             ]
+          },
+          "floorsCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "provinceCode": {
+                "type": "string",
+                "pattern": "^\\d{2}$"
+              },
+              "wardCode": {
+                "type": "string",
+                "pattern": "^\\d{5}$"
+              },
+              "placeId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "sessionToken": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 200
+              }
+            },
+            "required": [
+              "provinceCode",
+              "wardCode",
+              "placeId"
+            ],
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -18995,6 +20746,47 @@
         },
         "additionalProperties": false
       },
+      "RecordManualPaymentBodyDTO": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "BANK_TRANSFER",
+              "QR",
+              "CASH",
+              "WALLET"
+            ]
+          },
+          "paidAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z||([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              }
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 5000
+          }
+        },
+        "required": [
+          "amount",
+          "method"
+        ],
+        "additionalProperties": false
+      },
       "PayosWebhookBodyDTO": {
         "type": "object",
         "properties": {
@@ -19115,8 +20907,7 @@
               "paymentLinkId",
               "code",
               "desc"
-            ],
-            "additionalProperties": false
+            ]
           },
           "signature": {
             "type": "string"
@@ -19128,8 +20919,7 @@
           "success",
           "data",
           "signature"
-        ],
-        "additionalProperties": false
+        ]
       },
       "UpdateRenterProfileBodyDTO": {
         "type": "object",
@@ -20032,6 +21822,19 @@
         ],
         "additionalProperties": false
       },
+      "SignContractBodyDTO": {
+        "type": "object",
+        "properties": {
+          "signature": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "signature"
+        ],
+        "additionalProperties": false
+      },
       "CreateContractBodyDTO": {
         "type": "object",
         "properties": {
@@ -20134,6 +21937,64 @@
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991
             }
+          },
+          "renterInfo": {
+            "type": "object",
+            "properties": {
+              "phone": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 50
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "identityNumber": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 50
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "permanentAddress": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "identityFrontUrl": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "identityBackUrl": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
           }
         },
         "required": [
@@ -20212,8 +22073,80 @@
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991
             }
+          },
+          "renterInfo": {
+            "type": "object",
+            "properties": {
+              "phone": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 50
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "identityNumber": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 50
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "permanentAddress": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "identityFrontUrl": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "identityBackUrl": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
           }
         },
+        "additionalProperties": false
+      },
+      "AddContractMemberBodyDTO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "userId"
+        ],
         "additionalProperties": false
       },
       "ConfirmHandoverBodyDTO": {
@@ -22003,6 +23936,76 @@
         },
         "additionalProperties": false
       },
+      "AppointmentProperty": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "addressDetail",
+          "ward",
+          "district",
+          "province"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string"
+          },
+          "addressDetail": {
+            "type": "string"
+          },
+          "ward": {
+            "type": "string"
+          },
+          "district": {
+            "type": "string"
+          },
+          "province": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppointmentRoom": {
+        "type": "object",
+        "required": [
+          "id",
+          "roomCode",
+          "title",
+          "basePrice",
+          "depositAmount",
+          "property"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "roomCode": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "basePrice": {
+            "type": "string",
+            "format": "decimal",
+            "pattern": "^-?\\d+(?:\\.\\d+)?$"
+          },
+          "depositAmount": {
+            "type": "string",
+            "format": "decimal",
+            "pattern": "^-?\\d+(?:\\.\\d+)?$"
+          },
+          "property": {
+            "$ref": "#/components/schemas/AppointmentProperty"
+          }
+        },
+        "additionalProperties": false
+      },
       "Appointment": {
         "type": "object",
         "required": [
@@ -22012,6 +24015,8 @@
           "renterId",
           "scheduledAt",
           "status",
+          "room",
+          "renter",
           "createdAt",
           "updatedAt"
         ],
@@ -22084,6 +24089,16 @@
           "renter": {
             "$ref": "#/components/schemas/UserSummary"
           },
+          "assignedStaff": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -22102,6 +24117,238 @@
                 "type": "null"
               }
             ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppointmentDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "tenantId",
+          "roomId",
+          "renterId",
+          "scheduledAt",
+          "status",
+          "room",
+          "renter",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "tenantId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "roomId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "renterId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "assignedStaffId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "CONFIRMED",
+              "REJECTED",
+              "RESCHEDULED",
+              "CANCELED",
+              "COMPLETED"
+            ]
+          },
+          "note": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "landlordNote": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "room": {
+            "$ref": "#/components/schemas/AppointmentRoom"
+          },
+          "renter": {
+            "$ref": "#/components/schemas/UserSummary"
+          },
+          "assignedStaff": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "RenterInvitation": {
+        "type": "object",
+        "required": [
+          "id",
+          "tenantId",
+          "email",
+          "fullName",
+          "expiresAt",
+          "status",
+          "tenant",
+          "createdBy",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "tenantId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phone": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "acceptedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "acceptedUserId": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revokedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACCEPTED",
+              "CANCELED",
+              "EXPIRED",
+              "PENDING"
+            ]
+          },
+          "tenant": {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/UserSummary"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -22209,6 +24456,41 @@
         },
         "additionalProperties": false
       },
+      "ContractMember": {
+        "type": "object",
+        "required": [
+          "id",
+          "userId",
+          "role",
+          "createdAt",
+          "user"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "userId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "MAIN_RENTER",
+              "CO_RENTER"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserSummary"
+          }
+        },
+        "additionalProperties": false
+      },
       "Contract": {
         "type": "object",
         "required": [
@@ -22220,7 +24502,8 @@
           "status",
           "startDate",
           "endDate",
-          "monthlyPrice"
+          "monthlyPrice",
+          "members"
         ],
         "properties": {
           "id": {
@@ -22321,6 +24604,12 @@
           },
           "renter": {
             "$ref": "#/components/schemas/UserSummary"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContractMember"
+            }
           },
           "createdAt": {
             "type": "string",
@@ -22476,6 +24765,428 @@
                 "type": "null"
               }
             ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "DebtStats": {
+        "type": "object",
+        "required": [
+          "totalOutstanding",
+          "overdueMoreThan30Days",
+          "overdueWithin30Days",
+          "currentNotDue"
+        ],
+        "properties": {
+          "totalOutstanding": {
+            "type": "number",
+            "minimum": 0
+          },
+          "overdueMoreThan30Days": {
+            "type": "number",
+            "minimum": 0
+          },
+          "overdueWithin30Days": {
+            "type": "number",
+            "minimum": 0
+          },
+          "currentNotDue": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "DebtListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta",
+          "stats"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Debt"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/DebtStats"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActionCenterRoom": {
+        "type": "object",
+        "required": [
+          "id",
+          "roomCode",
+          "title",
+          "property"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "roomCode": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "property": {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActionCenterRentalRequest": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "expectedStartDate",
+          "createdAt",
+          "renter",
+          "room"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING"
+            ]
+          },
+          "expectedStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "renter": {
+            "type": "object",
+            "required": [
+              "id",
+              "fullName"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "fullName": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "room": {
+            "$ref": "#/components/schemas/ActionCenterRoom"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActionCenterContract": {
+        "type": "object",
+        "required": [
+          "id",
+          "contractCode",
+          "status",
+          "endDate",
+          "renter",
+          "room"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "contractCode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE"
+            ]
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "renter": {
+            "type": "object",
+            "required": [
+              "id",
+              "fullName"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "fullName": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "room": {
+            "$ref": "#/components/schemas/ActionCenterRoom"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActionCenterInvoice": {
+        "type": "object",
+        "required": [
+          "id",
+          "invoiceCode",
+          "status",
+          "dueDate",
+          "debtAmount",
+          "daysOverdue",
+          "renter",
+          "room"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "invoiceCode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "UNPAID",
+              "PARTIALLY_PAID",
+              "OVERDUE"
+            ]
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "debtAmount": {
+            "type": "number",
+            "minimum": 0
+          },
+          "daysOverdue": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "renter": {
+            "type": "object",
+            "required": [
+              "id",
+              "fullName"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "fullName": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "room": {
+            "$ref": "#/components/schemas/ActionCenterRoom"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActionCenterTicket": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "status",
+          "createdAt",
+          "room"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "WAITING_RENTER"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "fullName"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "fullName": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "room": {
+            "$ref": "#/components/schemas/ActionCenterRoom"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActionCenterResponse": {
+        "type": "object",
+        "required": [
+          "tenantId",
+          "pendingRequests",
+          "expiringContracts",
+          "unpaidInvoices",
+          "openTickets"
+        ],
+        "properties": {
+          "tenantId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pendingRequests": {
+            "type": "object",
+            "required": [
+              "total",
+              "items"
+            ],
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ActionCenterRentalRequest"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "expiringContracts": {
+            "type": "object",
+            "required": [
+              "total",
+              "items"
+            ],
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ActionCenterContract"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "unpaidInvoices": {
+            "type": "object",
+            "required": [
+              "total",
+              "items"
+            ],
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ActionCenterInvoice"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "openTickets": {
+            "type": "object",
+            "required": [
+              "total",
+              "items"
+            ],
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ActionCenterTicket"
+                }
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false

@@ -119,6 +119,8 @@
     --spacing-gap-fields: 16px;
     --spacing-page-padding-desktop: 32px;
     --spacing-base: 4px;
+    --spacing-sidebar-width: 260px;
+    --spacing-topbar-height: 64px;
 
     --font-headline-md: 'Inter', sans-serif;
     --font-headline-lg: 'Inter', sans-serif;

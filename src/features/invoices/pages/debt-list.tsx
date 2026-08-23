@@ -1,54 +1,61 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getInvoices } from '../api';
-import { InvoiceStatus, InvoiceListDto, InvoiceDto } from '../types';
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { getDebts } from '../api'
+import { InvoiceStatus, type Debt, type InvoiceListParams } from '../types'
 
 export function DebtListPage() {
-  const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState<InvoiceListDto>({
+  const [renderedAt] = useState(() => Date.now())
+  const [debts, setDebts] = useState<Debt[]>([])
+  const [stats, setStats] = useState({
+    totalOutstanding: 0,
+    overdueMoreThan30Days: 0,
+    overdueWithin30Days: 0,
+    currentNotDue: 0,
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [filters, setFilters] = useState<InvoiceListParams>({
     page: 1,
     limit: 10,
-    status: InvoiceStatus.OVERDUE // default to show debts
-  });
-  const [total, setTotal] = useState(0);
+    status: InvoiceStatus.OVERDUE, // default to show debts
+  })
+  const [total, setTotal] = useState(0)
 
-  // Mock stats
-  const stats = {
-    totalOutstanding: 124500000,
-    overdueMoreThan30: 45200000,
-    overdueLessThan30: 68300000,
-    currentNotDue: 11000000
-  };
 
   useEffect(() => {
     const loadInvoices = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        const response = await getInvoices(filters);
-        // Filter out only debts in reality, here just use mock data
-        setInvoices(response.data.filter((i: InvoiceDto) => i.debtAmount > 0));
-        setTotal(response.total);
+        const response = await getDebts(filters)
+        setDebts(response.data)
+        if (response.stats) {
+          setStats({
+            totalOutstanding: response.stats.totalOutstanding || 0,
+            overdueMoreThan30Days: response.stats.overdueMoreThan30Days || 0,
+            overdueWithin30Days: response.stats.overdueWithin30Days || 0,
+            currentNotDue: response.stats.currentNotDue || 0,
+          })
+        }
+        setTotal(response.meta.total)
       } catch (error) {
-        console.error('Failed to load debts', error);
+        console.error('Failed to load debts', error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-    loadInvoices();
-  }, [filters]);
+    }
+    loadInvoices()
+  }, [filters])
 
   return (
-    <div className="flex flex-col w-full h-full p-8 bg-slate-50 min-h-[calc(100vh-64px)] gap-6">
+    <div className="flex h-full min-h-[calc(100vh-64px)] w-full flex-col gap-6 bg-slate-50 p-8">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Danh Sách Công Nợ</h1>
-          <p className="text-sm text-slate-500 mt-1">Theo dõi và quản lý công nợ của người thuê.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Danh Sách Công Nợ</h1>
+          <p className="mt-1 text-sm text-slate-500">Theo dõi và quản lý công nợ của người thuê.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" className="flex items-center gap-2 bg-white shadow-sm">
@@ -63,87 +70,107 @@ export function DebtListPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Total Outstanding */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
-          <div className="flex items-center gap-3 mb-3 relative z-10">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+        <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="bg-primary/5 absolute -top-4 -right-4 h-24 w-24 rounded-full blur-xl transition-transform duration-500 group-hover:scale-150"></div>
+          <div className="relative z-10 mb-3 flex items-center gap-3">
+            <div className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-full">
               <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
             </div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tổng Công Nợ</span>
+            <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Tổng Công Nợ</span>
           </div>
-          <div className="text-2xl font-bold text-slate-900 tabular-nums relative z-10">{stats.totalOutstanding.toLocaleString()} ₫</div>
-          <div className="flex items-center gap-1 mt-2 text-red-600 relative z-10">
-            <span className="material-symbols-outlined text-[14px]">trending_up</span>
-            <span className="text-xs font-medium">+5.2% so với tháng trước</span>
+          <div className="relative z-10 text-2xl font-bold text-slate-900 tabular-nums">
+            {stats.totalOutstanding.toLocaleString()} ₫
+          </div>
+          <div className="relative z-10 mt-2 flex items-center gap-1 text-slate-500">
+            <span className="material-symbols-outlined text-[14px]">trending_flat</span>
+            <span className="text-xs font-medium">Chưa có dữ liệu</span>
           </div>
         </div>
 
         {/* Overdue > 30 Days */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
-          <div className="flex items-center gap-3 mb-3 relative z-10">
-            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+        <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-red-500/5 blur-xl transition-transform duration-500 group-hover:scale-150"></div>
+          <div className="relative z-10 mb-3 flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-600">
               <span className="material-symbols-outlined text-[18px]">warning</span>
             </div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Quá hạn &gt; 30 ngày</span>
+            <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Quá hạn &gt; 30 ngày</span>
           </div>
-          <div className="text-2xl font-bold text-red-600 tabular-nums relative z-10">{stats.overdueMoreThan30.toLocaleString()} ₫</div>
-          <div className="flex items-center gap-1 mt-2 text-slate-500 relative z-10">
-            <span className="text-xs font-medium">Từ 12 người thuê</span>
+          <div className="relative z-10 text-2xl font-bold text-red-600 tabular-nums">
+            {stats.overdueMoreThan30Days.toLocaleString()} ₫
+          </div>
+          <div className="relative z-10 mt-2 flex items-center gap-1 text-slate-500">
+            <span className="text-xs font-medium">Chưa có dữ liệu</span>
           </div>
         </div>
 
         {/* Overdue 1-30 Days */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
-          <div className="flex items-center gap-3 mb-3 relative z-10">
-            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+        <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-amber-500/5 blur-xl transition-transform duration-500 group-hover:scale-150"></div>
+          <div className="relative z-10 mb-3 flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600">
               <span className="material-symbols-outlined text-[18px]">schedule</span>
             </div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Quá hạn 1-30 ngày</span>
+            <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Quá hạn 1-30 ngày</span>
           </div>
-          <div className="text-2xl font-bold text-amber-600 tabular-nums relative z-10">{stats.overdueLessThan30.toLocaleString()} ₫</div>
-          <div className="flex items-center gap-1 mt-2 text-slate-500 relative z-10">
-            <span className="text-xs font-medium">Từ 24 người thuê</span>
+          <div className="relative z-10 text-2xl font-bold text-amber-600 tabular-nums">
+            {stats.overdueWithin30Days.toLocaleString()} ₫
+          </div>
+          <div className="relative z-10 mt-2 flex items-center gap-1 text-slate-500">
+            <span className="text-xs font-medium">Chưa có dữ liệu</span>
           </div>
         </div>
 
         {/* Not Yet Due */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
-          <div className="flex items-center gap-3 mb-3 relative z-10">
-            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+        <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-emerald-500/5 blur-xl transition-transform duration-500 group-hover:scale-150"></div>
+          <div className="relative z-10 mb-3 flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
               <span className="material-symbols-outlined text-[18px]">event_available</span>
             </div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Trong hạn (Chưa đến hạn)</span>
+            <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+              Trong hạn (Chưa đến hạn)
+            </span>
           </div>
-          <div className="text-2xl font-bold text-slate-900 tabular-nums relative z-10">{stats.currentNotDue.toLocaleString()} ₫</div>
-          <div className="flex items-center gap-1 mt-2 text-slate-500 relative z-10">
-            <span className="text-xs font-medium">Từ 5 người thuê</span>
+          <div className="relative z-10 text-2xl font-bold text-slate-900 tabular-nums">
+            {stats.currentNotDue.toLocaleString()} ₫
+          </div>
+          <div className="relative z-10 mt-2 flex items-center gap-1 text-slate-500">
+            <span className="text-xs font-medium">Chưa có dữ liệu</span>
           </div>
         </div>
       </div>
 
       {/* Main Data Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-1">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         {/* Toolbar & Filters */}
-        <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-col items-center justify-between gap-4 border-b border-slate-200 bg-slate-50 p-4 md:flex-row">
+          <div className="flex w-full items-center gap-3 md:w-auto">
             <div className="relative w-full md:w-64">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">search</span>
-              <Input 
-                className="pl-10 bg-white" 
-                placeholder="Tìm kiếm người thuê, hóa đơn..." 
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+              <span className="material-symbols-outlined pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[20px] text-slate-400">
+                search
+              </span>
+              <Input
+                className="bg-white pl-10"
+                placeholder="Tìm kiếm người thuê, hóa đơn..."
+                onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
               />
             </div>
-            <div className="hidden md:block h-6 w-[1px] bg-slate-200"></div>
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden h-6 w-[1px] bg-slate-200 md:block"></div>
+            <div className="hidden items-center gap-2 md:flex">
               <span className="text-sm text-slate-500">Lọc theo:</span>
-              <Select onValueChange={(val) => setFilters(prev => ({ ...prev, status: val as InvoiceStatus }))}>
-                <SelectTrigger className="bg-white w-[130px]">
+              <Select
+                onValueChange={(val) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    status: val === 'all' ? undefined : (val as InvoiceStatus),
+                    page: 1,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-[130px] bg-white">
                   <SelectValue placeholder="Trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
@@ -154,9 +181,7 @@ export function DebtListPage() {
               </Select>
             </div>
           </div>
-          <div className="text-sm text-slate-500 w-full md:w-auto text-left md:text-right">
-            Hiển thị 1-10 của 41
-          </div>
+          <div className="w-full text-left text-sm text-slate-500 md:w-auto md:text-right">Hiển thị 1-10 của 41</div>
         </div>
 
         {/* Data Table */}
@@ -164,97 +189,135 @@ export function DebtListPage() {
           <Table>
             <TableHeader className="bg-slate-50">
               <TableRow>
-                <TableHead className="font-semibold text-slate-500 uppercase whitespace-nowrap">Người Thuê</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase whitespace-nowrap">Mã Hóa Đơn</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase text-right whitespace-nowrap">Tổng Tiền</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase text-right whitespace-nowrap">Đã Trả</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase text-right whitespace-nowrap">Công Nợ Còn Lại</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase whitespace-nowrap">Hạn Thanh Toán</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase whitespace-nowrap">Trạng Thái</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase text-right whitespace-nowrap">Thao Tác</TableHead>
+                <TableHead className="font-semibold whitespace-nowrap text-slate-500 uppercase">Người Thuê</TableHead>
+                <TableHead className="font-semibold whitespace-nowrap text-slate-500 uppercase">Mã Hóa Đơn</TableHead>
+                <TableHead className="text-right font-semibold whitespace-nowrap text-slate-500 uppercase">
+                  Tổng Tiền
+                </TableHead>
+                <TableHead className="text-right font-semibold whitespace-nowrap text-slate-500 uppercase">
+                  Đã Trả
+                </TableHead>
+                <TableHead className="text-right font-semibold whitespace-nowrap text-slate-500 uppercase">
+                  Công Nợ Còn Lại
+                </TableHead>
+                <TableHead className="font-semibold whitespace-nowrap text-slate-500 uppercase">
+                  Hạn Thanh Toán
+                </TableHead>
+                <TableHead className="font-semibold whitespace-nowrap text-slate-500 uppercase">Trạng Thái</TableHead>
+                <TableHead className="text-right font-semibold whitespace-nowrap text-slate-500 uppercase">
+                  Thao Tác
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-slate-100">
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-slate-500">Đang tải dữ liệu...</TableCell>
+                  <TableCell colSpan={8} className="py-8 text-center text-slate-500">
+                    Đang tải dữ liệu...
+                  </TableCell>
                 </TableRow>
-              ) : invoices.length === 0 ? (
+              ) : debts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-slate-500">Không có công nợ nào</TableCell>
+                  <TableCell colSpan={8} className="py-8 text-center text-slate-500">
+                    Không có công nợ nào
+                  </TableCell>
                 </TableRow>
               ) : (
-                invoices.map((invoice, index) => {
-                  const isOverdue = invoice.status === InvoiceStatus.OVERDUE;
-                  const isWarning = invoice.status === InvoiceStatus.UNPAID && index % 2 === 1; // mock logic
-                  
+                debts.map((debt) => {
+                  const invoice = debt.invoice
+                  if (!invoice) return null
+                  const isOverdue = debt.status === 'OVERDUE' || (debt.dueDate && new Date(debt.dueDate).getTime() < renderedAt)
+                  const isWarning = !isOverdue && debt.dueDate && (new Date(debt.dueDate).getTime() - renderedAt) < 3 * 24 * 60 * 60 * 1000 // Sắp hết hạn trong 3 ngày
+
                   return (
-                    <TableRow 
-                      key={invoice.id} 
-                      className={`group hover:bg-slate-50/80 transition-colors ${isOverdue ? 'bg-red-50/30' : isWarning ? 'bg-amber-50/30' : ''}`}
+                    <TableRow
+                      key={debt.id}
+                      className={`group transition-colors hover:bg-slate-50/80 ${isOverdue ? 'bg-red-50/30' : isWarning ? 'bg-amber-50/30' : ''}`}
                     >
                       <TableCell className="py-3">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-sm ${
-                            isOverdue ? 'bg-red-100 text-red-600' : isWarning ? 'bg-amber-100 text-amber-600' : 'bg-primary/10 text-primary'
-                          }`}>
+                          <div
+                            className={`flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold shadow-sm ${
+                              isOverdue
+                                ? 'bg-red-100 text-red-600'
+                                : isWarning
+                                  ? 'bg-amber-100 text-amber-600'
+                                  : 'bg-primary/10 text-primary'
+                            }`}
+                          >
                             {invoice.renter?.fullName?.charAt(0) || 'U'}
                           </div>
                           <div>
                             <div className="font-semibold text-slate-900">{invoice.renter?.fullName}</div>
-                            <div className="text-xs text-slate-500 mt-0.5">{invoice.room?.title}</div>
+                            <div className="mt-0.5 text-xs text-slate-500">{invoice.room?.title}</div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Link to={`/app/hoa-don/${invoice.id}`} className="text-primary font-medium hover:underline">
+                        <Link to={`/hoa-don/${invoice.id}`} className="text-primary font-medium hover:underline">
                           {invoice.invoiceCode}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-right tabular-nums text-slate-600">
-                        {invoice.totalAmount.toLocaleString()} ₫
+                      <TableCell className="text-right text-slate-600 tabular-nums">
+                        {debt.originalAmount.toLocaleString()} ₫
                       </TableCell>
-                      <TableCell className="text-right tabular-nums text-emerald-600">
-                        {invoice.paidAmount.toLocaleString()} ₫
+                      <TableCell className="text-right text-emerald-600 tabular-nums">
+                        {debt.paidAmount.toLocaleString()} ₫
                       </TableCell>
-                      <TableCell className={`text-right tabular-nums font-bold text-base ${isOverdue ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-slate-900'}`}>
-                        {invoice.debtAmount.toLocaleString()} ₫
+                      <TableCell
+                        className={`text-right text-base font-bold tabular-nums ${isOverdue ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-slate-900'}`}
+                      >
+                        {debt.remainingAmount.toLocaleString()} ₫
                       </TableCell>
-                      <TableCell className="tabular-nums text-slate-600">
-                        {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('vi-VN') : '-'}
+                      <TableCell className="text-slate-600 tabular-nums">
+                        {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString('vi-VN') : '-'}
                       </TableCell>
                       <TableCell>
                         {isOverdue ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-red-50 text-red-700 text-xs font-medium border border-red-100">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-600 mr-1.5"></span>
+                          <span className="inline-flex items-center rounded-md border border-red-100 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">
+                            <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-red-600"></span>
                             Quá hạn
                           </span>
                         ) : isWarning ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>
+                          <span className="inline-flex items-center rounded-md border border-amber-100 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                            <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-amber-500"></span>
                             Sắp đến hạn
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">
+                          <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
                             Trong hạn
                           </span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-blue-600 hover:text-blue-700 hover:bg-blue-50" title="Nhắc nhở Zalo">
+                        <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                            title="Nhắc nhở Zalo"
+                          >
                             <span className="material-symbols-outlined text-[18px]">chat</span>
                           </Button>
-                          <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-slate-500 hover:text-slate-700 hover:bg-slate-100" title="Nhắc nhở Email">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                            title="Nhắc nhở Email"
+                          >
                             <span className="material-symbols-outlined text-[18px]">mail</span>
                           </Button>
-                          <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-slate-500 hover:text-slate-700 hover:bg-slate-100">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                          >
                             <span className="material-symbols-outlined text-[20px]">more_vert</span>
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  );
+                  )
                 })
               )}
             </TableBody>
@@ -262,28 +325,31 @@ export function DebtListPage() {
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-white mt-auto">
+        <div className="mt-auto flex items-center justify-between border-t border-slate-200 bg-white px-6 py-4">
           <div className="text-sm text-slate-500">
-            Hiển thị {invoices.length > 0 ? (filters.page! - 1) * filters.limit! + 1 : 0} đến {Math.min(filters.page! * filters.limit!, total)} trong số {total} mục
+            Hiển thị {debts.length > 0 ? (filters.page! - 1) * filters.limit! + 1 : 0} đến{' '}
+            {Math.min(filters.page! * filters.limit!, total)} trong số {total} mục
           </div>
           <div className="flex gap-1">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="w-8 h-8"
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
               disabled={filters.page === 1}
-              onClick={() => setFilters(prev => ({ ...prev, page: prev.page! - 1 }))}
+              onClick={() => setFilters((prev) => ({ ...prev, page: prev.page! - 1 }))}
             >
               <span className="material-symbols-outlined text-[18px]">chevron_left</span>
             </Button>
-            <Button variant="default" size="sm" className="w-8 h-8 p-0">{filters.page}</Button>
+            <Button variant="default" size="sm" className="h-8 w-8 p-0">
+              {filters.page}
+            </Button>
             {/* Simple pagination logic for demo */}
             {total > filters.page! * filters.limit! && (
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="w-8 h-8"
-                onClick={() => setFilters(prev => ({ ...prev, page: prev.page! + 1 }))}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setFilters((prev) => ({ ...prev, page: prev.page! + 1 }))}
               >
                 <span className="material-symbols-outlined text-[18px]">chevron_right</span>
               </Button>
@@ -292,5 +358,5 @@ export function DebtListPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

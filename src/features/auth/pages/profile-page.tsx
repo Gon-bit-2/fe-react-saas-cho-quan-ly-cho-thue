@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { profileApi } from '../api/profile.api';
-import { UserProfile } from '../api/types';
+import type { UserProfile } from '../api/types';
 
 export function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -21,7 +21,7 @@ export function ProfilePage() {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const data = await profileApi.getProfile();
+        const { data } = await profileApi.getProfile();
         setProfile(data);
         setFormData(prev => ({
           ...prev,

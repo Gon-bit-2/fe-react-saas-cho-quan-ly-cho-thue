@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getPaymentDetail, approvePayment } from '../api';
-import { PaymentMethod, PaymentStatus, PaymentDto } from '../types';
+import { PaymentMethod, PaymentStatus, type Payment } from '../types';
 
 export function PaymentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [payment, setPayment] = useState<PaymentDto | null>(null);
+  const [payment, setPayment] = useState<Payment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isApproving, setIsApproving] = useState(false);
 
@@ -86,7 +86,7 @@ export function PaymentDetailPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Link to="/app/thanh-toan">
+            <Link to="/thanh-toan">
               <Button variant="ghost" size="icon" className="rounded-full w-8 h-8">
                 <span className="material-symbols-outlined text-lg">arrow_back</span>
               </Button>
@@ -172,7 +172,7 @@ export function PaymentDetailPage() {
             
             {payment.invoice && (
               <>
-                <Link to={`/app/hoa-don/${payment.invoiceId}`}>
+                <Link to={`/hoa-don/${payment.invoiceId}`}>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group border border-slate-100">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700">

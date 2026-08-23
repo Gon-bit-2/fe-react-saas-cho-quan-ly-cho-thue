@@ -10,7 +10,7 @@ export function RequireRenter() {
   const { profile } = useAuth()
 
   if (!profile?.renterProfile) {
-    return <Navigate to="/403" replace />
+    return <Navigate to="/loi-truy-cap" replace />
   }
 
   return <Outlet />

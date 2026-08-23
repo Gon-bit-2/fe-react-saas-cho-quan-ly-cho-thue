@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,12 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { getInvoices } from '../api';
-import { InvoiceStatus, InvoiceListDto, InvoiceDto } from '../types';
+import { InvoiceStatus, type Invoice, type InvoiceListParams } from '../types';
 
 export function InvoiceListPage() {
-  const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState<InvoiceListDto>({
+  const [filters, setFilters] = useState<InvoiceListParams>({
     page: 1,
     limit: 10
   });
@@ -24,7 +24,7 @@ export function InvoiceListPage() {
       try {
         const response = await getInvoices(filters);
         setInvoices(response.data);
-        setTotal(response.total);
+        setTotal(response.meta.total);
       } catch (error) {
         console.error('Failed to load invoices', error);
       } finally {
@@ -42,6 +42,8 @@ export function InvoiceListPage() {
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Quá hạn</Badge>;
       case InvoiceStatus.DRAFT:
         return <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-100 border border-slate-200">Bản nháp</Badge>;
+      case InvoiceStatus.CANCELED:
+        return <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100 line-through">Đã hủy</Badge>;
       case InvoiceStatus.UNPAID:
       default:
         return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Chờ thanh toán</Badge>;
@@ -55,7 +57,7 @@ export function InvoiceListPage() {
           <h1 className="text-3xl font-bold text-slate-900 mb-1">Danh Sách Hóa Đơn</h1>
           <p className="text-sm text-slate-500">Quản lý và theo dõi thanh toán cho tất cả các tài sản.</p>
         </div>
-        <Link to="/app/hoa-don/tao-moi">
+        <Link to="/hoa-don/tao-moi">
           <Button className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px]">add</span>
             Tạo Hóa Đơn
@@ -82,13 +84,27 @@ export function InvoiceListPage() {
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tháng</label>
           <Input 
             type="month" 
-            onChange={(e) => setFilters(prev => ({ ...prev, month: e.target.value }))}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                billingMonth: e.target.value ? `${e.target.value}-01` : undefined,
+                page: 1,
+              }))
+            }
           />
         </div>
         
         <div className="flex-1 min-w-[150px] flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Trạng thái</label>
-          <Select onValueChange={(val) => setFilters(prev => ({ ...prev, status: val as InvoiceStatus }))}>
+          <Select
+            onValueChange={(val) =>
+              setFilters((prev) => ({
+                ...prev,
+                status: val === 'all' ? undefined : (val as InvoiceStatus),
+                page: 1,
+              }))
+            }
+          >
             <SelectTrigger>
               <SelectValue placeholder="Tất cả trạng thái" />
             </SelectTrigger>
@@ -141,7 +157,7 @@ export function InvoiceListPage() {
                 invoices.map((invoice) => (
                   <TableRow key={invoice.id} className="group hover:bg-slate-50 cursor-pointer">
                     <TableCell className="font-medium text-primary">
-                      <Link to={`/app/hoa-don/${invoice.id}`}>{invoice.invoiceCode}</Link>
+                      <Link to={`/hoa-don/${invoice.id}`}>{invoice.invoiceCode}</Link>
                     </TableCell>
                     <TableCell className="text-slate-500">
                       {new Date(invoice.billingMonth).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}
@@ -173,14 +189,14 @@ export function InvoiceListPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <Link to={`/app/hoa-don/${invoice.id}`}>
+                          <Link to={`/hoa-don/${invoice.id}`}>
                             <DropdownMenuItem>
                               <span className="material-symbols-outlined mr-2 text-[18px]">visibility</span>
                               Xem chi tiết
                             </DropdownMenuItem>
                           </Link>
                           {invoice.status === InvoiceStatus.DRAFT && (
-                            <Link to={`/app/hoa-don/${invoice.id}/chinh-sua`}>
+                            <Link to={`/hoa-don/${invoice.id}/chinh-sua`}>
                               <DropdownMenuItem>
                                 <span className="material-symbols-outlined mr-2 text-[18px]">edit</span>
                                 Chỉnh sửa nháp

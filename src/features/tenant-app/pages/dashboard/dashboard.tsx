@@ -35,6 +35,12 @@ export function Component() {
   const { data: revenueTrend, isLoading: loadingTrend } = useRevenueTrend()
   const { data: recentActivity, isLoading: loadingActivity } = useRecentActivity(5)
 
+  const typeMap: Record<string, string> = {
+    INVOICE: 'Hóa đơn',
+    PAYMENT: 'Thanh toán',
+    TICKET: 'Sự cố',
+  }
+
   if (loadingSummary) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -162,8 +168,8 @@ export function Component() {
                       width={60}
                     />
                     <Tooltip 
-                      formatter={(value: number) => [formatVND(value), 'Doanh thu']}
-                      labelFormatter={(label) => formatDate(label)}
+                      formatter={(value) => [formatVND(Number(value ?? 0)), 'Doanh thu']}
+                      labelFormatter={(label) => formatDate(String(label ?? ''))}
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: 'var(--color-surface-container-lowest)' }}
                     />
                     <Line 
@@ -213,7 +219,7 @@ export function Component() {
                       </p>
                       <div className="mt-1">
                         <Badge variant="outline" className="font-label-sm text-[10px] uppercase bg-surface-container text-on-surface-variant border-none">
-                          {activity.type}
+                          {typeMap[activity.type] || activity.type}
                         </Badge>
                       </div>
                     </div>

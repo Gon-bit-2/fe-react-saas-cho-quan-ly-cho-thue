@@ -1,132 +1,180 @@
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router'
+import { Outlet, Link, useNavigate, useLocation } from 'react-router'
 import { useAuth } from '@/shared/hooks/use-auth'
-import { TenantSwitcher } from '@/features/tenant-app/components/tenant-switcher'
 import {
-  LayoutDashboard,
-  Building,
-  Users,
-  FileText,
-  Receipt,
-  CreditCard,
-  Bell,
-  Package,
-  LogOut,
-  ChevronRight,
-  Inbox,
-  DoorOpen,
-  FileClock
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { TenantSwitcher } from '@/features/tenant-app/components/tenant-switcher'
+import { useNotificationsControllerCountUnread } from '@/shared/api/generated/notifications/notifications'
 
-const NAV_ITEMS = [
-  { name: 'Tổng quan', href: '/app/tong-quan', icon: LayoutDashboard },
-  { name: 'Trung tâm xử lý', href: '/app/trung-tam-xu-ly', icon: Inbox },
-  { name: 'Nhà trọ', href: '/app/khu-tro', icon: Building },
-  { name: 'Phòng', href: '/app/quan-ly-phong/danh-sach', icon: DoorOpen },
-  { name: 'Hợp đồng', href: '/app/contracts', icon: FileText },
-  { name: 'Yêu cầu kết thúc HĐ', href: '/app/yeu-cau-ket-thuc-hop-dong', icon: FileClock },
-  { name: 'Hóa đơn và công nợ', href: '/app/hoa-don', icon: Receipt },
-  { name: 'Thanh toán', href: '/app/thanh-toan', icon: CreditCard },
-  { name: 'Khách hàng / Người thuê', href: '/app/nguoi-thue', icon: Users },
-  { name: 'Thông báo', href: '/app/notifications', icon: Bell },
-  { name: 'Gói dịch vụ', href: '/app/packages', icon: Package },
+const navItems = [
+  { name: 'Tổng quan', path: '/tong-quan', icon: 'grid_view' },
+  { name: 'Khu trọ', path: '/khu-tro', icon: 'apartment' },
+  { name: 'Quản lý phòng', path: '/quan-ly-phong/danh-sach', icon: 'door_open' },
+  { name: 'Yêu cầu thuê', path: '/yeu-cau-thue', icon: 'assignment_turned_in' },
+  { name: 'Lịch xem phòng', path: '/lich-xem-phong', icon: 'calendar_month' },
+  { name: 'Người thuê', path: '/nguoi-thue', icon: 'group' },
+  { name: 'Hợp đồng', path: '/hop-dong', icon: 'description' },
+  { name: 'Yêu cầu kết thúc', path: '/yeu-cau-ket-thuc-hop-dong', icon: 'assignment_late' },
+  { name: 'Tài sản', path: '/quan-ly-tai-san', icon: 'inventory_2' },
+  { name: 'Công tơ', path: '/dien-nuoc/cong-to', icon: 'speed' },
+  { name: 'Chỉ số', path: '/dien-nuoc/chi-so', icon: 'water_ec' },
+  { name: 'Nhận diện OCR', path: '/dien-nuoc/ocr-review', icon: 'document_scanner' },
+  { name: 'Dịch vụ', path: '/dich-vu', icon: 'electric_bolt' },
+  { name: 'Hóa đơn', path: '/hoa-don', icon: 'receipt_long' },
+  { name: 'Thanh toán', path: '/thanh-toan', icon: 'payments' },
+  { name: 'Gói dịch vụ', path: '/goi-dich-vu', icon: 'workspace_premium' },
+  { name: 'Hỗ trợ', path: '/ho-tro', icon: 'confirmation_number' },
+  { name: 'Thông báo', path: '/thong-bao', icon: 'notifications' },
+  { name: 'Đăng xuất', path: '#logout', icon: 'logout' },
 ]
 
 export function Component() {
-  const { profile, logout } = useAuth()
+  const { profile, logout, selectedMembership } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  
+  const { data: unreadCount = 0 } = useNotificationsControllerCountUnread()
 
-  const handleLogout = () => {
+  const getRoleLabel = (roleId?: string | null) => {
+    switch (roleId) {
+      case 'ADMIN': return 'Quản trị viên'
+      case 'LANDLORD': return 'Chủ trọ'
+      case 'MANAGER': return 'Quản lý vận hành'
+      case 'TENANT': return 'Người thuê'
+      case 'USER': return 'Người dùng'
+      default: return 'Người dùng'
+    }
+  }
+  
+  const displayRole = getRoleLabel(selectedMembership?.roleId || profile?.systemRole)
+
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault()
     logout()
     navigate('/dang-nhap')
   }
 
-  // Redirect to dashboard if on /app
-  useEffect(() => {
-    if (location.pathname === '/app' || location.pathname === '/app/') {
-      navigate('/app/tong-quan', { replace: true })
-    }
-  }, [location.pathname, navigate])
-
   return (
-    <div className="flex min-h-screen bg-surface font-body-md text-on-surface">
+    <div className="bg-background font-body-md text-body-md text-on-surface">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-[272px] bg-surface-container-lowest z-50 flex flex-col shadow-[1px_0_8px_rgba(0,0,0,0.02)]">
-        <div className="h-[64px] px-6 flex items-center gap-3 border-b border-surface-border">
-          <div className="h-8 w-8 rounded bg-primary text-on-primary flex items-center justify-center font-bold">
-            EZ
-          </div>
-          <span className="font-headline-sm text-primary">EZ-Rental</span>
+      <aside className="w-sidebar-width bg-surface-container-lowest fixed top-0 left-0 z-50 flex h-full flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all">
+        <div className="h-topbar-height border-surface-border flex items-center gap-3 border-b px-6">
+          <Link to="/" className="flex items-center gap-3">
+            <img alt="Nhà Trọ Việt Logo" className="h-8 w-auto object-contain" src="/logo.png" />
+            <span className="font-headline-sm text-headline-sm text-primary tracking-tight">Nhà Trọ Việt</span>
+          </Link>
         </div>
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-6">
+          {navItems.map((item) => {
+            if (item.path === '#logout') {
+              return (
+                <button
+                  key={item.name}
+                  onClick={handleLogout}
+                  className="text-on-surface-variant hover:bg-error-container hover:text-on-error-container flex w-full items-center gap-3 rounded-lg px-4 py-2.5 transition-all"
+                >
+                  <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                  {item.name}
+                </button>
+              )
+            }
 
-        <nav className="flex-1 px-4 py-6 flex flex-col gap-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.href}
-              to={item.href}
-              className={({ isActive }) =>
-                `flex items-center px-4 py-3 rounded-lg transition-all ${
+            const isActive = location.pathname.startsWith(item.path)
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`flex items-center gap-3 rounded-lg px-4 py-2.5 transition-all ${
                   isActive
-                    ? 'bg-primary-container text-on-primary-container font-semibold shadow-sm'
-                    : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
-                }`
-              }
-            >
-              <item.icon className="mr-3 h-[18px] w-[18px]" />
-              <span className="font-label-md">{item.name}</span>
-            </NavLink>
-          ))}
+                    ? 'bg-primary-fixed text-on-primary-fixed-variant font-bold shadow-sm'
+                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                {item.name}
+              </Link>
+            )
+          })}
         </nav>
-
-        <div className="shrink-0 border-t border-surface-border p-4 bg-surface-container-lowest">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-on-surface-variant hover:bg-error-container hover:text-on-error-container transition-colors rounded-lg font-label-md"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-3 h-[18px] w-[18px]" />
-            Đăng xuất
-          </Button>
-        </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="pl-[272px] flex min-h-screen flex-1 flex-col w-full">
-        {/* Topbar */}
-        <header className="fixed top-0 left-[272px] right-0 h-[64px] bg-surface/80 backdrop-blur-xl z-40 border-b border-surface-border px-[32px] flex items-center justify-between shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center gap-4 text-on-surface-variant font-body-md">
-            <span className="text-on-surface">Quản lý</span>
-            <ChevronRight className="h-[18px] w-[18px]" />
-            <span className="text-primary font-semibold">Dashboard</span>
-          </div>
-          
-          <div className="flex items-center gap-6">
+      {/* Main Container */}
+      <div className="pl-sidebar-width flex min-h-screen flex-col">
+        {/* Header */}
+        <header className="left-sidebar-width h-topbar-height bg-surface/90 border-surface-border px-page-padding-desktop fixed top-0 right-0 z-40 flex items-center justify-between border-b backdrop-blur-md">
+          <div className="flex items-center gap-4">
             <TenantSwitcher />
-            
-            <div className="flex items-center gap-4">
-              <button className="p-2 hover:bg-surface-container-high rounded-full transition-colors relative">
-                <Bell className="h-5 w-5 text-on-surface-variant" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-              </button>
-              
-              <div className="flex items-center gap-3 pl-4 border-l border-surface-border">
-                <div className="text-right hidden sm:block">
-                  <div className="font-label-md text-on-surface">{profile?.email || 'User'}</div>
-                  <div className="text-[10px] uppercase text-on-surface-variant tracking-wider">
-                    {profile?.systemRole || 'Owner'}
-                  </div>
+          </div>
+          <div className="flex items-center gap-6">
+            <div
+              className="hover:bg-surface-container relative flex cursor-pointer items-center justify-center rounded-full p-2 transition-colors"
+              onClick={() => navigate('/thong-bao')}
+            >
+              <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
+              {unreadCount > 0 && (
+                <div className="bg-error text-on-error border-surface absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 text-[10px] font-bold">
+                  {unreadCount > 99 ? '99+' : unreadCount}
                 </div>
-                <div className="w-9 h-9 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center ring-2 ring-surface-container-high font-bold uppercase">
-                  {profile?.email?.charAt(0) || 'U'}
+              )}
+            </div>
+            <div className="border-surface-border flex items-center gap-3 border-l pl-2">
+              <div className="hidden text-right sm:block">
+                <div className="font-label-md text-label-md text-on-surface leading-none">
+                  {profile?.fullName || profile?.email || 'Người dùng'}
                 </div>
+                <div className="text-on-surface-variant text-[11px]">{displayRole}</div>
               </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="focus:ring-primary rounded-full outline-none focus:ring-2">
+                    <img
+                      alt="Profile"
+                      className="ring-surface-border bg-surface-container h-9 w-9 cursor-pointer rounded-full object-cover ring-2"
+                      src={
+                        profile?.avatarUrl ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.fullName || profile?.email || 'User')}&background=random`
+                      }
+                      onError={(e) => {
+                        ;(e.target as HTMLImageElement).src =
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.fullName || profile?.email || 'User')}&background=random`
+                      }}
+                    />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/tai-khoan" className="cursor-pointer">
+                      <span className="material-symbols-outlined mr-2 text-[18px]">person</span>
+                      Hồ sơ
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-error focus:text-error cursor-pointer"
+                    onClick={async () => {
+                      await logout()
+                      navigate('/dang-nhap')
+                    }}
+                  >
+                    <span className="material-symbols-outlined mr-2 text-[18px]">logout</span>
+                    Đăng xuất
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 pt-[64px] bg-surface p-[32px]">
+        {/* Main Content Area */}
+        <main className="pt-topbar-height bg-background p-page-padding-desktop flex-1">
           <Outlet />
         </main>
       </div>

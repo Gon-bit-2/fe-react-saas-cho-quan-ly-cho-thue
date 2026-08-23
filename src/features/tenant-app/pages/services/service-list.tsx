@@ -3,25 +3,26 @@ import { useServices } from '@/shared/api/services'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { SERVICE_STATUS_MAP } from '@/shared/constants/status-config'
 import { Plus } from 'lucide-react'
 
 export default function ServiceList() {
   const { data, isLoading } = useServices()
-  
+
   if (isLoading) return <div>Đang tải...</div>
-  
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Danh mục dịch vụ</h1>
         <Button asChild>
-          <Link to="/app/dich-vu/tao-moi">
+          <Link to="/dich-vu/tao-moi">
             <Plus className="mr-2 h-4 w-4" /> Thêm dịch vụ
           </Link>
         </Button>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Danh sách dịch vụ</CardTitle>
@@ -42,17 +43,23 @@ export default function ServiceList() {
               {data?.data.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>{item.type}</TableCell>
-                  <TableCell>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</TableCell>
-                  <TableCell>{item.unit}</TableCell>
+                  <TableCell>{item.itemType}</TableCell>
                   <TableCell>
-                    <Badge variant={item.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                      {item.status}
-                    </Badge>
+                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
+                      item.defaultUnitPrice,
+                    )}
+                  </TableCell>
+                  <TableCell>{item.unitLabel}</TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      status={item.isActive ? 'ACTIVE' : 'INACTIVE'}
+                      statusMap={SERVICE_STATUS_MAP}
+                      fallbackLabel={item.isActive ? 'ACTIVE' : 'INACTIVE'}
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" asChild>
-                      <Link to={`/app/dich-vu/${item.id}/chinh-sua`}>Sửa</Link>
+                      <Link to={`/dich-vu/${item.id}/chinh-sua`}>Sửa</Link>
                     </Button>
                   </TableCell>
                 </TableRow>

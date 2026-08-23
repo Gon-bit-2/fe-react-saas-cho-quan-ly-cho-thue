@@ -1,0 +1,307 @@
+import { useState } from 'react'
+import { Link } from 'react-router'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { METER_READING_STATUS_MAP } from '@/shared/constants/status-config'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useMeterReadingsControllerList, meterReadingsControllerUpdateStatus } from '../api'
+import { CreateMeterDialog } from '../components/create-meter-dialog'
+import { useRoomsControllerList } from '@/shared/api/generated/rooms/rooms'
+
+export function MeterReadingsListPage() {
+  const queryClient = useQueryClient()
+  
+  const { mutate: updateReadingStatus, isPending: isUpdatingStatus } = useMutation({
+    mutationFn: ({ id, data }: { id: number, data: { status: 'CONFIRMED' | 'ABNORMAL' | 'REJECTED' } }) => 
+      meterReadingsControllerUpdateStatus(id, data),
+    onSuccess: () => {
+      toast.success('Cập nhật trạng thái thành công')
+      queryClient.invalidateQueries({ queryKey: ['meter-readings'] })
+    },
+    onError: () => {
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái')
+    }
+  })
+
+  const { data: roomsResponse, isLoading: isLoadingRooms } = useRoomsControllerList({ limit: 100 })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rooms = (roomsResponse as unknown as { data?: Array<any> })?.data || []
+
+  const [filters, setFilters] = useState<{
+    page: number
+    limit: number
+    roomId?: number
+    billingMonth?: string
+    type?: 'ELECTRICITY' | 'WATER'
+    status?: 'DRAFT' | 'CONFIRMED' | 'ABNORMAL' | 'REJECTED'
+  }>({
+    page: 1,
+    limit: 10,
+  })
+
+  const { data: response, isLoading } = useMeterReadingsControllerList(filters)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const readings = (response as unknown as { data?: Array<any> })?.data || []
+  const total = (response as unknown as { meta?: { total?: number } })?.meta?.total || 0
+
+  const getStatusBadge = (status: string) => {
+    return <StatusBadge status={status} statusMap={METER_READING_STATUS_MAP} fallbackLabel={status} />
+  }
+
+  const getTypeBadge = (type: string) => {
+    if (type === 'ELECTRICITY') return <span className="font-medium text-amber-600">Điện</span>
+    return <span className="font-medium text-blue-600">Nước</span>
+  }
+
+  return (
+    <div className="bg-background flex h-full min-h-[calc(100vh-64px)] w-full flex-col p-8">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="mb-1 text-3xl font-bold text-slate-900">Chỉ Số Điện Nước</h1>
+          <p className="text-sm text-slate-500">Quản lý và ghi nhận chỉ số tiêu thụ tiện ích định kỳ.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <CreateMeterDialog>
+            <Button variant="outline" className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">add_circle</span>
+              Thêm Công Tơ
+            </Button>
+          </CreateMeterDialog>
+          <Link to="/dien-nuoc/cong-to/ghi-chi-so">
+            <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm px-4">
+              <span className="material-symbols-outlined text-[18px]">add_a_photo</span>
+              Ghi Chỉ Số
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
+          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Phòng</label>
+          <Select
+            onValueChange={(val) =>
+              setFilters((prev) => ({
+                ...prev,
+                roomId: val === 'all' ? undefined : Number(val),
+                page: 1,
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={isLoadingRooms ? 'Đang tải...' : 'Tất cả các phòng'} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả các phòng</SelectItem>
+              {rooms.map((room) => (
+                <SelectItem key={room.id} value={room.id.toString()}>
+                  Phòng {room.roomCode}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
+          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Tháng tính tiền</label>
+          <Input
+            type="month"
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                billingMonth: e.target.value ? `${e.target.value}-01` : undefined,
+                page: 1,
+              }))
+            }
+          />
+        </div>
+
+        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
+          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Loại Tiện Ích</label>
+          <Select
+            onValueChange={(val) =>
+              setFilters((prev) => ({
+                ...prev,
+                type: val === 'all' ? undefined : (val as 'ELECTRICITY' | 'WATER'),
+                page: 1,
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Tất cả" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              <SelectItem value="ELECTRICITY">Điện</SelectItem>
+              <SelectItem value="WATER">Nước</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
+          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Trạng thái</label>
+          <Select
+            onValueChange={(val) =>
+              setFilters((prev) => ({
+                ...prev,
+                status: val === 'all' ? undefined : (val as 'DRAFT' | 'CONFIRMED' | 'ABNORMAL'),
+                page: 1,
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Tất cả trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="DRAFT">Chờ duyệt</SelectItem>
+              <SelectItem value="CONFIRMED">Đã duyệt</SelectItem>
+              <SelectItem value="ABNORMAL">Bất thường</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-slate-50">
+              <TableRow>
+                <TableHead className="font-semibold text-slate-500 uppercase">Tháng</TableHead>
+                <TableHead className="font-semibold text-slate-500 uppercase">Phòng / Công Tơ</TableHead>
+                <TableHead className="text-right font-semibold text-slate-500 uppercase">Chỉ Số Cũ</TableHead>
+                <TableHead className="text-right font-semibold text-slate-500 uppercase">Chỉ Số Mới</TableHead>
+                <TableHead className="text-right font-semibold text-slate-500 uppercase">Tiêu Thụ</TableHead>
+                <TableHead className="text-right font-semibold text-slate-500 uppercase">Thành Tiền</TableHead>
+                <TableHead className="text-center font-semibold text-slate-500 uppercase">Trạng Thái</TableHead>
+                <TableHead className="text-right font-semibold text-slate-500 uppercase">Thao Tác</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-8 text-center text-slate-500">
+                    Đang tải dữ liệu...
+                  </TableCell>
+                </TableRow>
+              ) : readings.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-8 text-center text-slate-500">
+                    Không có bản ghi nào
+                  </TableCell>
+                </TableRow>
+              ) : (
+                readings.map((reading) => (
+                  <TableRow key={reading.id} className="group hover:bg-slate-50">
+                    <TableCell className="text-slate-500">
+                      {new Date(reading.billingMonth).toLocaleDateString('vi-VN', {
+                        month: '2-digit',
+                        year: 'numeric',
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5 font-medium text-slate-900">
+                        {getTypeBadge(reading.meter?.type)}
+                        <span className="text-slate-400">|</span>
+                        Phòng {reading.room?.roomCode}
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-500">
+                        Mã CT:{' '}
+                        <Link to={`/dien-nuoc/cong-to/${reading.meterId}`} className="text-primary hover:underline">
+                          {reading.meter?.meterCode}
+                        </Link>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right text-slate-500">
+                      {reading.previousValue?.toLocaleString() || '-'}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-slate-900">
+                      {reading.currentValue?.toLocaleString() || '-'}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-blue-600">
+                      {reading.consumption?.toLocaleString()} {reading.meter?.unit}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">{reading.amount?.toLocaleString()} ₫</TableCell>
+                    <TableCell className="text-center">{getStatusBadge(reading.status)}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                          >
+                            <span className="material-symbols-outlined">more_vert</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <Link to={`/dien-nuoc/cong-to/${reading.meterId}`}>
+                            <DropdownMenuItem>
+                              <span className="material-symbols-outlined mr-2 text-[18px]">visibility</span>
+                              Xem chi tiết công tơ
+                            </DropdownMenuItem>
+                          </Link>
+                          {reading.status === 'DRAFT' && (
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                updateReadingStatus({
+                                  id: reading.id,
+                                  data: { status: 'CONFIRMED' }
+                                })
+                              }}
+                              disabled={isUpdatingStatus}
+                            >
+                              <span className="material-symbols-outlined mr-2 text-[18px]">check_circle</span>
+                              Duyệt chỉ số
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Pagination */}
+        <div className="mt-auto flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
+          <div className="text-sm text-slate-500">
+            Hiển thị {readings.length > 0 ? (filters.page - 1) * filters.limit + 1 : 0} đến{' '}
+            {Math.min(filters.page * filters.limit, total)} trong số {total} mục
+          </div>
+          <div className="flex gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              disabled={filters.page === 1}
+              onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))}
+            >
+              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+            </Button>
+            <Button variant="default" size="sm" className="h-8 w-8 p-0">
+              {filters.page}
+            </Button>
+            {total > filters.page * filters.limit && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 }))}
+              >
+                <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

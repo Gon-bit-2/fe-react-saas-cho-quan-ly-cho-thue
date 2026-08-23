@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { apiClient } from '@/shared/api/axios-client'
 import { useAuth } from '@/shared/hooks/use-auth'
 import type { TokenPair, UserProfile } from '@/shared/types/auth'
+import { getPostLoginPath } from '@/shared/lib/auth-navigation'
 
 /**
  * Google OAuth callback handler.
@@ -20,9 +21,7 @@ export function GoogleCallbackPage() {
   const navigate = useNavigate()
   const { establishSession } = useAuth()
   const sessionToken = searchParams.get('sessionToken')
-  const [error, setError] = useState<string | null>(
-    sessionToken ? null : 'Không tìm thấy session token từ Google.',
-  )
+  const [error, setError] = useState<string | null>(sessionToken ? null : 'Không tìm thấy session token từ Google.')
   const processedRef = useRef(false)
 
   useEffect(() => {
@@ -37,26 +36,21 @@ export function GoogleCallbackPage() {
     async function handleGoogleSession(token: string) {
       try {
         // Đổi sessionToken lấy token pair
-        const tokenResponse = await apiClient.post<TokenPair>(
-          '/auth/google/session',
-          { sessionToken: token },
-        )
+        const tokenResponse = await apiClient.post<TokenPair>('/auth/google/session', { sessionToken: token })
 
         // Fetch profile
-        const profileResponse = await apiClient.get<UserProfile>(
-          '/auth/profile',
-          {
-            headers: {
-              Authorization: `Bearer ${tokenResponse.data.accessToken}`,
-            },
+        const profileResponse = await apiClient.get<UserProfile>('/auth/profile', {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.data.accessToken}`,
           },
-        )
+        })
 
         // Establish session
-        establishSession(tokenResponse.data, profileResponse.data)
+        const profile = profileResponse.data
+        establishSession(tokenResponse.data, profile)
 
         // Xóa sessionToken khỏi URL và redirect
-        navigate('/tai-khoan', { replace: true })
+        navigate(getPostLoginPath(profile), { replace: true })
       } catch {
         setError('Xác thực Google thất bại. Vui lòng thử lại.')
       }
@@ -69,7 +63,7 @@ export function GoogleCallbackPage() {
         <p className="text-destructive">{error}</p>
         <button
           onClick={() => navigate('/dang-nhap', { replace: true })}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium"
         >
           Quay lại đăng nhập
         </button>
@@ -79,9 +73,7 @@ export function GoogleCallbackPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="text-muted-foreground animate-pulse">
-        Đang xác thực với Google...
-      </div>
+      <div className="text-muted-foreground animate-pulse">Đang xác thực với Google...</div>
     </div>
   )
 }

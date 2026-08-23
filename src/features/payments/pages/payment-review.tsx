@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { getPaymentDetail, approvePayment } from '../api';
-import { PaymentMethod, PaymentDto } from '../types';
+import { PaymentMethod, type Payment } from '../types';
 
 export function PaymentReviewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [payment, setPayment] = useState<PaymentDto | null>(null);
+  const [payment, setPayment] = useState<Payment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   const [isApproveOpen, setIsApproveOpen] = useState(false);
@@ -34,7 +34,7 @@ export function PaymentReviewPage() {
     try {
       await approvePayment(id);
       setIsApproveOpen(false);
-      navigate(`/app/thanh-toan/${id}`);
+      navigate(`/thanh-toan/${id}`);
     } catch (error) {
       console.error(error);
     } finally {
@@ -46,7 +46,7 @@ export function PaymentReviewPage() {
     // Implement reject payment if API supports it
     console.log("Reject payment", id);
     setIsRejectOpen(false);
-    navigate(`/app/thanh-toan/${id}`);
+    navigate(`/thanh-toan/${id}`);
   };
 
   if (isLoading) {
@@ -64,7 +64,7 @@ export function PaymentReviewPage() {
         <div className="flex-1 flex flex-col gap-6">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <Link to={`/app/thanh-toan/${id}`}>
+              <Link to={`/thanh-toan/${id}`}>
                 <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-white">
                   <span className="material-symbols-outlined text-xl">arrow_back</span>
                 </Button>
@@ -185,7 +185,7 @@ export function PaymentReviewPage() {
               <div className="flex flex-col gap-2 mb-4">
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
                   <span className="text-sm text-slate-500">Người Nộp</span>
-                  <span className="text-sm font-medium text-slate-900">{payment.renter?.fullName || 'N/A'}</span>
+                  <span className="text-sm font-medium text-slate-900">{payment.payer?.fullName || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
                   <span className="text-sm text-slate-500">Phòng</span>

@@ -3,53 +3,15 @@ import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
 import type { Service, ServiceAssignment } from '@/types/service'
 
-export const MOCK_SERVICES: Service[] = [
-  {
-    id: 1,
-    tenantId: 10,
-    name: 'Phí gửi xe máy',
-    description: 'Phí gửi xe hàng tháng',
-    price: 150000,
-    unit: 'xe',
-    type: 'PARKING',
-    status: 'ACTIVE',
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 2,
-    tenantId: 10,
-    name: 'Phí vệ sinh',
-    description: 'Vệ sinh hành lang chung',
-    price: 50000,
-    unit: 'phòng',
-    type: 'SERVICE',
-    status: 'ACTIVE',
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-01-01T00:00:00Z',
-  }
-]
-
-export const MOCK_SERVICE_ASSIGNMENTS: ServiceAssignment[] = [
-  {
-    id: 1,
-    serviceId: 1,
-    service: MOCK_SERVICES[0],
-    roomId: 201,
-    quantity: 2,
-    assignedDate: '2026-01-01T00:00:00Z',
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-01-01T00:00:00Z',
-  }
-]
-
 const SERVICE_KEYS = {
   allServices: ['services'] as const,
-  services: (tenantId: string, params: Record<string, unknown>) => [...SERVICE_KEYS.allServices, tenantId, params] as const,
+  services: (tenantId: string, params: Record<string, unknown>) =>
+    [...SERVICE_KEYS.allServices, tenantId, params] as const,
   serviceDetail: (tenantId: string, id: number) => [...SERVICE_KEYS.allServices, 'detail', tenantId, id] as const,
-  
+
   allAssignments: ['service-assignments'] as const,
-  assignments: (tenantId: string, params: Record<string, unknown>) => [...SERVICE_KEYS.allAssignments, tenantId, params] as const,
+  assignments: (tenantId: string, params: Record<string, unknown>) =>
+    [...SERVICE_KEYS.allAssignments, tenantId, params] as const,
 }
 
 interface PaginatedResponse<T> {
@@ -62,22 +24,75 @@ interface PaginatedResponse<T> {
   }
 }
 
+interface ServiceCatalogItemDto {
+  id: number
+  tenantId: number
+  code: string
+  name: string
+  description?: string | null
+  itemType: Service['itemType']
+  defaultUnitPrice: number | string
+  unitLabel: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+interface ServiceAssignmentDto {
+  id: number
+  serviceItemId: number
+  serviceItem?: ServiceCatalogItemDto
+  roomId?: number | null
+  contractId?: number | null
+  quantity: number | string
+  startsAt?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+type ServiceInput = Pick<Service, 'code' | 'name' | 'defaultUnitPrice' | 'unitLabel' | 'itemType'> &
+  Partial<Pick<Service, 'description' | 'isActive'>>
+
+type ServiceAssignmentInput = Pick<ServiceAssignment, 'serviceId' | 'quantity'> &
+  Partial<Pick<ServiceAssignment, 'roomId' | 'contractId'>>
+
+const mapService = (item: ServiceCatalogItemDto): Service => ({
+  id: item.id,
+  tenantId: item.tenantId,
+  code: item.code,
+  name: item.name,
+  description: item.description ?? undefined,
+  defaultUnitPrice: Number(item.defaultUnitPrice),
+  unitLabel: item.unitLabel,
+  itemType: item.itemType,
+  isActive: item.isActive,
+  createdAt: item.createdAt,
+  updatedAt: item.updatedAt,
+})
+
+const toServicePayload = (payload: Partial<ServiceInput>) => ({
+  ...(payload.code === undefined ? {} : { code: payload.code }),
+  ...(payload.name === undefined ? {} : { name: payload.name }),
+  ...(payload.description === undefined ? {} : { description: payload.description }),
+  ...(payload.itemType === undefined ? {} : { itemType: payload.itemType }),
+  ...(payload.defaultUnitPrice === undefined ? {} : { defaultUnitPrice: payload.defaultUnitPrice }),
+  ...(payload.unitLabel === undefined ? {} : { unitLabel: payload.unitLabel }),
+  ...(payload.isActive === undefined ? {} : { isActive: payload.isActive }),
+})
+
 export const useServices = (params: Record<string, unknown> = {}) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const cleanParams = params.search ? params : { ...params, search: undefined }
 
   return useQuery({
-    queryKey: SERVICE_KEYS.services(tenantId, params),
+    queryKey: SERVICE_KEYS.services(tenantId, cleanParams),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<PaginatedResponse<Service>>('/services', { params, tenantId })
-        if (!data.data || data.data.length === 0) {
-          return { data: MOCK_SERVICES, meta: { page: 1, limit: 10, total: MOCK_SERVICES.length, totalPages: 1 } }
-        }
-        return data
-      } catch {
-        return { data: MOCK_SERVICES, meta: { page: 1, limit: 10, total: MOCK_SERVICES.length, totalPages: 1 } }
-      }
+      const { data } = await apiClient.get<PaginatedResponse<ServiceCatalogItemDto>>('/service-catalog', {
+        params: cleanParams,
+        tenantId,
+      })
+      return { ...data, data: data.data.map(mapService) }
     },
     enabled: !!tenantId,
   })
@@ -90,17 +105,13 @@ export const useService = (id: number) => {
   return useQuery({
     queryKey: SERVICE_KEYS.serviceDetail(tenantId, id),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<Service>(`/services/${id}`, { tenantId })
-        return data
-      } catch (error: unknown) {
-        const err = error as { response?: { status?: number } }
-        if (err.response?.status === 404) {
-          const mock = MOCK_SERVICES.find(s => s.id === id)
-          if (mock) return mock
-        }
-        throw error
-      }
+      const { data } = await apiClient.get<PaginatedResponse<ServiceCatalogItemDto>>('/service-catalog', {
+        params: { page: 1, limit: 100 },
+        tenantId,
+      })
+      const item = data.data.find((service) => service.id === id)
+      if (!item) throw new Error('Không tìm thấy dịch vụ')
+      return mapService(item)
     },
     enabled: !!tenantId && !!id,
   })
@@ -110,10 +121,12 @@ export const useCreateService = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
   return useMutation({
-    mutationFn: async (payload: Partial<Service>) => {
-      const { data } = await apiClient.post('/services', payload, { tenantId })
-      return data
-    }
+    mutationFn: async (payload: ServiceInput) => {
+      const { data } = await apiClient.post<ServiceCatalogItemDto>('/service-catalog', toServicePayload(payload), {
+        tenantId,
+      })
+      return mapService(data)
+    },
   })
 }
 
@@ -121,10 +134,14 @@ export const useUpdateService = (id: number) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
   return useMutation({
-    mutationFn: async (payload: Partial<Service>) => {
-      const { data } = await apiClient.patch(`/services/${id}`, payload, { tenantId })
-      return data
-    }
+    mutationFn: async (payload: Partial<ServiceInput>) => {
+      const { data } = await apiClient.patch<ServiceCatalogItemDto>(
+        `/service-catalog/${id}`,
+        toServicePayload(payload),
+        { tenantId },
+      )
+      return mapService(data)
+    },
   })
 }
 
@@ -135,14 +152,23 @@ export const useServiceAssignments = (params: Record<string, unknown> = {}) => {
   return useQuery({
     queryKey: SERVICE_KEYS.assignments(tenantId, params),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<PaginatedResponse<ServiceAssignment>>('/service-assignments', { params, tenantId })
-        if (!data.data || data.data.length === 0) {
-          return { data: MOCK_SERVICE_ASSIGNMENTS, meta: { page: 1, limit: 10, total: MOCK_SERVICE_ASSIGNMENTS.length, totalPages: 1 } }
-        }
-        return data
-      } catch {
-        return { data: MOCK_SERVICE_ASSIGNMENTS, meta: { page: 1, limit: 10, total: MOCK_SERVICE_ASSIGNMENTS.length, totalPages: 1 } }
+      const { data } = await apiClient.get<PaginatedResponse<ServiceAssignmentDto>>('/service-assignments', {
+        params,
+        tenantId,
+      })
+      return {
+        ...data,
+        data: data.data.map((item) => ({
+          id: item.id,
+          serviceId: item.serviceItemId,
+          service: item.serviceItem ? mapService(item.serviceItem) : undefined,
+          roomId: item.roomId ?? undefined,
+          contractId: item.contractId ?? undefined,
+          quantity: Number(item.quantity),
+          assignedDate: item.startsAt ?? item.createdAt,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        })),
       }
     },
     enabled: !!tenantId,
@@ -153,9 +179,40 @@ export const useAssignService = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
   return useMutation({
-    mutationFn: async (payload: Partial<ServiceAssignment>) => {
-      const { data } = await apiClient.post('/service-assignments', payload, { tenantId })
+    mutationFn: async (payload: ServiceAssignmentInput) => {
+      const { data } = await apiClient.post(
+        '/service-assignments',
+        {
+          serviceItemId: payload.serviceId,
+          roomId: payload.roomId || null,
+          contractId: payload.contractId || null,
+          quantity: payload.quantity,
+          isActive: true,
+        },
+        { tenantId },
+      )
       return data
-    }
+    },
+  })
+}
+
+export const useUpdateServiceAssignment = () => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: number; payload: Partial<ServiceAssignmentInput & { isActive: boolean }> }) => {
+      const { data } = await apiClient.patch(
+        `/service-assignments/${id}`,
+        {
+          ...(payload.serviceId ? { serviceItemId: payload.serviceId } : {}),
+          roomId: payload.roomId,
+          contractId: payload.contractId,
+          quantity: payload.quantity,
+          isActive: payload.isActive,
+        },
+        { tenantId },
+      )
+      return data
+    },
   })
 }

@@ -7,6 +7,7 @@ import { GoogleCallbackPage } from '@/app/router/google-callback'
 import { NotFoundPage } from '@/app/pages/not-found'
 import { ForbiddenPage } from '@/app/pages/forbidden'
 import { SessionExpiredPage } from '@/app/pages/session-expired'
+import { RouteErrorPage } from '@/app/providers/error-boundary'
 
 /**
  * Router chính — tạo MỘT lần ngoài React tree.
@@ -15,10 +16,10 @@ import { SessionExpiredPage } from '@/app/pages/session-expired'
  * - Public: `/`, marketplace
  * - Guest auth: `/login`, `/login/otp`, `/register`, `/forgot-password`
  * - Google callback: `/auth/google/callback`
- * - Authenticated: `/account/*`
- * - Tenant operations: `/app/*` (RequireAuth + RequireTenantContext)
+ * - Authenticated: `/tai-khoan/*`
+ * - Tenant operations: các route nghiệp vụ tại domain gốc (RequireAuth + RequireTenantContext)
  * - Platform admin: `/admin/*` (RequireAuth + RequireSystemRole ADMIN)
- * - Error pages: `/403`, `/session-expired`
+ * - Error pages: `/loi-truy-cap`, `/phien-het-han`
  * - Wildcard: `*` → 404
  *
  * @see https://api.reactrouter.com/v8/functions/react-router.createBrowserRouter.html
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
   // ─── Public Routes ──────────────────────────────────────
   {
     path: '/',
+    errorElement: <RouteErrorPage />,
     lazy: () => import('@/app/layouts/public-layout'),
     children: [
       {
@@ -40,6 +42,22 @@ export const router = createBrowserRouter([
       {
         path: 'phong/:roomId',
         lazy: () => import('@/features/marketplace/pages/room-detail'),
+      },
+      {
+        path: 'gioi-thieu',
+        lazy: () => import('@/features/marketplace/pages/about'),
+      },
+      {
+        path: 'help',
+        lazy: () => import('@/features/marketplace/pages/help-center'),
+      },
+      {
+        path: 'terms',
+        lazy: () => import('@/features/marketplace/pages/terms'),
+      },
+      {
+        path: 'privacy',
+        lazy: () => import('@/features/marketplace/pages/privacy'),
       },
     ],
   },
@@ -98,6 +116,50 @@ export const router = createBrowserRouter([
             path: 'chon-nha-tro',
             lazy: () => import('@/features/auth/pages/select-tenant'),
           },
+          {
+            path: 'lich-xem-phong',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'phong-yeu-thich',
+            lazy: () => import('@/features/account/pages/favorites'),
+          },
+          {
+            path: 'lich-su-xem',
+            lazy: () => import('@/features/account/pages/view-history'),
+          },
+          {
+            path: 'yeu-cau-thue',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'hop-dong',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'hop-dong/:id',
+            lazy: () => import('@/features/account/pages/contract-detail').then((m) => ({ Component: m.default })),
+          },
+          {
+            path: 'ban-giao',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'hoa-don',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'hoa-don/:id',
+            lazy: () => import('@/features/account/pages/invoice-detail').then((m) => ({ Component: m.default })),
+          },
+          {
+            path: 'thanh-toan',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'ho-tro',
+            lazy: () => import('@/features/account/pages/self-service'),
+          },
         ],
       },
     ],
@@ -111,7 +173,7 @@ export const router = createBrowserRouter([
         element: <RequireTenantContext />,
         children: [
           {
-            path: '/app',
+            path: '/',
             lazy: () => import('@/app/layouts/tenant-layout'),
             children: [
               {
@@ -151,98 +213,174 @@ export const router = createBrowserRouter([
                 lazy: () => import('@/features/tenant-app/pages/rooms/room-detail'),
               },
               {
-                path: 'quan-ly-nha-tro/yeu-cau-thue',
+                path: 'quan-ly-phong/:id/chinh-sua',
+                lazy: () => import('@/features/tenant-app/pages/rooms/room-form'),
+              },
+              {
+                path: 'yeu-cau-thue',
                 lazy: () => import('@/features/tenant-app/pages/rental-requests/request-list'),
               },
               {
-                path: 'quan-ly-nha-tro/yeu-cau-thue/:id',
+                path: 'yeu-cau-thue/:id',
                 lazy: () => import('@/features/tenant-app/pages/rental-requests/request-detail'),
               },
               {
-                path: 'quan-ly-nha-tro/lich-xem-phong',
+                path: 'lich-xem-phong',
                 lazy: () => import('@/features/tenant-app/pages/viewing-schedules/schedule-list'),
               },
               {
-                path: 'quan-ly-nha-tro/lich-xem-phong/:id',
+                path: 'lich-xem-phong/:id',
                 lazy: () => import('@/features/tenant-app/pages/viewing-schedules/schedule-detail'),
               },
               {
                 path: 'nguoi-thue',
-                lazy: () => import('@/features/tenant-app/pages/renters/renter-list'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/renters/renter-list').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'nguoi-thue/:id',
-                lazy: () => import('@/features/tenant-app/pages/renters/renter-detail'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/renters/renter-detail').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'nguoi-thue/loi-moi/tao',
-                lazy: () => import('@/features/tenant-app/pages/renters/invite-form'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/renters/invite-form').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'nguoi-thue/loi-moi/:id',
-                lazy: () => import('@/features/tenant-app/pages/renters/invite-detail'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/renters/invite-detail').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'hop-dong',
-                lazy: () => import('@/features/tenant-app/pages/contracts/contract-list'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/contracts/contract-list').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'hop-dong/tao',
-                lazy: () => import('@/features/tenant-app/pages/contracts/contract-form'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/contracts/contract-form').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'hop-dong/:id/sua',
-                lazy: () => import('@/features/tenant-app/pages/contracts/contract-form'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/contracts/contract-form').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'hop-dong/:id',
-                lazy: () => import('@/features/tenant-app/pages/contracts/contract-detail'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/contracts/contract-detail').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               {
                 path: 'hop-dong/:id/thanh-vien',
-                lazy: () => import('@/features/tenant-app/pages/contracts/contract-members'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/contracts/contract-members').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               // Quản lý tài sản (W09)
               {
                 path: 'quan-ly-tai-san',
-                lazy: () => import('@/features/tenant-app/pages/assets/asset-list'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/assets/asset-list').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'quan-ly-tai-san/phong/:roomId',
-                lazy: () => import('@/features/tenant-app/pages/assets/room-assets'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/assets/room-assets').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'ban-giao/:id',
-                lazy: () => import('@/features/tenant-app/pages/handovers/handover-detail'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/handovers/handover-detail').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               {
                 path: 'ban-giao/:id/tranh-chap',
-                lazy: () => import('@/features/tenant-app/pages/handovers/handover-dispute'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/handovers/handover-dispute').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               {
                 path: 'yeu-cau-ket-thuc-hop-dong',
-                lazy: () => import('@/features/tenant-app/pages/terminations/termination-list'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/terminations/termination-list').then((m) => ({
+                    Component: m.default,
+                  })),
+              },
+              {
+                path: 'yeu-cau-ket-thuc-hop-dong/:id',
+                lazy: () =>
+                  import('@/features/tenant-app/pages/terminations/termination-detail').then((m) => ({
+                    Component: m.default,
+                  })),
+              },
+              // Quản lý điện nước
+              {
+                path: 'dien-nuoc/cong-to',
+                lazy: () =>
+                  import('@/features/utilities/pages/meter-list').then((m) => ({
+                    Component: m.MeterListPage,
+                  })),
+              },
+              {
+                path: 'dien-nuoc/cong-to/:id',
+                lazy: () =>
+                  import('@/features/utilities/pages/meter-detail').then((m) => ({ Component: m.MeterDetailPage })),
+              },
+              {
+                path: 'dien-nuoc/cong-to/ghi-chi-so',
+                lazy: () =>
+                  import('@/features/utilities/pages/meter-reading-upload').then((m) => ({
+                    Component: m.MeterReadingUploadPage,
+                  })),
+              },
+              {
+                path: 'dien-nuoc/chi-so',
+                lazy: () =>
+                  import('@/features/utilities/pages/meter-readings-list').then((m) => ({
+                    Component: m.MeterReadingsListPage,
+                  })),
+              },
+              {
+                path: 'dien-nuoc/ocr-review',
+                lazy: () =>
+                  import('@/features/utilities/pages/ocr-review').then((m) => ({ Component: m.OcrReviewPage })),
               },
               // Quản lý dịch vụ (W11)
               {
                 path: 'dich-vu',
-                lazy: () => import('@/features/tenant-app/pages/services/service-list'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/services/service-list').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'dich-vu/tao-moi',
-                lazy: () => import('@/features/tenant-app/pages/services/service-create'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/services/service-create').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'dich-vu/:id/chinh-sua',
-                lazy: () => import('@/features/tenant-app/pages/services/service-edit'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/services/service-edit').then((m) => ({ Component: m.default })),
               },
               {
                 path: 'dich-vu-da-gan',
-                lazy: () => import('@/features/tenant-app/pages/service-assignments/assignment-list'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/service-assignments/assignment-list').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               {
                 path: 'dich-vu-da-gan/tao-moi',
-                lazy: () => import('@/features/tenant-app/pages/service-assignments/assignment-form'),
+                lazy: () =>
+                  import('@/features/tenant-app/pages/service-assignments/assignment-form').then((m) => ({
+                    Component: m.default,
+                  })),
               },
               // Quản lý hóa đơn & thanh toán (W12, W13)
               {
@@ -299,7 +437,9 @@ export const router = createBrowserRouter([
               {
                 path: 'thong-bao',
                 lazy: () =>
-                  import('@/features/notifications/pages/notification-center').then((m) => ({ Component: m.NotificationCenterPage })),
+                  import('@/features/notifications/pages/notification-center').then((m) => ({
+                    Component: m.NotificationCenterPage,
+                  })),
               },
               // Gói dịch vụ (W16)
               {
@@ -310,7 +450,9 @@ export const router = createBrowserRouter([
               {
                 path: 'goi-dich-vu/so-sanh',
                 lazy: () =>
-                  import('@/features/subscriptions/pages/compare-plans').then((m) => ({ Component: m.ComparePlansPage })),
+                  import('@/features/subscriptions/pages/compare-plans').then((m) => ({
+                    Component: m.ComparePlansPage,
+                  })),
               },
               {
                 path: 'goi-dich-vu/thanh-toan',
@@ -320,7 +462,9 @@ export const router = createBrowserRouter([
               {
                 path: 'goi-dich-vu/lich-su-thanh-toan',
                 lazy: () =>
-                  import('@/features/subscriptions/pages/billing-history').then((m) => ({ Component: m.BillingHistoryPage })),
+                  import('@/features/subscriptions/pages/billing-history').then((m) => ({
+                    Component: m.BillingHistoryPage,
+                  })),
               },
             ],
           },
@@ -342,7 +486,10 @@ export const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                lazy: () => import('@/features/dashboard/pages/admin-dashboard').then((m) => ({ Component: m.AdminDashboardPage })),
+                lazy: () =>
+                  import('@/features/dashboard/pages/admin-dashboard').then((m) => ({
+                    Component: m.AdminDashboardPage,
+                  })),
               },
               {
                 path: 'chu-tro',
@@ -350,7 +497,8 @@ export const router = createBrowserRouter([
               },
               {
                 path: 'chu-tro/:id',
-                lazy: () => import('@/features/admin/pages/landlord-detail').then((m) => ({ Component: m.LandlordDetailPage })),
+                lazy: () =>
+                  import('@/features/admin/pages/landlord-detail').then((m) => ({ Component: m.LandlordDetailPage })),
               },
               {
                 path: 'nguoi-thue',
@@ -358,50 +506,105 @@ export const router = createBrowserRouter([
               },
               {
                 path: 'nguoi-thue/:id',
-                lazy: () => import('@/features/admin/pages/renter-detail').then((m) => ({ Component: m.RenterDetailPage })),
+                lazy: () =>
+                  import('@/features/admin/pages/renter-detail').then((m) => ({ Component: m.RenterDetailPage })),
               },
               // Quản trị Gói dịch vụ (W18)
               {
                 path: 'goi-dich-vu',
-                lazy: () => import('@/features/saas/pages/plans/plan-list').then((m) => ({ Component: m.PlanListPage })),
+                lazy: () =>
+                  import('@/features/saas/pages/plans/plan-list').then((m) => ({ Component: m.PlanListPage })),
               },
               {
                 path: 'goi-dich-vu/tao-moi',
-                lazy: () => import('@/features/saas/pages/plans/plan-form').then((m) => ({ Component: m.PlanFormPage })),
+                lazy: () =>
+                  import('@/features/saas/pages/plans/plan-form').then((m) => ({ Component: m.PlanFormPage })),
               },
               {
                 path: 'goi-dich-vu/:id/chinh-sua',
-                lazy: () => import('@/features/saas/pages/plans/plan-form').then((m) => ({ Component: m.PlanFormPage })),
+                lazy: () =>
+                  import('@/features/saas/pages/plans/plan-form').then((m) => ({ Component: m.PlanFormPage })),
               },
               {
                 path: 'thanh-toan-goi',
-                lazy: () => import('@/features/saas/pages/subscription-payments/payment-list').then((m) => ({ Component: m.PaymentListPage })),
+                lazy: () =>
+                  import('@/features/saas/pages/subscription-payments/payment-list').then((m) => ({
+                    Component: m.PaymentListPage,
+                  })),
               },
               // Quản trị Tiện ích (W18)
               {
                 path: 'tien-ich',
-                lazy: () => import('@/features/saas/pages/amenities/amenity-list').then((m) => ({ Component: m.AmenityListPage })),
+                lazy: () =>
+                  import('@/features/saas/pages/amenities/amenity-list').then((m) => ({
+                    Component: m.AmenityListPage,
+                  })),
               },
               {
                 path: 'tien-ich/tao-moi',
-                lazy: () => import('@/features/saas/pages/amenities/amenity-form').then((m) => ({ Component: m.AmenityFormPage })),
+                lazy: () =>
+                  import('@/features/saas/pages/amenities/amenity-form').then((m) => ({
+                    Component: m.AmenityFormPage,
+                  })),
               },
               {
                 path: 'tien-ich/:id/chinh-sua',
-                lazy: () => import('@/features/saas/pages/amenities/amenity-form').then((m) => ({ Component: m.AmenityFormPage })),
+                lazy: () =>
+                  import('@/features/saas/pages/amenities/amenity-form').then((m) => ({
+                    Component: m.AmenityFormPage,
+                  })),
               },
               // Quản trị Kiểm duyệt (W19)
               {
                 path: 'kiem-duyet/hang-cho',
-                lazy: () => import('@/features/moderation/pages/moderation-queue').then((m) => ({ Component: m.ModerationQueuePage })),
+                lazy: () =>
+                  import('@/features/saas/pages/listings-moderation/moderation-queue').then((m) => ({
+                    Component: m.ModerationQueuePage,
+                  })),
               },
               {
                 path: 'kiem-duyet/chi-tiet/:id',
-                lazy: () => import('@/features/moderation/pages/moderation-detail').then((m) => ({ Component: m.ModerationDetailPage })),
+                lazy: () =>
+                  import('@/features/saas/pages/listings-moderation/moderation-detail').then((m) => ({
+                    Component: m.ModerationDetailPage,
+                  })),
               },
               {
                 path: 'kiem-duyet/lich-su',
-                lazy: () => import('@/features/moderation/pages/moderation-history').then((m) => ({ Component: m.ModerationHistoryPage })),
+                lazy: () =>
+                  import('@/features/saas/pages/listings-moderation/moderation-history').then((m) => ({
+                    Component: m.ModerationHistoryPage,
+                  })),
+              },
+              // Quản trị Kiểm duyệt đánh giá (W20)
+              {
+                path: 'kiem-duyet-danh-gia',
+                lazy: () =>
+                  import('@/features/saas/pages/review-moderation/review-queue').then((m) => ({
+                    Component: m.ReviewQueuePage,
+                  })),
+              },
+              {
+                path: 'kiem-duyet-danh-gia/:id',
+                lazy: () =>
+                  import('@/features/saas/pages/review-moderation/review-detail').then((m) => ({
+                    Component: m.ReviewModerationDetailPage,
+                  })),
+              },
+              // Quản trị Báo cáo vi phạm (W20)
+              {
+                path: 'bao-cao-vi-pham',
+                lazy: () =>
+                  import('@/features/saas/pages/report-moderation/report-queue').then((m) => ({
+                    Component: m.ReportQueuePage,
+                  })),
+              },
+              {
+                path: 'bao-cao-vi-pham/:id',
+                lazy: () =>
+                  import('@/features/saas/pages/report-moderation/report-detail').then((m) => ({
+                    Component: m.ReportModerationDetailPage,
+                  })),
               },
               // Admin feature routes sẽ được thêm khi xây page
             ],

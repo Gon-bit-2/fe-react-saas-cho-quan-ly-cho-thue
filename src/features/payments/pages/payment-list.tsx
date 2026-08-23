@@ -1,26 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getPayments } from '../api';
-import { PaymentStatus, PaymentMethod, PaymentDto, PaymentListDto } from '../types';
+import { PaymentStatus, PaymentMethod, type Payment, type PaymentListParams } from '../types';
 
 export function PaymentListPage() {
   const navigate = useNavigate();
-  const [payments, setPayments] = useState<PaymentDto[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState<PaymentListDto>({
+  const [filters, setFilters] = useState<PaymentListParams>({
     page: 1,
     limit: 10,
   });
   const [total, setTotal] = useState(0);
 
-  // Mock stats
+  // Calculate stats from current page (approximate for demo since real backend lacks stats API yet)
   const stats = {
-    pendingReview: 42,
-    processedToday: 128,
-    totalReconciled: 485250000
+    pendingReview: payments.filter(p => p.status === PaymentStatus.PENDING).length,
+    processedToday: payments.filter(p => p.status === PaymentStatus.SUCCESS && new Date(p.updatedAt).toDateString() === new Date().toDateString()).length,
+    totalReconciled: payments.filter(p => p.status === PaymentStatus.SUCCESS).reduce((sum, p) => sum + p.amount, 0)
   };
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function PaymentListPage() {
       try {
         const response = await getPayments(filters);
         setPayments(response.data);
-        setTotal(response.total);
+        setTotal(response.meta.total);
       } catch (error) {
         console.error('Failed to load payments', error);
       } finally {
@@ -74,14 +74,14 @@ export function PaymentListPage() {
             Chờ duyệt
           </span>
         );
-      case PaymentStatus.APPROVED:
+      case PaymentStatus.SUCCESS:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-medium border border-emerald-100">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             Đã duyệt
           </span>
         );
-      case PaymentStatus.REJECTED:
+      case PaymentStatus.FAILED:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-red-600 text-xs font-medium border border-red-100">
             <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
@@ -167,25 +167,41 @@ export function PaymentListPage() {
             className="bg-transparent border-none outline-none w-full text-sm text-slate-900 placeholder:text-slate-400" 
             placeholder="Tìm theo mã GD, tên người thuê, mã hóa đơn..." 
             type="text"
-            onChange={(e) => setFilters((prev: PaymentListDto) => ({ ...prev, search: e.target.value }))}
+            onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value || undefined, page: 1 }))}
           />
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
           {/* Filter Dropdown */}
-          <Select onValueChange={(val) => setFilters((prev: PaymentListDto) => ({ ...prev, status: val }))}>
+          <Select
+            onValueChange={(val) =>
+              setFilters((prev) => ({
+                ...prev,
+                status: val === 'all' ? undefined : (val as PaymentStatus),
+                page: 1,
+              }))
+            }
+          >
             <SelectTrigger className="w-[160px] bg-slate-50 border-slate-200">
               <SelectValue placeholder="Trạng thái: Tất cả" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả trạng thái</SelectItem>
               <SelectItem value={PaymentStatus.PENDING}>Chờ duyệt</SelectItem>
-              <SelectItem value={PaymentStatus.APPROVED}>Đã duyệt</SelectItem>
-              <SelectItem value={PaymentStatus.REJECTED}>Từ chối</SelectItem>
+              <SelectItem value={PaymentStatus.SUCCESS}>Đã duyệt</SelectItem>
+              <SelectItem value={PaymentStatus.FAILED}>Từ chối</SelectItem>
             </SelectContent>
           </Select>
 
           {/* Provider Filter */}
-          <Select onValueChange={(val) => setFilters((prev: PaymentListDto) => ({ ...prev, method: val }))}>
+          <Select
+            onValueChange={(val) =>
+              setFilters((prev) => ({
+                ...prev,
+                method: val === 'all' ? undefined : (val as PaymentMethod),
+                page: 1,
+              }))
+            }
+          >
             <SelectTrigger className="w-[180px] bg-slate-50 border-slate-200">
               <SelectValue placeholder="Phương thức: Tất cả" />
             </SelectTrigger>
@@ -233,7 +249,7 @@ export function PaymentListPage() {
                 payments.map((payment) => (
                   <TableRow 
                     key={payment.id} 
-                    className={`group hover:bg-slate-50/80 transition-colors ${payment.status === PaymentStatus.REJECTED ? 'bg-red-50/30' : ''}`}
+                    className={`group hover:bg-slate-50/80 transition-colors ${payment.status === PaymentStatus.FAILED ? 'bg-red-50/30' : ''}`}
                   >
                     <TableCell className="font-medium text-slate-900 tabular-nums">
                       <div className="flex items-center gap-2">
@@ -243,7 +259,7 @@ export function PaymentListPage() {
                     </TableCell>
                     <TableCell>
                       {payment.invoice ? (
-                        <Link to={`/app/hoa-don/${payment.invoice.id}`} className="text-primary hover:underline font-medium tabular-nums">
+                        <Link to={`/hoa-don/${payment.invoice.id}`} className="text-primary hover:underline font-medium tabular-nums">
                           {payment.invoice.invoiceCode}
                         </Link>
                       ) : (
@@ -252,7 +268,7 @@ export function PaymentListPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-medium text-slate-900">{payment.renter?.fullName || 'Khách vãng lai'}</span>
+                        <span className="font-medium text-slate-900">{payment.payer?.fullName || 'Khách vãng lai'}</span>
                         <span className="text-xs text-slate-500">{payment.room?.title || 'Không rõ phòng'}</span>
                       </div>
                     </TableCell>
@@ -278,7 +294,7 @@ export function PaymentListPage() {
                     <TableCell className="text-right">
                       {payment.status === PaymentStatus.PENDING ? (
                         <Button 
-                          onClick={() => navigate(`/app/thanh-toan/${payment.id}/duyet`)}
+                          onClick={() => navigate(`/thanh-toan/${payment.id}/duyet`)}
                           className="bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all h-8 px-3 text-xs"
                         >
                           Duyệt
@@ -286,7 +302,7 @@ export function PaymentListPage() {
                       ) : (
                         <Button 
                           variant="ghost" 
-                          onClick={() => navigate(`/app/thanh-toan/${payment.id}`)}
+                          onClick={() => navigate(`/thanh-toan/${payment.id}`)}
                           className="text-slate-500 hover:text-primary opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all h-8 px-3 text-xs"
                         >
                           Xem chi tiết
@@ -311,7 +327,7 @@ export function PaymentListPage() {
               size="icon" 
               className="w-8 h-8 text-slate-500"
               disabled={filters.page === 1}
-              onClick={() => setFilters((prev: PaymentListDto) => ({ ...prev, page: prev.page! - 1 }))}
+              onClick={() => setFilters((prev) => ({ ...prev, page: prev.page! - 1 }))}
             >
               <span className="material-symbols-outlined text-[18px]">chevron_left</span>
             </Button>
@@ -321,7 +337,7 @@ export function PaymentListPage() {
                 variant="outline" 
                 size="icon" 
                 className="w-8 h-8 text-slate-500"
-                onClick={() => setFilters((prev: PaymentListDto) => ({ ...prev, page: prev.page! + 1 }))}
+                onClick={() => setFilters((prev) => ({ ...prev, page: prev.page! + 1 }))}
               >
                 <span className="material-symbols-outlined text-[18px]">chevron_right</span>
               </Button>

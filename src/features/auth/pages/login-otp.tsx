@@ -6,6 +6,7 @@ import { authApi } from '@/shared/api/auth'
 import { useAuth } from '@/shared/hooks/use-auth'
 import { toAppError } from '@/shared/lib/errors'
 import type { UserProfile } from '@/shared/types/auth'
+import { getPostLoginPath } from '@/shared/lib/auth-navigation'
 
 export function Component() {
   const navigate = useNavigate()
@@ -16,7 +17,7 @@ export function Component() {
   const state = location.state as { 
     email?: string; 
     action?: string;
-    passwordHash?: string;
+    password?: string;
     registerData?: { email: string; password: string; fullname: string; phone: string; confirm_password: string };
   }
   
@@ -82,11 +83,11 @@ export function Component() {
       }
 
       if (actionType === 'LOGIN') {
-        if (!state?.passwordHash) throw new Error('Thiếu thông tin đăng nhập')
+        if (!state?.password) throw new Error('Thiếu thông tin đăng nhập')
         
         const loginRes = await authApi.login({ 
           email, 
-          passwordHash: state.passwordHash, 
+          password: state.password, 
           code 
         })
         
@@ -98,22 +99,37 @@ export function Component() {
             { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! }, 
             profileResponse.data
           )
-          navigate('/tai-khoan')
+          navigate(getPostLoginPath(profileResponse.data), { replace: true })
         }
       } else if (actionType === 'REGISTER') {
         if (!state?.registerData) throw new Error('Thiếu thông tin đăng ký')
         
         await authApi.register({
           email: state.registerData.email,
-          passwordHash: state.registerData.password,
+          password: state.registerData.password,
           fullName: state.registerData.fullname,
           phone: state.registerData.phone,
           confirmPassword: state.registerData.confirm_password,
           code,
-          roleCode: 'LANDLORD',
+          roleCode: 'TENANT', // Public registration creates a renter account by business rule.
         })
         
-        navigate('/dang-nhap', { state: { message: 'Đăng ký thành công, vui lòng đăng nhập!' } })
+        // Tự động đăng nhập sau khi đăng ký thành công
+        const loginRes = await authApi.login({ 
+          email: state.registerData.email, 
+          password: state.registerData.password 
+        })
+        
+        if (loginRes.accessToken) {
+          const profileResponse = await apiClient.get<UserProfile>('/auth/profile', {
+            headers: { Authorization: `Bearer ${loginRes.accessToken}` },
+          })
+          establishSession(
+            { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken! }, 
+            profileResponse.data
+          )
+          navigate(getPostLoginPath(profileResponse.data), { replace: true })
+        }
       }
     } catch (err) {
       const appErr = toAppError(err)

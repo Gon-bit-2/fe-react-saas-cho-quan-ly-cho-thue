@@ -1,315 +1,320 @@
-import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router'
+import { Search, Download, Users, UserCheck, UserMinus, ShieldCheck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import {
-  Search,
-  Filter,
-  Download,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  MoreVertical,
-  Eye,
-  Verified,
-  AlertCircle,
-  Phone,
-  Mail,
-} from 'lucide-react'
-import { adminTenantApi, type Tenant } from '../api/tenant.api'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { adminLandlordApi } from '../api/tenant.api'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+
+function getStatusInfo(status: string) {
+  if (status === 'ACTIVE') return { label: 'Hoạt động', color: 'text-emerald-600', dot: 'bg-emerald-500' }
+  if (status === 'INACTIVE') return { label: 'Tạm khóa', color: 'text-amber-600', dot: 'bg-amber-500' }
+  if (status === 'BANNED') return { label: 'Đình chỉ', color: 'text-red-600', dot: 'bg-red-500' }
+  return { label: status, color: 'text-slate-600', dot: 'bg-slate-500' }
+}
 
 export const LandlordsPage = () => {
-  const [tenants, setTenants] = useState<Tenant[]>([])
-  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const landlords = useQuery({
+    queryKey: ['admin', 'landlords', search],
+    queryFn: () => adminLandlordApi.list({ page: 1, limit: 100, ...(search ? { search } : {}) }).then((r) => r.data),
+  })
 
-  useEffect(() => {
-    const fetchTenants = async () => {
-      try {
-        const response = await adminTenantApi.getTenants()
-        // Since we might not have a real backend responding, we fallback to mock data if empty
-        if (response?.data && response.data.length > 0) {
-          setTenants(response.data)
-        } else {
-          setTenants(getMockTenants())
-        }
-      } catch (error) {
-        setTenants(getMockTenants())
-        console.error(error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchTenants()
-  }, [])
+  const stats = useQuery({
+    queryKey: ['admin', 'landlords', 'stats'],
+    queryFn: () => adminLandlordApi.getStats().then((r) => r.data),
+  })
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return (
-          <Badge
-            variant="secondary"
-            className="flex w-fit items-center gap-1 bg-green-100 text-green-800 hover:bg-green-100"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-green-600"></span>
-            Hoạt động
-          </Badge>
-        )
-      case 'INACTIVE':
-        return (
-          <Badge
-            variant="secondary"
-            className="flex w-fit items-center gap-1 bg-amber-100 text-amber-800 hover:bg-amber-100"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-600"></span>
-            Tạm khóa
-          </Badge>
-        )
-      case 'BANNED':
-        return (
-          <Badge variant="destructive" className="flex w-fit items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
-            Bị cấm
-          </Badge>
-        )
-      default:
-        return <Badge variant="secondary">Không rõ</Badge>
-    }
-  }
-
-  const getVerifBadge = (status: string) => {
-    // We will just mock verification for now based on status
-    if (status === 'ACTIVE') {
-      return (
-        <span className="text-primary inline-flex items-center gap-1">
-          <Verified className="h-4 w-4" />
-          <span className="text-sm font-medium">Đã xác thực</span>
-        </span>
-      )
-    }
-    return (
-      <span className="inline-flex items-center gap-1 text-amber-600">
-        <AlertCircle className="h-4 w-4" />
-        <span className="text-sm font-medium">Chờ xác thực</span>
-      </span>
-    )
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat('vi-VN').format(date)
-  }
+  const statsData = stats.data || { total: 0, active: 0, locked: 0 }
 
   return (
-    <div className="flex h-full w-full flex-col gap-6 pb-12">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-foreground text-3xl font-bold">Chủ trọ</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Quản lý danh sách chủ trọ tham gia hệ thống</p>
+    <div className="animate-in fade-in mx-auto flex w-full max-w-[1440px] flex-col gap-6 pb-12 duration-500">
+      {/* Top Stats Cards */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="relative overflow-hidden rounded-2xl border border-blue-100/50 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm">
+          <div className="absolute top-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 shadow-md shadow-blue-200">
+            <Users className="h-6 w-6 text-white" />
+          </div>
+          <div className="mb-2 text-xs font-bold tracking-wider text-blue-800/70 uppercase">Tổng số chủ trọ</div>
+          <div className="mb-3 text-4xl font-black text-blue-950">
+            {stats.isLoading ? '...' : statsData.total.toLocaleString()}
+          </div>
+          <div className="flex items-center gap-1 text-sm font-medium text-emerald-600">
+            <span className="material-symbols-outlined text-[16px]">trending_up</span>
+            Cập nhật liên tục
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Xuất dữ liệu
-          </Button>
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Thêm chủ trọ mới
-          </Button>
+
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-100/50 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 shadow-sm">
+          <div className="absolute top-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 shadow-md shadow-emerald-200">
+            <UserCheck className="h-6 w-6 text-white" />
+          </div>
+          <div className="mb-2 text-xs font-bold tracking-wider text-emerald-800/70 uppercase">Tài khoản hoạt động</div>
+          <div className="mb-3 text-4xl font-black text-emerald-950">
+            {stats.isLoading ? '...' : statsData.active.toLocaleString()}
+          </div>
+          <div className="flex items-center gap-1 text-sm font-medium text-emerald-700">
+            <span className="material-symbols-outlined text-[16px]">show_chart</span>
+            Tăng trưởng ổn định
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-red-100/50 bg-gradient-to-br from-red-50 to-rose-50 p-6 shadow-sm">
+          <div className="absolute top-6 right-6 flex h-12 w-12 items-center justify-center rounded-full border border-red-200 bg-red-100">
+            <UserMinus className="h-6 w-6 text-red-600" />
+          </div>
+          <div className="mb-2 text-xs font-bold tracking-wider text-red-800/70 uppercase">Khóa / Vô hiệu hóa</div>
+          <div className="mb-3 text-4xl font-black text-red-950">
+            {stats.isLoading ? '...' : statsData.locked.toLocaleString()}
+          </div>
+          <div className="flex items-center gap-1 text-sm font-medium text-red-600">
+            <span className="material-symbols-outlined text-[16px]">warning</span>
+            Cần theo dõi
+          </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="bg-card border-border flex flex-1 flex-col overflow-hidden rounded-xl border shadow-sm">
-        {/* Toolbar */}
-        <div className="bg-card border-border flex flex-col justify-between gap-4 border-b p-4 md:flex-row md:items-center">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="relative w-full md:w-80">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-              <Input placeholder="Tìm kiếm theo tên, email, sđt..." className="bg-muted/50 border-none pl-9" />
+      <div className="flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 md:flex-row md:items-center">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-100 bg-blue-50">
+              <span className="material-symbols-outlined text-blue-600">format_list_bulleted</span>
             </div>
-            <Button variant="secondary" className="flex w-full items-center gap-2 md:w-auto">
-              <Filter className="h-4 w-4" />
-              Lọc
-            </Button>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Danh sách Chủ trọ</h2>
+              <p className="text-sm text-slate-500">Quản lý và giám sát các tài khoản chủ trọ.</p>
+            </div>
           </div>
-          <div className="flex w-full items-center gap-2 md:w-auto">
-            <Select defaultValue="all-status">
-              <SelectTrigger className="bg-muted/50 w-full border-none md:w-[160px]">
-                <SelectValue placeholder="Trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-status">Trạng thái: Tất cả</SelectItem>
-                <SelectItem value="active">Hoạt động</SelectItem>
-                <SelectItem value="suspended">Tạm khóa</SelectItem>
-                <SelectItem value="banned">Cấm vĩnh viễn</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select defaultValue="all-verif">
-              <SelectTrigger className="bg-muted/50 w-full border-none md:w-[160px]">
-                <SelectValue placeholder="Xác thực" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-verif">Xác thực: Tất cả</SelectItem>
-                <SelectItem value="verified">Đã xác thực</SelectItem>
-                <SelectItem value="pending">Chờ xác thực</SelectItem>
-                <SelectItem value="unverified">Chưa xác thực</SelectItem>
-              </SelectContent>
-            </Select>
+
+          <div className="flex w-full items-center gap-3 md:w-auto">
+            <div className="relative flex-1 md:w-80">
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Tìm chủ trọ..."
+                className="rounded-lg border-slate-200 bg-slate-50 pl-9 focus-visible:ring-blue-500"
+              />
+            </div>
+            <Button
+              variant="outline"
+              className="shrink-0 rounded-lg border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Xuất CSV
+            </Button>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="min-h-[400px] flex-1 overflow-auto">
+        <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-muted/50 sticky top-0 z-10">
-              <TableRow>
-                <TableHead className="w-12 text-center">
-                  <input type="checkbox" className="accent-primary h-4 w-4 cursor-pointer rounded" />
+            <TableHeader className="bg-slate-50/50">
+              <TableRow className="border-b border-slate-100">
+                <TableHead className="h-12 pl-6 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  Chủ trọ
                 </TableHead>
-                <TableHead className="font-semibold">Chủ trọ</TableHead>
-                <TableHead className="font-semibold">Thông tin liên hệ</TableHead>
-                <TableHead className="text-center font-semibold">Số phòng/Tòa nhà</TableHead>
-                <TableHead className="font-semibold">Xác thực</TableHead>
-                <TableHead className="font-semibold">Trạng thái</TableHead>
-                <TableHead className="font-semibold">Ngày đăng ký</TableHead>
-                <TableHead className="text-right font-semibold">Thao tác</TableHead>
+                <TableHead className="h-12 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  Người sở hữu
+                </TableHead>
+                <TableHead className="h-12 text-center text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  Xác thực
+                </TableHead>
+                <TableHead className="h-12 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  Trạng thái
+                </TableHead>
+                <TableHead className="h-12 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  Gói dịch vụ
+                </TableHead>
+                <TableHead className="h-12 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  Hành động
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {landlords.isLoading && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-muted-foreground h-24 text-center">
-                    Đang tải dữ liệu...
+                  <TableCell colSpan={6} className="h-32 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                      Đang tải dữ liệu...
+                    </div>
                   </TableCell>
                 </TableRow>
-              ) : tenants.length === 0 ? (
+              )}
+              {landlords.isError && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-muted-foreground h-24 text-center">
-                    Không tìm thấy chủ trọ nào
+                  <TableCell colSpan={6} className="h-32 text-center text-red-600">
+                    Không thể tải danh sách chủ trọ.
                   </TableCell>
                 </TableRow>
-              ) : (
-                tenants.map((tenant) => (
-                  <TableRow key={tenant.id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="text-center">
-                      <input type="checkbox" className="accent-primary h-4 w-4 cursor-pointer rounded" />
-                    </TableCell>
-                    <TableCell>
+              )}
+              {landlords.data?.data.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-32 text-center text-slate-500">
+                    Không tìm thấy chủ trọ phù hợp.
+                  </TableCell>
+                </TableRow>
+              )}
+              {landlords.data?.data.map((landlord) => {
+                const verified = Boolean(landlord.emailVerifiedAt || landlord.phoneVerifiedAt)
+                const statusInfo = getStatusInfo(landlord.status)
+
+                // Get plan from the first owned tenant's active subscription
+                let activePlanName = 'Chưa đăng ký'
+                let planStatus = 'Quá hạn'
+                if (landlord.ownedTenants?.length > 0) {
+                  const firstTenant = landlord.ownedTenants[0]
+                  if (firstTenant.subscriptions && firstTenant.subscriptions.length > 0) {
+                    const sub = firstTenant.subscriptions[0]
+                    activePlanName = sub.plan.name
+                    if (sub.status === 'ACTIVE') {
+                      planStatus = 'Hoạt động'
+                    } else {
+                      planStatus = 'Quá hạn'
+                    }
+                  }
+                }
+
+                return (
+                  <TableRow
+                    key={landlord.id}
+                    className="border-b border-slate-50 transition-colors hover:bg-slate-50/80"
+                  >
+                    <TableCell className="py-4 pl-6">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-blue-700">
-                          {tenant.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="text-foreground font-semibold">{tenant.name}</div>
-                          <div className="text-muted-foreground mt-0.5 text-xs uppercase">
-                            ID: LL-{2000 + tenant.id}
-                          </div>
+                        <Avatar className="h-10 w-10 border border-slate-200">
+                          <AvatarFallback className="bg-blue-100 text-sm font-bold text-blue-700">
+                            {landlord.fullName.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <Link
+                            to={`/admin/chu-tro/${landlord.id}`}
+                            className="font-bold text-slate-900 transition-colors hover:text-blue-600"
+                          >
+                            {landlord.fullName}
+                          </Link>
+                          <span className="text-sm text-slate-500">
+                            {landlord.phone || landlord.email || 'Chưa cập nhật'}
+                          </span>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-muted-foreground flex items-center gap-1.5 text-sm">
-                          <Mail className="h-3.5 w-3.5" />
-                          {tenant.owner?.email || `landlord${tenant.id}@example.com`}
-                        </span>
-                        <span className="text-muted-foreground flex items-center gap-1.5 text-sm">
-                          <Phone className="h-3.5 w-3.5" />
-                          090123456{tenant.id % 10}
+                    <TableCell className="py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-slate-700">{landlord.fullName}</span>
+                        <span className="mt-0.5 font-mono text-xs text-slate-400">
+                          ID: LL-{landlord.id.toString().padStart(4, '0')}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-foreground text-center text-lg font-bold">
-                      {((tenant.id * 13) % 50) + 1}
+                    <TableCell className="py-4 text-center">
+                      <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1">
+                        {verified ? (
+                          <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                        ) : (
+                          <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />
+                        )}
+                        <span className={`text-xs font-bold ${verified ? 'text-emerald-700' : 'text-slate-500'}`}>
+                          {verified ? 'Mức 2' : 'Mức 1'}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell>{getVerifBadge(tenant.status)}</TableCell>
-                    <TableCell>{getStatusBadge(tenant.status)}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{formatDate(tenant.createdAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end">
+                    <TableCell className="py-4">
+                      <div className="flex items-center gap-2">
+                        <span className={`h-2 w-2 rounded-full ${statusInfo.dot}`}></span>
+                        <span className={`text-sm font-semibold ${statusInfo.color}`}>{statusInfo.label}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="text-sm font-medium text-slate-700">{activePlanName}</span>
+                        {planStatus === 'Hoạt động' && (
+                          <Badge className="border-transparent bg-emerald-100 px-1.5 py-0 text-[10px] font-bold tracking-wider text-emerald-700 uppercase hover:bg-emerald-200">
+                            Hoạt động
+                          </Badge>
+                        )}
+                        {planStatus === 'Sắp hết hạn' && (
+                          <Badge className="border-transparent bg-amber-100 px-1.5 py-0 text-[10px] font-bold tracking-wider text-amber-700 uppercase hover:bg-amber-200">
+                            Sắp hết hạn
+                          </Badge>
+                        )}
+                        {planStatus === 'Quá hạn' && (
+                          <Badge className="border-transparent bg-red-100 px-1.5 py-0 text-[10px] font-bold tracking-wider text-red-700 uppercase hover:bg-red-200">
+                            Quá hạn
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <Link to={`/admin/chu-tro/${landlord.id}`}>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-muted-foreground hover:text-primary rounded-full"
+                          className="text-slate-400 hover:bg-blue-50 hover:text-blue-600"
                         >
-                          <Eye className="h-5 w-5" />
+                          <span className="material-symbols-outlined text-[20px]">visibility</span>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:text-foreground rounded-full"
-                        >
-                          <MoreVertical className="h-5 w-5" />
-                        </Button>
-                      </div>
+                      </Link>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
+                )
+              })}
             </TableBody>
           </Table>
         </div>
 
-        {/* Pagination */}
-        <div className="bg-card border-border flex flex-col items-center justify-between gap-4 border-t p-4 sm:flex-row">
-          <div className="text-muted-foreground text-sm">
-            Hiển thị <span className="text-foreground font-semibold">1 - {tenants.length}</span> trong{' '}
-            <span className="text-foreground font-semibold">{tenants.length}</span> chủ trọ
+        {landlords.data && (
+          <div className="flex items-center justify-between rounded-b-xl border-t border-slate-100 bg-slate-50/50 p-4 px-6 text-sm text-slate-500">
+            <span>
+              Hiển thị 1 đến {Math.min(landlords.data.data.length, 100)} của{' '}
+              {landlords.data.meta.total.toLocaleString()} kết quả
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-md bg-white text-slate-400 hover:text-slate-700"
+                disabled
+              >
+                <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 rounded-md border-blue-600 bg-blue-600 p-0 font-medium text-white hover:bg-blue-700 hover:text-white"
+              >
+                1
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 rounded-md bg-white p-0 font-medium text-slate-600 hover:bg-slate-50"
+              >
+                2
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 rounded-md bg-white p-0 font-medium text-slate-600 hover:bg-slate-50"
+              >
+                3
+              </Button>
+              <span className="mx-1 text-slate-400">...</span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-md bg-white text-slate-600 hover:text-slate-900"
+              >
+                <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="icon" className="h-8 w-8 rounded-md" disabled>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="default" size="icon" className="bg-primary h-8 w-8 rounded-md">
-              1
-            </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8 rounded-md" disabled>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
-}
-
-// Fallback mock data
-function getMockTenants(): Tenant[] {
-  return [
-    {
-      id: 1,
-      name: 'Nguyễn Văn Anh',
-      status: 'ACTIVE',
-      ownerId: 1,
-      createdAt: '2023-10-15T00:00:00Z',
-      updatedAt: '2023-10-15T00:00:00Z',
-    },
-    {
-      id: 2,
-      name: 'Trần Thị Bích',
-      status: 'ACTIVE',
-      ownerId: 2,
-      createdAt: '2023-11-02T00:00:00Z',
-      updatedAt: '2023-11-02T00:00:00Z',
-    },
-    {
-      id: 3,
-      name: 'Lê Hoàng Phong',
-      status: 'INACTIVE',
-      ownerId: 3,
-      createdAt: '2023-08-20T00:00:00Z',
-      updatedAt: '2023-08-20T00:00:00Z',
-    },
-    {
-      id: 4,
-      name: 'Hoàng Kim Dung',
-      status: 'BANNED',
-      ownerId: 4,
-      createdAt: '2023-05-12T00:00:00Z',
-      updatedAt: '2023-05-12T00:00:00Z',
-    },
-  ]
 }

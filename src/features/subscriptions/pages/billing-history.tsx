@@ -1,52 +1,33 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Download, Filter, HelpCircle, FileText, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { PaymentTransaction } from '../api/plan.api';
-
-// Mock data based on the design
-const mockTransactions: PaymentTransaction[] = [
-  {
-    id: 1,
-    tenantId: 1,
-    subscriptionId: 1,
-    amount: 11880000,
-    currency: 'VND',
-    status: 'SUCCESS',
-    paymentMethod: 'PAYOS',
-    transactionId: 'TXN-552-SUB',
-    createdAt: '2023-10-01T08:00:00Z',
-    updatedAt: '2023-10-01T08:05:00Z'
-  },
-  {
-    id: 2,
-    tenantId: 1,
-    subscriptionId: 1,
-    amount: 11880000,
-    currency: 'VND',
-    status: 'SUCCESS',
-    paymentMethod: 'PAYOS',
-    transactionId: 'TXN-421-SUB',
-    createdAt: '2022-10-01T08:00:00Z',
-    updatedAt: '2022-10-01T08:05:00Z'
-  },
-  {
-    id: 3,
-    tenantId: 1,
-    subscriptionId: 1,
-    amount: 5400000,
-    currency: 'VND',
-    status: 'SUCCESS',
-    paymentMethod: 'PAYOS',
-    transactionId: 'TXN-105-SUB',
-    createdAt: '2021-10-01T08:00:00Z',
-    updatedAt: '2021-10-01T08:05:00Z'
-  }
-];
+import type { PaymentTransaction } from '../api/plan.api';
+import { planApi } from '../api/plan.api';
+import { useAuth } from '@/shared/hooks/use-auth';
+import { useEffect } from 'react';
 
 export const BillingHistoryPage = () => {
-  const [transactions] = useState<PaymentTransaction[]>(mockTransactions);
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { selectedMembership } = useAuth();
+  const tenantId = Number(selectedMembership?.tenantId || 0);
+
+  useEffect(() => {
+    if (!tenantId) return;
+    const fetchHistory = async () => {
+      try {
+        const { data } = await planApi.getPaymentHistory(tenantId);
+        setTransactions(data?.data || []);
+      } catch (error) {
+        console.error('Failed to fetch payment history', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchHistory();
+  }, [tenantId]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN').format(amount);
@@ -93,22 +74,30 @@ export const BillingHistoryPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.map((tx, index) => (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Đang tải dữ liệu...</TableCell>
+                  </TableRow>
+                ) : transactions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Chưa có lịch sử thanh toán nào</TableCell>
+                  </TableRow>
+                ) : transactions.map((tx) => (
                   <TableRow key={tx.id} className="group hover:bg-muted/30 transition-colors cursor-default">
                     <TableCell className="font-medium tabular-nums">{formatDate(tx.createdAt)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${index < 2 ? 'bg-primary' : 'bg-muted-foreground'}`}></span>
-                        <span className="font-medium">{index < 2 ? 'Professional' : 'Starter'}</span>
-                        <span className="text-xs text-muted-foreground">(Hàng năm)</span>
+                        <span className={`w-2 h-2 rounded-full bg-primary`}></span>
+                        <span className="font-medium">Gói {tx.subscriptionId}</span>
+                        <span className="text-xs text-muted-foreground"></span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-medium tabular-nums">{formatCurrency(tx.amount)}</TableCell>
                     <TableCell className="text-muted-foreground font-mono text-xs">{tx.transactionId}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100 flex items-center gap-1 w-fit">
+                      <Badge variant="secondary" className={`${tx.status === 'SUCCESS' ? 'bg-green-100 text-green-800 hover:bg-green-100' : tx.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' : 'bg-red-100 text-red-800 hover:bg-red-100'} flex items-center gap-1 w-fit`}>
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        Thành công
+                        {tx.status === 'SUCCESS' ? 'Thành công' : tx.status === 'PENDING' ? 'Chờ xử lý' : 'Thất bại'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

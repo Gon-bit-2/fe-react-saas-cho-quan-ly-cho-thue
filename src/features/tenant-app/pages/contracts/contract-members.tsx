@@ -1,139 +1,35 @@
-import React, { useState } from 'react'
-import { Link, useParams } from 'react-router'
-import { ArrowLeft, UserPlus, Trash2 } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router'
+import { ArrowLeft, Mail, Phone, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useContract } from '@/shared/api/contracts'
 
 export default function ContractMembersPage() {
-  const { id } = useParams()
-  const [loading, setLoading] = useState(false)
+  const id = Number(useParams().id)
+  const navigate = useNavigate()
+  const { data: contract, isLoading, isError } = useContract(id)
 
-  // Dữ liệu mẫu
-  const mockMembers = [
-    { id: 101, name: 'Nguyễn Văn A', role: 'Đại diện thuê', phone: '0987654321', cccd: '001095001234' },
-    { id: 103, name: 'Phạm Thị D', role: 'Thành viên', phone: '0933444555', cccd: '001095009876' }
-  ]
-
-  const handleAddMember = (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setTimeout(() => setLoading(false), 800)
-  }
+  if (isLoading) return <div className="p-12 text-center">Đang tải thành viên…</div>
+  if (isError || !contract) return <div className="p-12 text-center text-red-600">Không tìm thấy hợp đồng.</div>
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="shrink-0">
-          <Link to={`/app/hop-dong/${id}`}>
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Thành viên hợp đồng</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Quản lý những người ở cùng phòng thuộc hợp đồng HD-2026-08-001.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Danh sách thành viên hiện tại</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="border rounded-md overflow-hidden">
-                <Table>
-                  <TableHeader className="bg-slate-50/50">
-                    <TableRow>
-                      <TableHead>Họ tên</TableHead>
-                      <TableHead>Vai trò</TableHead>
-                      <TableHead>SĐT</TableHead>
-                      <TableHead>CCCD</TableHead>
-                      <TableHead className="w-[60px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockMembers.map((member) => (
-                      <TableRow key={member.id}>
-                        <TableCell className="font-medium text-slate-900">{member.name}</TableCell>
-                        <TableCell>
-                          <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${member.role === 'Đại diện thuê' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
-                            {member.role}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-sm text-slate-600">{member.phone}</TableCell>
-                        <TableCell className="text-sm text-slate-600">{member.cccd}</TableCell>
-                        <TableCell>
-                          {member.role !== 'Đại diện thuê' && (
-                            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-50">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+    <div className="mx-auto max-w-4xl space-y-6 pb-12">
+      <Button variant="ghost" onClick={() => navigate(`/hop-dong/${id}`)}><ArrowLeft className="mr-2 h-4 w-4" />Chi tiết hợp đồng</Button>
+      <section className="rounded-xl border bg-white p-6">
+        <div className="mb-6 flex items-center justify-between"><div><h1 className="text-2xl font-bold">Thành viên hợp đồng</h1><p className="text-slate-500">{contract.contractCode ?? `Hợp đồng #${contract.id}`} · tối đa {contract.room?.maxOccupants ?? '—'} người</p></div><Users className="h-8 w-8 text-blue-600" /></div>
+        {!contract.members?.length ? <p className="rounded-lg bg-slate-50 p-6 text-center text-slate-500">Hợp đồng chưa có người ở cùng.</p> : (
+          <div className="divide-y">
+            {contract.members.map((member) => (
+              <div key={member.id} className="flex items-center gap-4 py-4">
+                <Avatar><AvatarImage alt={member.user?.fullName || member.fullName || 'T'} /><AvatarFallback>{(member.user?.fullName || member.fullName || 'T').split(' ').slice(-2).map((part) => part[0]).join('')}</AvatarFallback></Avatar>
+                <div className="min-w-0 flex-1"><p className="font-medium">{member.user?.fullName || member.fullName}</p><div className="mt-1 flex flex-wrap gap-4 text-sm text-slate-500"><span className="flex gap-1"><Mail className="h-4 w-4" />{member.user?.email || (member.identityCard ? `CCCD: ${member.identityCard}` : 'Chưa có email')}</span><span className="flex gap-1"><Phone className="h-4 w-4" />{member.user?.phone || member.phone || 'Chưa cập nhật'}</span></div></div>
+                <Badge variant="outline">{member.role}</Badge>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div>
-          <Card>
-            <form onSubmit={handleAddMember}>
-              <CardHeader>
-                <CardTitle className="text-base font-semibold">Thêm thành viên</CardTitle>
-                <CardDescription>
-                  Chỉ định một người thuê có sẵn trong hệ thống vào hợp đồng này.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="renterSelect">Chọn người thuê</Label>
-                  <Select required>
-                    <SelectTrigger id="renterSelect">
-                      <SelectValue placeholder="Tìm người thuê..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="105">Lê Văn E (0911223344)</SelectItem>
-                      <SelectItem value="106">Hoàng Thị F (0988776655)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-              <CardContent className="border-t border-slate-100 pt-4">
-                <Button className="w-full" type="submit" disabled={loading}>
-                  {loading ? 'Đang thêm...' : (
-                    <>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Thêm vào hợp đồng
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </form>
-          </Card>
-        </div>
-      </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }

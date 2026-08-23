@@ -1,147 +1,130 @@
-import React from 'react'
-import { useParams, Link } from 'react-router'
-import { ArrowLeft, User, Phone, Mail, MapPin, Briefcase, HeartPulse, CreditCard, Clock } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router'
+import {
+  ArrowLeft,
+  FileText,
+  Mail,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  AlertCircle,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useRenter } from '@/shared/api/renters'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { CONTRACT_STATUS_MAP } from '@/shared/constants/status-config'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { useRenter, useRenterHistory } from '@/shared/api/renters'
 
-const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value?: string | null }) => (
-  <div className="flex items-start gap-3">
-    <div className="mt-0.5 rounded-md bg-slate-100 p-2 text-slate-500">
-      <Icon className="h-4 w-4" />
-    </div>
-    <div>
-      <div className="text-sm font-medium text-slate-500">{label}</div>
-      <div className="mt-1 text-sm text-slate-900">{value || <span className="text-slate-400 italic">Chưa cập nhật</span>}</div>
-    </div>
-  </div>
-)
+export default function Component() {
+  const id = Number(useParams().id)
+  const navigate = useNavigate()
+  const { data: renter, isLoading, isError } = useRenter(id)
+  const { data: history } = useRenterHistory(id)
 
-export default function RenterDetailPage() {
-  const { id } = useParams()
-  const { data: renter, isLoading } = useRenter(Number(id))
-
-  if (isLoading) {
-    return <div className="p-6 text-center text-slate-500">Đang tải dữ liệu...</div>
-  }
-
-  if (!renter) {
-    return <div className="p-6 text-center text-slate-500">Người thuê không tồn tại</div>
-  }
-
-  const getStatusBadge = () => {
-    switch (renter.verificationStatus) {
-      case 'VERIFIED':
-        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Đã xác minh</Badge>
-      case 'PENDING':
-        return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">Chờ xác minh</Badge>
-      case 'REJECTED':
-        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Từ chối</Badge>
-      case 'UNVERIFIED':
-      default:
-        return <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">Chưa xác minh</Badge>
-    }
-  }
+  if (isLoading) return <div className="p-12 text-center">Đang tải người thuê…</div>
+  if (isError || !renter) return <div className="p-12 text-center text-red-600">Không tìm thấy người thuê.</div>
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="shrink-0">
-          <Link to="/app/nguoi-thue">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">{renter.fullName}</h1>
-            {getStatusBadge()}
+    <div className="mx-auto max-w-4xl space-y-6 pb-12">
+      <Button variant="ghost" onClick={() => navigate('/nguoi-thue')}>
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Danh sách người thuê
+      </Button>
+      <section className="rounded-xl border bg-white p-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+          <Avatar className="h-20 w-20">
+            <AvatarFallback className="text-xl">
+              {renter.fullName
+                .split(' ')
+                .slice(-2)
+                .map((part) => part[0])
+                .join('')}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-bold">{renter.fullName}</h1>
+              {(() => {
+                const status = renter.renterProfile?.verificationStatus || renter.verificationStatus || 'UNVERIFIED'
+                if (status === 'VERIFIED') return (
+                  <Badge className="border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100">
+                    <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Đã xác minh
+                  </Badge>
+                )
+                if (status === 'PENDING') return (
+                  <Badge className="border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100">
+                    <Clock className="mr-1 h-3.5 w-3.5" /> Chờ xác minh
+                  </Badge>
+                )
+                if (status === 'REJECTED') return (
+                  <Badge className="border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100">
+                    <XCircle className="mr-1 h-3.5 w-3.5" /> Bị từ chối
+                  </Badge>
+                )
+                if (status === 'UNVERIFIED') return (
+                  <Badge className="border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100">
+                    <AlertCircle className="mr-1 h-3.5 w-3.5" /> Chưa xác minh
+                  </Badge>
+                )
+                return null
+              })()}
+            </div>
+            <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
+              <p className="flex gap-2">
+                <Mail className="h-4 w-4" />
+                {renter.email}
+              </p>
+              <p className="flex gap-2">
+                <Phone className="h-4 w-4" />
+                {renter.phone ?? 'Chưa cập nhật'}
+              </p>
+              <p className="flex gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                CCCD: {renter.identityNumber ?? 'Chưa cập nhật'}
+              </p>
+              <p className="flex gap-2">
+                <MapPin className="h-4 w-4" />
+                {renter.permanentAddress ?? 'Chưa cập nhật địa chỉ thường trú'}
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-slate-500 mt-1">Chi tiết hồ sơ và lịch sử thuê phòng.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline">Chỉnh sửa hồ sơ</Button>
-          <Button>Tạo hợp đồng</Button>
-        </div>
-      </div>
+      </section>
 
-      {/* Tabs */}
-      <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="profile">Hồ sơ cá nhân</TabsTrigger>
-          <TabsTrigger value="history">Lịch sử thuê phòng</TabsTrigger>
-          <TabsTrigger value="documents">Giấy tờ & Định danh</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="profile" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base font-semibold">Thông tin liên hệ</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <InfoItem icon={Mail} label="Địa chỉ Email" value={renter.email} />
-                <InfoItem icon={Phone} label="Số điện thoại" value={renter.phone} />
-                <InfoItem icon={MapPin} label="Thường trú" value={renter.permanentAddress} />
-                <InfoItem icon={Briefcase} label="Nghề nghiệp" value={renter.occupation} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base font-semibold">Thông tin cá nhân</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <InfoItem icon={User} label="Giới tính" value={renter.gender === 'MALE' ? 'Nam' : renter.gender === 'FEMALE' ? 'Nữ' : renter.gender ? 'Khác' : null} />
-                <InfoItem icon={Clock} label="Ngày sinh" value={renter.dateOfBirth ? new Date(renter.dateOfBirth).toLocaleDateString('vi-VN') : null} />
-                <InfoItem icon={CreditCard} label="Số CCCD/CMND" value={renter.identityNumber} />
-                <div className="pt-4 border-t border-slate-100">
-                  <h4 className="text-sm font-medium text-slate-900 mb-4">Liên hệ khẩn cấp</h4>
-                  <div className="space-y-4">
-                    <InfoItem icon={User} label="Họ tên người thân" value={renter.emergencyContactName} />
-                    <InfoItem icon={HeartPulse} label="Số điện thoại" value={renter.emergencyContactPhone} />
-                  </div>
+      <section className="rounded-xl border bg-white p-6">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+          <FileText className="h-5 w-5" />
+          Lịch sử thuê
+        </h2>
+        {!history?.data.length ? (
+          <p className="text-slate-500">Chưa có lịch sử thuê trong tenant này.</p>
+        ) : (
+          <div className="divide-y">
+            {history.data.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => navigate(`/hop-dong/${item.contractId}`)}
+                className="flex w-full items-center justify-between gap-4 py-4 text-left hover:bg-slate-50"
+              >
+                <div>
+                  <p className="font-medium">
+                    {item.room.title} ({item.room.roomCode})
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {item.room.property.name} · {new Intl.DateTimeFormat('vi-VN').format(new Date(item.startedAt))}
+                    {item.endedAt ? ` – ${new Intl.DateTimeFormat('vi-VN').format(new Date(item.endedAt))}` : ''}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                <StatusBadge status={item.status} statusMap={CONTRACT_STATUS_MAP} fallbackLabel={item.status} />
+              </button>
+            ))}
           </div>
-        </TabsContent>
-
-        <TabsContent value="history">
-          <Card>
-            <CardContent className="pt-6 text-center text-slate-500 py-12">
-              Chưa có lịch sử hợp đồng nào.
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="documents">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-sm font-medium text-slate-700 mb-3">Mặt trước CCCD/CMND</h4>
-                  {renter.identityFrontUrl ? (
-                    <img src={renter.identityFrontUrl} alt="Mặt trước" className="rounded-lg border border-slate-200 w-full object-cover max-h-64" />
-                  ) : (
-                    <div className="flex items-center justify-center h-48 bg-slate-50 border border-dashed border-slate-300 rounded-lg text-slate-400 text-sm">Chưa cập nhật ảnh</div>
-                  )}
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-slate-700 mb-3">Mặt sau CCCD/CMND</h4>
-                  {renter.identityBackUrl ? (
-                    <img src={renter.identityBackUrl} alt="Mặt sau" className="rounded-lg border border-slate-200 w-full object-cover max-h-64" />
-                  ) : (
-                    <div className="flex items-center justify-center h-48 bg-slate-50 border border-dashed border-slate-300 rounded-lg text-slate-400 text-sm">Chưa cập nhật ảnh</div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        )}
+      </section>
     </div>
   )
 }

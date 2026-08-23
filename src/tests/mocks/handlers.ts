@@ -8,7 +8,7 @@ export const handlers = [
   // Authentication Handlers
   http.post(`${API_URL}/auth/login`, async ({ request }) => {
     const body = await request.json() as Record<string, unknown>
-    if (body.email === 'test@example.com' && body.passwordHash) {
+    if (body.email === 'test@example.com' && body.password) {
       return HttpResponse.json<LoginRes>({
         accessToken: 'mock-access-token',
         refreshToken: 'mock-refresh-token',
@@ -49,6 +49,13 @@ export const handlers = [
     })
   }),
 
+  http.get(`${API_URL}/locations/provinces`, () => {
+    return HttpResponse.json([
+      { code: '01', name: 'Thành phố Hà Nội', type: 'Thành phố' },
+      { code: '79', name: 'Thành phố Hồ Chí Minh', type: 'Thành phố' },
+    ])
+  }),
+
   // Marketplace Handlers
   http.get(`${API_URL}/marketplace/rooms`, () => {
     return HttpResponse.json({
@@ -58,12 +65,12 @@ export const handlers = [
           title: 'Mock Room 1',
           roomCode: 'R01',
           basePrice: 5000000,
-          deposit: 5000000,
+          depositAmount: '5000000',
           electricityPrice: 3500,
           waterPrice: 100000,
-          area: 30,
+          area: '30',
           maxOccupants: 2,
-          property: { id: 1, name: 'Mock Property', address: '123 Mock St', province: 'Hà Nội', district: 'Cầu Giấy', ward: 'Dịch Vọng', propertyType: 'APARTMENT', latitude: null, longitude: null },
+          property: { id: 1, name: 'Mock Property', province: 'Hà Nội', district: 'Cầu Giấy', ward: 'Dịch Vọng', type: 'APARTMENT' },
           images: [],
           amenities: [],
           status: 'AVAILABLE',

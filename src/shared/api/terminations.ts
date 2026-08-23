@@ -1,21 +1,7 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
 import { useAuth } from '../hooks/use-auth'
 import type { ContractTerminationRequest } from '@/types/termination'
-
-export const MOCK_TERMINATIONS: ContractTerminationRequest[] = [
-  {
-    id: 1,
-    contractId: 1,
-    renterId: 101,
-    requestedDate: '2026-07-20T10:00:00Z',
-    desiredEndDate: '2026-08-01T10:00:00Z',
-    reason: 'Chuyển chỗ làm',
-    status: 'PENDING',
-    createdAt: '2026-07-20T10:00:00Z',
-    updatedAt: '2026-07-20T10:00:00Z',
-  }
-]
 
 const TERMINATION_KEYS = {
   all: ['terminations'] as const,
@@ -35,6 +21,19 @@ interface PaginatedResponse<T> {
   }
 }
 
+export interface CreateTerminationBody {
+  contractId: number
+  reason: string
+  expectedMoveOutDate: string // YYYY-MM-DD
+}
+
+export interface CompleteTerminationBody {
+  checkoutHandoverId: number
+  actualMoveOutDate: string // YYYY-MM-DD
+  acknowledgeOutstandingDebt?: boolean
+  completionNote?: string | null
+}
+
 export const useTerminations = (params: Record<string, unknown> = {}) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
@@ -42,15 +41,8 @@ export const useTerminations = (params: Record<string, unknown> = {}) => {
   return useQuery({
     queryKey: TERMINATION_KEYS.list(tenantId, params),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>('/contract-terminations', { params, tenantId })
-        if (!data.data || data.data.length === 0) {
-          return { data: MOCK_TERMINATIONS, meta: { page: 1, limit: 10, total: MOCK_TERMINATIONS.length, totalPages: 1 } }
-        }
-        return data
-      } catch {
-        return { data: MOCK_TERMINATIONS, meta: { page: 1, limit: 10, total: MOCK_TERMINATIONS.length, totalPages: 1 } }
-      }
+      const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>('/contract-terminations', { params, tenantId })
+      return data
     },
     enabled: !!tenantId,
   })
@@ -63,29 +55,84 @@ export const useTermination = (id: number) => {
   return useQuery({
     queryKey: TERMINATION_KEYS.detail(tenantId, id),
     queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<ContractTerminationRequest>(`/contract-terminations/${id}`, { tenantId })
-        return data
-      } catch (error: unknown) {
-        const err = error as { response?: { status?: number } }
-        if (err.response?.status === 404) {
-          const mock = MOCK_TERMINATIONS.find(t => t.id === id)
-          if (mock) return mock
-        }
-        throw error
-      }
+      const { data } = await apiClient.get<ContractTerminationRequest>(`/contract-terminations/${id}`, { tenantId })
+      return data
     },
     enabled: !!tenantId && !!id,
+  })
+}
+
+export const useCreateTermination = () => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CreateTerminationBody) => {
+      const { data } = await apiClient.post<ContractTerminationRequest>('/contract-terminations', payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.lists(tenantId) })
+    },
   })
 }
 
 export const useApproveTermination = (id: number) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
   return useMutation({
-    mutationFn: async () => {
-      const { data } = await apiClient.patch(`/contract-terminations/${id}/approve`, {}, { tenantId })
+    mutationFn: async (payload?: { reviewNote?: string }) => {
+      const { data } = await apiClient.patch<ContractTerminationRequest>(
+        `/contract-terminations/${id}/approve`,
+        payload || {},
+        { tenantId },
+      )
       return data
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useRejectTermination = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload?: { reviewNote?: string }) => {
+      const { data } = await apiClient.patch<ContractTerminationRequest>(
+        `/contract-terminations/${id}/reject`,
+        payload || {},
+        { tenantId },
+      )
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.lists(tenantId) })
+    },
+  })
+}
+
+export const useCompleteTermination = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: CompleteTerminationBody) => {
+      const { data } = await apiClient.patch<ContractTerminationRequest>(`/contract-terminations/${id}/complete`, payload, { tenantId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: TERMINATION_KEYS.lists(tenantId) })
+    },
   })
 }

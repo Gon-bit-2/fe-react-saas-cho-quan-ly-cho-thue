@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Plus, Search, MoreHorizontal, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useContracts } from '@/shared/api/contracts'
+import type { ContractStatus } from '@/types/contract'
 
 const getStatusBadge = (status: ContractStatus) => {
   switch (status) {
@@ -78,7 +79,7 @@ export default function ContractListPage() {
         </div>
         <div className="flex items-center gap-3">
           <Button asChild>
-            <Link to="/app/hop-dong/tao">
+            <Link to="/hop-dong/tao">
               <Plus className="h-4 w-4 mr-2" />
               Tạo hợp đồng
             </Link>
@@ -174,15 +175,15 @@ export default function ContractListPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => navigate(`/app/hop-dong/${contract.id}`)}>
+                        <DropdownMenuItem onClick={() => navigate(`/hop-dong/${contract.id}`)}>
                           Xem chi tiết
                         </DropdownMenuItem>
                         {contract.status === 'DRAFT' && (
-                          <DropdownMenuItem onClick={() => navigate(`/app/hop-dong/${contract.id}/sua`)}>
+                          <DropdownMenuItem onClick={() => navigate(`/hop-dong/${contract.id}/sua`)}>
                             Chỉnh sửa
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onClick={() => navigate(`/app/hop-dong/${contract.id}/thanh-vien`)}>
+                        <DropdownMenuItem onClick={() => navigate(`/hop-dong/${contract.id}/thanh-vien`)}>
                           Thành viên
                         </DropdownMenuItem>
                       </DropdownMenuContent>

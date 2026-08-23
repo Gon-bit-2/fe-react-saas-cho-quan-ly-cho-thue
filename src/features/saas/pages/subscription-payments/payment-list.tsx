@@ -20,8 +20,14 @@ export function PaymentListPage() {
     fetchPayments()
   }, [])
 
+  const totalRevenue = payments.filter((p) => p.status === 'PAID').reduce((sum, p) => sum + (p.amount || 0), 0)
+  const successfulTransactions = payments.filter((p) => p.status === 'PAID').length
+  const pendingTransactions = payments.filter((p) => p.status === 'PENDING').length
+  const successRate = payments.length > 0 ? Math.round((successfulTransactions / payments.length) * 100) : 0
+
   const getStatusDisplay = (status: string) => {
     switch (status) {
+      case 'PAID':
       case 'SUCCESS':
         return (
           <span className="bg-tertiary-container/20 text-tertiary font-label-md text-label-md inline-flex items-center rounded-full px-2.5 py-1">
@@ -34,6 +40,12 @@ export function PaymentListPage() {
             <span className="material-symbols-outlined mr-1 text-[14px]">cancel</span> Thất bại
           </span>
         )
+      case 'EXPIRED':
+        return (
+          <span className="bg-error-container/50 text-on-error-container font-label-md text-label-md inline-flex items-center rounded-full px-2.5 py-1">
+            <span className="material-symbols-outlined mr-1 text-[14px]">timer_off</span> Hết hạn
+          </span>
+        )
       case 'PENDING':
         return (
           <span className="bg-surface-container-highest text-status-warning font-label-md text-label-md inline-flex items-center rounded-full px-2.5 py-1">
@@ -41,6 +53,7 @@ export function PaymentListPage() {
           </span>
         )
       case 'CANCELLED':
+      case 'CANCELED':
         return (
           <span className="bg-surface-variant text-on-surface-variant font-label-md text-label-md inline-flex items-center rounded-full px-2.5 py-1">
             <span className="material-symbols-outlined mr-1 text-[14px]">not_interested</span> Đã hủy
@@ -74,10 +87,10 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Tổng doanh thu</span>
             <span className="material-symbols-outlined text-[20px]">account_balance_wallet</span>
           </div>
-          <div className="font-display text-display text-on-surface">128.5M</div>
-          <div className="font-body-md text-body-md text-status-info flex items-center gap-1">
-            <span className="material-symbols-outlined text-[16px]">trending_up</span>
-            <span>+12.5% so với tháng trước</span>
+          <div className="font-display text-display text-on-surface">{totalRevenue.toLocaleString('vi-VN')}đ</div>
+          <div className="font-body-md text-body-md flex items-center gap-1 text-on-surface-variant">
+            <span className="material-symbols-outlined text-[16px]">info</span>
+            <span>Tổng số tiền đã nhận</span>
           </div>
         </div>
         <div className="bg-surface flex flex-col gap-2 rounded-xl p-6 shadow-sm">
@@ -85,10 +98,10 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Giao dịch thành công</span>
             <span className="material-symbols-outlined text-[20px]">check_circle</span>
           </div>
-          <div className="font-display text-display text-on-surface">342</div>
-          <div className="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
-            <span className="material-symbols-outlined text-[16px]">schedule</span>
-            <span>Tháng hiện tại</span>
+          <div className="font-display text-display text-on-surface">{successfulTransactions}</div>
+          <div className="font-body-md text-body-md flex items-center gap-1 text-on-surface-variant">
+            <span className="material-symbols-outlined text-[16px]">info</span>
+            <span>Giao dịch hoàn tất</span>
           </div>
         </div>
         <div className="bg-surface flex flex-col gap-2 rounded-xl p-6 shadow-sm">
@@ -96,9 +109,10 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Đang chờ xử lý</span>
             <span className="material-symbols-outlined text-[20px]">hourglass_empty</span>
           </div>
-          <div className="font-display text-display text-status-warning">15</div>
-          <div className="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
-            <span>Cần kiểm tra lại</span>
+          <div className="font-display text-display text-status-warning">{pendingTransactions}</div>
+          <div className="font-body-md text-body-md flex items-center gap-1 text-on-surface-variant">
+            <span className="material-symbols-outlined text-[16px]">info</span>
+            <span>Chưa thanh toán</span>
           </div>
         </div>
         <div className="bg-surface flex flex-col gap-2 rounded-xl p-6 shadow-sm">
@@ -106,9 +120,9 @@ export function PaymentListPage() {
             <span className="font-label-md text-label-md tracking-wider uppercase">Tỷ lệ thành công</span>
             <span className="material-symbols-outlined text-[20px]">pie_chart</span>
           </div>
-          <div className="font-display text-display text-on-surface">98%</div>
+          <div className="font-display text-display text-on-surface">{successRate}%</div>
           <div className="bg-surface-container-high mt-2 h-2 w-full overflow-hidden rounded-full">
-            <div className="bg-status-info h-full rounded-full" style={{ width: '98%' }}></div>
+            <div className="bg-status-info h-full rounded-full transition-all duration-500" style={{ width: `${successRate}%` }}></div>
           </div>
         </div>
       </div>
@@ -179,15 +193,15 @@ export function PaymentListPage() {
                     className="hover:bg-surface-container-lowest group border-surface-container-low/50 cursor-pointer border-b transition-colors last:border-0"
                   >
                     <td className="text-on-surface-variant p-4 font-mono whitespace-nowrap">
-                      #{payment.transactionId || payment.id}
+                      #{payment.transactionCode || payment.id}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="bg-primary-container text-on-primary-container font-label-md flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold">
-                          {payment.landlordId}
+                          {payment.tenantId}
                         </div>
                         <div>
-                          <div className="max-w-[200px] truncate font-semibold">Tenant {payment.landlordId}</div>
+                          <div className="max-w-[200px] truncate font-semibold">Tenant {payment.tenantId}</div>
                         </div>
                       </div>
                     </td>

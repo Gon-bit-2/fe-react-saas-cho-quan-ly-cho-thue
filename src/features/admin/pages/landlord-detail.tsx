@@ -1,528 +1,485 @@
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useParams } from 'react-router'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  ChevronRight,
-  History,
-  Star,
   Mail,
   Phone,
-  MapPin,
-  Download,
+  Building2,
+  Star,
+  History,
   Lock,
-  LockOpen,
+  Unlock,
   Ban,
-  Eye,
-  Home,
-  Crown,
+  FileText,
   CheckCircle2,
-  AlertCircle,
+  ChevronRight,
+  TrendingUp,
+  Home,
 } from 'lucide-react'
-import { adminTenantApi, type Tenant } from '../api/tenant.api'
+import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { adminLandlordApi, type Landlord } from '../api/tenant.api'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Textarea } from '@/components/ui/textarea'
 
 export const LandlordDetailPage = () => {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const [tenant, setTenant] = useState<Tenant | null>(null)
-  const [loading, setLoading] = useState(true)
+  const landlordId = Number(id)
+  const queryClient = useQueryClient()
+  const [reason, setReason] = useState('')
+  const [selectedAction, setSelectedAction] = useState<string | null>(null)
 
-  // Dialog states
-  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false)
-  const [banDialogOpen, setBanDialogOpen] = useState(false)
+  const landlord = useQuery({
+    queryKey: ['admin', 'landlord', landlordId],
+    queryFn: () => adminLandlordApi.get(landlordId).then((r) => r.data),
+    enabled: Number.isInteger(landlordId) && landlordId > 0,
+  })
 
-  useEffect(() => {
-    const fetchTenantDetail = async () => {
-      try {
-        if (!id) return
-        const response = await adminTenantApi.getTenantDetails(parseInt(id))
-        setTenant(response?.data || getMockTenantDetail(parseInt(id)))
-      } catch (error) {
-        setTenant(getMockTenantDetail(parseInt(id || '1')))
-        console.error(error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchTenantDetail()
-  }, [id])
+  const updateStatus = useMutation({
+    mutationFn: (status: Landlord['status']) => adminLandlordApi.updateStatus(landlordId, { status, reason }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'landlord', landlordId] })
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'landlords'] })
+      setReason('')
+      setSelectedAction(null)
+      toast.success('Đã cập nhật trạng thái tài khoản')
+    },
+    onError: () => toast.error('Không thể cập nhật trạng thái tài khoản'),
+  })
 
-  if (loading) {
-    return <div className="text-muted-foreground p-8 text-center">Đang tải thông tin chủ trọ...</div>
-  }
+  if (landlord.isLoading)
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center p-12 text-slate-500">
+        <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+        Đang tải thông tin...
+      </div>
+    )
 
-  if (!tenant) {
-    return <div className="text-muted-foreground p-8 text-center">Không tìm thấy thông tin chủ trọ.</div>
-  }
+  if (!landlord.data)
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center p-12 text-slate-500">
+        <div className="mb-2 text-xl font-bold">Không tìm thấy tài khoản</div>
+        <p>Chủ trọ hoặc Tenant này không tồn tại hoặc đã bị xóa.</p>
+      </div>
+    )
 
-  const isBanned = tenant.status === 'BANNED'
-  const isSuspended = tenant.status === 'INACTIVE'
-  const isActive = tenant.status === 'ACTIVE'
+  const data = landlord.data
+  const isBanned = data.status === 'BANNED'
+  const isLocked = data.status === 'INACTIVE'
+  const isActive = data.status === 'ACTIVE'
 
   return (
-    <div className="flex w-full flex-col gap-6 pb-12">
+    <div className="animate-in fade-in mx-auto flex w-full max-w-7xl flex-col gap-6 pb-12 duration-500">
       {/* Header */}
-      <div className="bg-muted/30 border-border flex flex-col items-start justify-between gap-4 rounded-xl border p-6 md:flex-row md:items-center">
+      <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-4 sm:flex-row sm:items-center">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-sm">
-            <span
-              className="text-muted-foreground hover:text-primary cursor-pointer font-semibold tracking-wider uppercase transition-colors"
-              onClick={() => navigate('/admin/chu-tro')}
-            >
+          <div className="mb-1 flex items-center gap-2 text-sm text-slate-500">
+            <Link to="/admin/chu-tro" className="text-xs font-semibold tracking-wider uppercase hover:text-blue-600">
               Quản lý chủ trọ
-            </span>
-            <ChevronRight className="text-muted-foreground h-4 w-4" />
-            <span className="text-foreground font-medium">Chi tiết tài khoản</span>
+            </Link>
+            <ChevronRight className="h-3 w-3" />
+            <span className="font-medium text-slate-900">Chi tiết tài khoản</span>
           </div>
-          <h1 className="text-foreground text-2xl font-bold md:text-3xl">LL-{2000 + tenant.id}</h1>
+          <h1 className="text-xl font-bold text-slate-900">LL-{data.id.toString().padStart(4, '0')}</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="bg-card flex items-center gap-2">
-            <History className="h-4 w-4" />
-            Lịch sử hoạt động
-          </Button>
-        </div>
+        <Button variant="outline" className="bg-white text-slate-700 shadow-sm hover:bg-slate-50">
+          <History className="mr-2 h-4 w-4" /> Lịch sử hoạt động
+        </Button>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        {/* Left Column: Profile & Docs */}
-        <div className="flex flex-col gap-6 xl:col-span-1">
-          {/* Profile Card */}
-          <Card className="relative overflow-hidden text-center">
-            <div className="bg-primary/10 absolute top-0 left-0 h-24 w-full"></div>
-            <CardContent className="flex flex-col items-center p-6 pt-8">
-              <div className="bg-card border-card relative z-10 mb-4 h-24 w-24 rounded-full border-4 p-1 shadow-sm">
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-blue-100 text-4xl font-bold text-blue-700">
-                  {tenant.name.charAt(0).toUpperCase()}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* Left Column - Profile */}
+        <div className="space-y-6 lg:col-span-4">
+          <div className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="relative h-24 bg-gradient-to-r from-blue-100 to-indigo-100">
+              <Avatar className="absolute -bottom-12 left-1/2 h-24 w-24 -translate-x-1/2 border-4 border-white shadow-sm">
+                <AvatarFallback className="bg-blue-600 text-2xl font-bold text-white">
+                  {data.fullName.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              {isActive && (
+                <div className="absolute -bottom-10 left-[calc(50%+24px)] flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-emerald-500 shadow-sm">
+                  <CheckCircle2 className="h-4 w-4 text-white" />
                 </div>
-                {isActive && (
-                  <div
-                    className="border-card absolute right-0 bottom-0 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-green-500 shadow-sm"
-                    title="Đã xác thực"
-                  >
-                    <CheckCircle2 className="h-4 w-4 text-white" />
-                  </div>
-                )}
-              </div>
-              <h2 className="text-foreground mb-1 text-xl font-bold">{tenant.name}</h2>
-              <p className="text-muted-foreground mb-6 text-sm">Chủ trọ cấp 2 (Silver)</p>
+              )}
+            </div>
+            <div className="border-b border-slate-100 px-6 pt-16 pb-6 text-center">
+              <h2 className="text-xl font-bold text-slate-900">{data.fullName}</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                {data.systemRole === 'SUPER_ADMIN' ? 'Quản trị viên' : 'Chủ trọ'}
+              </p>
+            </div>
 
-              <div className="border-border mt-2 grid w-full grid-cols-2 gap-4 border-t pt-6">
-                <div className="flex flex-col items-center">
-                  <span className="text-muted-foreground mb-1 text-xs font-semibold tracking-wider uppercase">
-                    Tin đăng
-                  </span>
-                  <span className="text-primary text-2xl font-bold">12</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-muted-foreground mb-1 text-xs font-semibold tracking-wider uppercase">
-                    Đánh giá
-                  </span>
-                  <div className="flex items-center gap-1 text-amber-500">
-                    <span className="text-2xl font-bold">4.8</span>
-                    <Star className="h-5 w-5 fill-amber-500" />
-                  </div>
+            <div className="flex border-b border-slate-100">
+              <div className="flex-1 border-r border-slate-100 py-4 text-center">
+                <div className="mb-1 text-xs font-bold tracking-wider text-slate-500 uppercase">Tin đăng</div>
+                <div className="text-xl font-bold text-blue-700">12</div>
+              </div>
+              <div className="flex-1 py-4 text-center">
+                <div className="mb-1 text-xs font-bold tracking-wider text-slate-500 uppercase">Đánh giá</div>
+                <div className="flex items-center justify-center gap-1 text-xl font-bold text-amber-600">
+                  4.8 <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Contact Info */}
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="text-foreground mb-4 text-lg font-bold">Thông tin liên hệ</h3>
-              <div className="flex flex-col gap-4">
-                <div className="flex items-start gap-3">
-                  <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
-                    <Mail className="text-muted-foreground h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs font-semibold uppercase">Email</p>
-                    <p className="text-foreground mt-0.5 text-sm font-medium">
-                      {tenant.owner?.email || `landlord${tenant.id}@example.com`}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
-                    <Phone className="text-muted-foreground h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs font-semibold uppercase">Số điện thoại</p>
-                    <p className="text-foreground mt-0.5 text-sm font-medium">0912 345 67{tenant.id % 10}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
-                    <MapPin className="text-muted-foreground h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs font-semibold uppercase">Địa chỉ đăng ký</p>
-                    <p className="text-foreground mt-0.5 text-sm font-medium">
-                      123 Đường Trần Hưng Đạo, Phường Cầu Ông Lãnh, Quận 1, TP. HCM
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="space-y-4 p-6">
+              <h3 className="text-sm font-bold text-slate-900">Thông tin liên hệ</h3>
 
-          {/* Documents */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-foreground text-lg font-bold">Giấy tờ tùy thân</h3>
-                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Đã duyệt</Badge>
-              </div>
-              <div className="flex flex-col gap-3">
-                {['CCCD_MatTruoc.jpg', 'CCCD_MatSau.jpg'].map((doc, idx) => (
-                  <div
-                    key={idx}
-                    className="border-border bg-muted/30 hover:bg-muted group flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors"
-                  >
-                    <div className="bg-background text-primary border-border flex h-10 w-10 items-center justify-center rounded border">
-                      <span className="text-xs font-bold">ID</span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-foreground truncate text-sm font-medium">{doc}</p>
-                      <p className="text-muted-foreground text-xs">Tải lên: 12/10/2023</p>
-                    </div>
-                    <Download className="text-muted-foreground h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Business Entities & Control Panel */}
-        <div className="flex flex-col gap-6 xl:col-span-2">
-          {/* Account Control Panel */}
-          <Card className="border-l-primary border-l-4">
-            <CardContent className="p-6">
-              <div className="mb-6 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-                <div>
-                  <h3 className="text-foreground mb-1 text-lg font-bold">Trạng thái tài khoản</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Quản lý quyền truy cập và hoạt động của chủ trọ trên hệ thống.
-                  </p>
-                </div>
-                {isActive && (
-                  <Badge
-                    variant="outline"
-                    className="bg-primary/10 text-primary border-primary/20 flex items-center gap-2 px-4 py-2"
-                  >
-                    <div className="bg-primary h-2 w-2 animate-pulse rounded-full"></div>
-                    <span className="tracking-wider uppercase">Đang hoạt động</span>
-                  </Badge>
-                )}
-                {isSuspended && (
-                  <Badge
-                    variant="outline"
-                    className="flex items-center gap-2 border-amber-200 bg-amber-100 px-4 py-2 text-amber-700"
-                  >
-                    <AlertCircle className="h-4 w-4" />
-                    <span className="tracking-wider uppercase">Đang bị khóa</span>
-                  </Badge>
-                )}
-                {isBanned && (
-                  <Badge variant="destructive" className="flex items-center gap-2 px-4 py-2">
-                    <Ban className="h-4 w-4" />
-                    <span className="tracking-wider uppercase">Bị cấm vĩnh viễn</span>
-                  </Badge>
-                )}
-              </div>
-
-              <div className="border-border grid grid-cols-1 gap-4 border-t pt-6 md:grid-cols-3">
-                <Button
-                  variant="outline"
-                  className={`h-auto flex-col items-center justify-center gap-2 p-4 ${isSuspended ? 'border-primary bg-primary/5 text-primary' : ''}`}
-                  disabled={isBanned || isSuspended}
-                  onClick={() => setSuspendDialogOpen(true)}
-                >
-                  <div
-                    className={`mb-1 flex h-10 w-10 items-center justify-center rounded-full ${isSuspended ? 'bg-primary text-primary-foreground' : 'bg-amber-100 text-amber-600'}`}
-                  >
-                    <Lock className="h-5 w-5" />
-                  </div>
-                  <span className="font-semibold">{isSuspended ? 'Đang tạm khóa' : 'Tạm khóa'}</span>
-                  <span className="text-muted-foreground text-center text-xs font-normal text-wrap">
-                    Giới hạn đăng tin mới
-                  </span>
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="h-auto flex-col items-center justify-center gap-2 p-4"
-                  disabled={isActive || isBanned}
-                >
-                  <div
-                    className={`mb-1 flex h-10 w-10 items-center justify-center rounded-full ${isActive ? 'bg-muted text-muted-foreground' : 'bg-green-100 text-green-600'}`}
-                  >
-                    <LockOpen className="h-5 w-5" />
-                  </div>
-                  <span className="font-semibold">Mở khóa</span>
-                  <span className="text-muted-foreground text-center text-xs font-normal text-wrap">
-                    Khôi phục quyền truy cập
-                  </span>
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className={`h-auto flex-col items-center justify-center gap-2 p-4 hover:border-red-200 hover:bg-red-50 hover:text-red-700 ${isBanned ? 'border-red-500 bg-red-50 text-red-700' : 'border-red-200 text-red-600'}`}
-                  disabled={isBanned}
-                  onClick={() => setBanDialogOpen(true)}
-                >
-                  <div
-                    className={`mb-1 flex h-10 w-10 items-center justify-center rounded-full ${isBanned ? 'bg-red-600 text-white' : 'bg-red-100'}`}
-                  >
-                    <Ban className="h-5 w-5" />
-                  </div>
-                  <span className="font-semibold">Cấm vĩnh viễn</span>
-                  <span className="text-muted-foreground text-center text-xs font-normal text-wrap">
-                    Hủy toàn bộ dịch vụ
-                  </span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Business Entities List */}
-          <Card className="flex flex-col overflow-hidden">
-            <div className="border-border flex items-center justify-between border-b p-6">
               <div>
-                <h3 className="text-foreground text-lg font-bold">Cơ sở kinh doanh</h3>
-                <p className="text-muted-foreground mt-1 text-sm">Danh sách nhà trọ/chung cư mini thuộc sở hữu</p>
+                <div className="mb-1 flex items-center gap-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  <Mail className="h-3.5 w-3.5" /> Email
+                </div>
+                <div className="text-sm font-medium text-slate-900">{data.email || 'Chưa cập nhật'}</div>
               </div>
-              <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Tổng cộng: 3 cơ sở</Badge>
-            </div>
-            <div className="flex-1 overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow>
-                    <TableHead className="font-semibold">Tên cơ sở</TableHead>
-                    <TableHead className="font-semibold">Khu vực</TableHead>
-                    <TableHead className="font-semibold">Số phòng</TableHead>
-                    <TableHead className="font-semibold">Tỷ lệ lấp đầy</TableHead>
-                    <TableHead className="text-right">Hành động</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow className="hover:bg-muted/30">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded">
-                          <Home className="text-muted-foreground h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-foreground font-medium">CHMN An Phú</p>
-                          <p className="text-muted-foreground text-xs">ID: BLD-001</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>Quận 2, TP.HCM</TableCell>
-                    <TableCell>24 phòng</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="bg-muted h-1.5 w-24 overflow-hidden rounded-full">
-                          <div className="h-full w-[90%] bg-green-500"></div>
-                        </div>
-                        <span className="text-muted-foreground text-xs font-medium">90%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-primary hover:bg-primary/10 hover:text-primary"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-muted/30">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded">
-                          <Home className="text-muted-foreground h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-foreground font-medium">Dãy trọ sinh viên C5</p>
-                          <p className="text-muted-foreground text-xs">ID: BLD-042</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>Thủ Đức, TP.HCM</TableCell>
-                    <TableCell>15 phòng</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="bg-muted h-1.5 w-24 overflow-hidden rounded-full">
-                          <div className="h-full w-[60%] bg-amber-500"></div>
-                        </div>
-                        <span className="text-muted-foreground text-xs font-medium">60%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-primary hover:bg-primary/10 hover:text-primary"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          </Card>
 
-          {/* Service Plan Subscriptions */}
-          <Card className="relative overflow-hidden">
-            <div className="bg-primary/5 pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full blur-3xl"></div>
-            <CardContent className="relative z-10 p-6">
-              <h3 className="text-foreground mb-4 text-lg font-bold">Gói dịch vụ đang sử dụng</h3>
-              <div className="to-primary flex flex-col gap-6 rounded-lg bg-gradient-to-r from-blue-600 p-5 text-white shadow-md sm:flex-row sm:items-center">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
-                  <Crown className="h-6 w-6 text-white" />
+              <div>
+                <div className="mb-1 flex items-center gap-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  <Phone className="h-3.5 w-3.5" /> Số điện thoại
                 </div>
-                <div className="flex-1">
-                  <p className="mb-1 text-xs font-semibold tracking-wider text-white/80 uppercase">Gói hiện tại</p>
-                  <h4 className="text-xl font-bold">Premium Landlord</h4>
-                  <p className="mt-1 text-sm text-white/90">Đăng tối đa 50 tin • Đẩy tin VIP tự động</p>
+                <div className="text-sm font-medium text-slate-900">{data.phone || 'Chưa cập nhật'}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900">Giấy tờ tùy thân</h3>
+              {data.ownedTenants[0]?.verificationStatus === 'VERIFIED' && (
+                <Badge className="border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                  Đã duyệt
+                </Badge>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              {data.ownedTenants[0]?.idCardFrontUrl ? (
+                <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-blue-600">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <a
+                      href={data.ownedTenants[0].idCardFrontUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-semibold text-blue-600 hover:underline"
+                    >
+                      Ảnh CCCD mặt trước
+                    </a>
+                  </div>
                 </div>
-                <div className="mt-4 border-t border-white/20 pt-4 sm:mt-0 sm:border-t-0 sm:pt-0 sm:text-right">
-                  <p className="mb-1 text-xs font-semibold tracking-wider text-white/80 uppercase">Hết hạn vào</p>
-                  <p className="text-lg font-bold">15/12/2023</p>
+              ) : null}
+
+              {data.ownedTenants[0]?.idCardBackUrl ? (
+                <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-blue-600">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <a
+                      href={data.ownedTenants[0].idCardBackUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-semibold text-blue-600 hover:underline"
+                    >
+                      Ảnh CCCD mặt sau
+                    </a>
+                  </div>
+                </div>
+              ) : null}
+
+              {!data.ownedTenants[0]?.idCardFrontUrl && !data.ownedTenants[0]?.idCardBackUrl && (
+                <div className="text-sm text-slate-500">Chưa cung cấp giấy tờ</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Main Content */}
+        <div className="space-y-6 lg:col-span-8">
+          {/* Subscription Plan */}
+          {data.ownedTenants[0]?.subscriptions?.[0] ? (
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white shadow-md">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <TrendingUp className="h-32 w-32" />
+              </div>
+              <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+                <div>
+                  <div className="mb-1 text-sm font-semibold tracking-wider text-blue-200 uppercase">Gói hiện tại</div>
+                  <h2 className="mb-2 text-3xl font-bold">{data.ownedTenants[0].subscriptions[0].plan.name}</h2>
+                  <ul className="space-y-1 text-sm text-blue-100">
+                    <li className="flex items-center gap-2">
+                      <div className="h-1.5 w-1.5 rounded-full bg-blue-300"></div> Đăng tối đa{' '}
+                      {data.ownedTenants[0].subscriptions[0].plan.maxRooms} phòng
+                    </li>
+                    {data.ownedTenants[0].subscriptions[0].plan.allowWebhookPayment && (
+                      <li className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-blue-300"></div> Cấu hình Webhook thanh toán tự động
+                      </li>
+                    )}
+                  </ul>
+                </div>
+
+                <div className="min-w-[200px] rounded-xl border border-white/20 bg-white/10 p-5 text-center backdrop-blur-sm">
+                  <div className="mb-2 text-xs font-semibold tracking-wider text-blue-200 uppercase">Hết hạn vào</div>
+                  <div className="mb-4 text-2xl font-bold">
+                    {new Date(data.ownedTenants[0].subscriptions[0].expiredAt).toLocaleDateString('vi-VN')}
+                  </div>
+                  <Button variant="secondary" className="w-full bg-white font-bold text-blue-700 hover:bg-blue-50">
+                    Nâng cấp gói
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          ) : (
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-slate-600 to-slate-700 p-8 text-white shadow-md">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <TrendingUp className="h-32 w-32" />
+              </div>
+              <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+                <div>
+                  <div className="mb-1 text-sm font-semibold tracking-wider text-slate-200 uppercase">Gói hiện tại</div>
+                  <h2 className="mb-2 text-3xl font-bold">Chưa đăng ký gói</h2>
+                  <p className="text-sm text-slate-100">Khách hàng chưa đăng ký gói dịch vụ nào hoặc gói đã hết hạn.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Account Status / Moderation Action */}
+          <div className="overflow-hidden rounded-xl rounded-l-none border-l-4 border-slate-900 bg-white shadow-sm">
+            <div className="border-b border-slate-100 p-6">
+              <div className="mb-2 flex items-center gap-3">
+                <ShieldIcon status={data.status} />
+                <h3 className="text-lg font-bold text-slate-900">Trạng thái tài khoản</h3>
+              </div>
+              <p className="text-sm text-slate-500">
+                Quản lý quyền truy cập và hoạt động của chủ trọ trên hệ thống. Hiện tại tài khoản đang
+                <span
+                  className={`ml-1 font-bold ${isActive ? 'text-emerald-600' : isLocked ? 'text-amber-600' : 'text-red-600'}`}
+                >
+                  {isActive ? 'HOẠT ĐỘNG' : isLocked ? 'TẠM KHÓA' : 'BỊ ĐÌNH CHỈ'}
+                </span>
+                .
+              </p>
+            </div>
+
+            <div className="bg-slate-50/50 p-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <button
+                  onClick={() => setSelectedAction('INACTIVE')}
+                  className={`rounded-xl border-2 p-4 text-center transition-all ${
+                    selectedAction === 'INACTIVE' || isLocked
+                      ? 'border-amber-400 bg-amber-50/50'
+                      : 'border-slate-200 bg-white hover:border-amber-200 hover:bg-amber-50/30'
+                  }`}
+                >
+                  <Lock
+                    className={`mx-auto mb-2 h-8 w-8 ${selectedAction === 'INACTIVE' || isLocked ? 'text-amber-600' : 'text-slate-400'}`}
+                  />
+                  <div
+                    className={`font-bold ${selectedAction === 'INACTIVE' || isLocked ? 'text-amber-700' : 'text-slate-700'}`}
+                  >
+                    Tạm khóa
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">Giới hạn đăng tin mới</div>
+                </button>
+
+                <button
+                  onClick={() => setSelectedAction('ACTIVE')}
+                  className={`rounded-xl border-2 p-4 text-center transition-all ${
+                    selectedAction === 'ACTIVE' || isActive
+                      ? 'border-emerald-400 bg-emerald-50/50'
+                      : 'border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30'
+                  }`}
+                >
+                  <Unlock
+                    className={`mx-auto mb-2 h-8 w-8 ${selectedAction === 'ACTIVE' || isActive ? 'text-emerald-600' : 'text-slate-400'}`}
+                  />
+                  <div
+                    className={`font-bold ${selectedAction === 'ACTIVE' || isActive ? 'text-emerald-700' : 'text-slate-700'}`}
+                  >
+                    Mở khóa
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">Tài khoản hoạt động</div>
+                </button>
+
+                <button
+                  onClick={() => setSelectedAction('BANNED')}
+                  className={`rounded-xl border-2 p-4 text-center transition-all ${
+                    selectedAction === 'BANNED' || isBanned
+                      ? 'border-red-400 bg-red-50/50'
+                      : 'border-slate-200 bg-white hover:border-red-200 hover:bg-red-50/30'
+                  }`}
+                >
+                  <Ban
+                    className={`mx-auto mb-2 h-8 w-8 ${selectedAction === 'BANNED' || isBanned ? 'text-red-600' : 'text-slate-400'}`}
+                  />
+                  <div
+                    className={`font-bold ${selectedAction === 'BANNED' || isBanned ? 'text-red-700' : 'text-slate-700'}`}
+                  >
+                    Đình chỉ vĩnh viễn
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">Hủy toàn bộ dịch vụ</div>
+                </button>
+              </div>
+
+              {selectedAction && selectedAction !== data.status && (
+                <div className="animate-in fade-in zoom-in-95 mt-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm duration-200">
+                  <h4 className="mb-2 text-sm font-bold text-slate-900">Xác nhận thay đổi trạng thái</h4>
+                  <Textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="Vui lòng nhập lý do cụ thể..."
+                    className="mb-3 resize-none bg-slate-50 focus-visible:ring-slate-300"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setSelectedAction(null)
+                        setReason('')
+                      }}
+                    >
+                      Hủy
+                    </Button>
+                    <Button
+                      className={
+                        selectedAction === 'BANNED'
+                          ? 'bg-red-600 hover:bg-red-700'
+                          : selectedAction === 'INACTIVE'
+                            ? 'bg-amber-600 hover:bg-amber-700'
+                            : 'bg-emerald-600 hover:bg-emerald-700'
+                      }
+                      disabled={reason.trim().length < 3 || updateStatus.isPending}
+                      onClick={() => updateStatus.mutate(selectedAction as Landlord['status'])}
+                    >
+                      {updateStatus.isPending ? 'Đang cập nhật...' : 'Xác nhận thay đổi'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Properties Overview */}
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 p-6">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Tổng quan tài sản</h3>
+                <p className="text-sm text-slate-500">Danh sách nhà trọ/chung cư mini thuộc sở hữu.</p>
+              </div>
+              <Badge
+                variant="secondary"
+                className="bg-blue-50 py-1 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+              >
+                Tổng cộng: {data.ownedTenants.length} cơ sở
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 border-b border-slate-100 bg-slate-50/50 p-6 md:grid-cols-2">
+              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+                <div>
+                  <div className="mb-1 text-sm font-semibold text-slate-500">SỐ LƯỢNG TÒA NHÀ</div>
+                  <div className="text-3xl font-bold text-slate-900">{data.ownedTenants.length}</div>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                  <Building2 className="h-6 w-6" />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+                <div>
+                  <div className="mb-1 text-sm font-semibold text-slate-500">TỔNG SỐ PHÒNG (ĐANG QUẢN LÝ)</div>
+                  <div className="text-3xl font-bold text-slate-900">
+                    {data.ownedTenants.reduce((acc, t) => acc + (t._count?.rooms || 0), 0)}
+                  </div>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                  <Home className="h-6 w-6" />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-0">
+              {data.ownedTenants.length === 0 ? (
+                <div className="p-12 text-center text-slate-500">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+                    <Building2 className="h-8 w-8 text-slate-300" />
+                  </div>
+                  Chưa có dữ liệu cơ sở kinh doanh.
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {/* Table Header mock */}
+                  <div className="grid grid-cols-12 gap-4 bg-slate-50 px-6 py-3 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                    <div className="col-span-5">Tên cơ sở</div>
+                    <div className="col-span-3">Số lượng phòng</div>
+                    <div className="col-span-4 text-right">Trạng thái</div>
+                  </div>
+
+                  {data.ownedTenants.map((tenant) => (
+                    <div
+                      key={tenant.id}
+                      className="grid grid-cols-12 items-center gap-4 p-6 transition-colors hover:bg-slate-50/50"
+                    >
+                      <div className="col-span-5 flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                          <Building2 className="h-6 w-6 text-slate-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-900">{tenant.name}</h4>
+                          <span className="font-mono text-xs text-slate-500">
+                            ID: BLD-{tenant.id.toString().padStart(3, '0')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="col-span-3">
+                        <div className="text-sm font-medium text-slate-700">{tenant._count?.rooms || 0} phòng</div>
+                      </div>
+                      <div className="col-span-4 flex justify-end">
+                        {tenant.status === 'ACTIVE' ? (
+                          <Badge className="border-transparent bg-emerald-100 text-emerald-700 shadow-sm hover:bg-emerald-100">
+                            Đang vận hành
+                          </Badge>
+                        ) : (
+                          <Badge className="border-transparent bg-slate-100 text-slate-700 shadow-sm hover:bg-slate-200">
+                            Tạm dừng
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Suspend Dialog */}
-      <Dialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-amber-600">
-              <Lock className="h-5 w-5" />
-              Tạm khóa tài khoản
-            </DialogTitle>
-            <DialogDescription>
-              Vui lòng cung cấp lý do khóa tài khoản này. Lý do này sẽ được ghi vào nhật ký hệ thống và có thể gửi email
-              thông báo cho chủ trọ.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="suspend-reason" className="text-foreground">
-              Lý do khóa <span className="text-destructive">*</span>
-            </Label>
-            <textarea id="suspend-reason" className="mt-2 resize-none" placeholder="Nhập lý do chi tiết..." rows={4} />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSuspendDialogOpen(false)}>
-              Hủy bỏ
-            </Button>
-            <Button className="bg-amber-500 text-white hover:bg-amber-600" onClick={() => setSuspendDialogOpen(false)}>
-              Xác nhận khóa
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Ban Dialog */}
-      <Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
-        <DialogContent className="border-t-destructive border-t-4 sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-destructive flex items-center gap-2">
-              <Ban className="h-5 w-5" />
-              Cấm vĩnh viễn tài khoản
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="bg-destructive/10 border-destructive/20 mt-2 mb-4 rounded-md border p-3">
-            <p className="text-destructive flex items-start gap-2 text-sm font-medium">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              Hành động này không thể hoàn tác. Toàn bộ tin đăng và cơ sở của chủ trọ sẽ bị gỡ khỏi hệ thống.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="ban-category" className="text-foreground">
-                Lý do vi phạm nghiêm trọng <span className="text-destructive">*</span>
-              </Label>
-              <Select>
-                <SelectTrigger id="ban-category">
-                  <SelectValue placeholder="-- Chọn danh mục vi phạm --" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Lừa đảo người thuê</SelectItem>
-                  <SelectItem value="2">Cung cấp thông tin giả mạo</SelectItem>
-                  <SelectItem value="3">Vi phạm chính sách nhiều lần</SelectItem>
-                  <SelectItem value="4">Khác</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="ban-details" className="text-foreground">
-                Chi tiết thêm
-              </Label>
-              <textarea
-                id="ban-details"
-                className="resize-none"
-                placeholder="Mô tả cụ thể hành vi vi phạm..."
-                rows={3}
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="mt-6">
-            <Button variant="outline" onClick={() => setBanDialogOpen(false)}>
-              Hủy bỏ
-            </Button>
-            <Button variant="destructive" onClick={() => setBanDialogOpen(false)}>
-              Đình chỉ ngay
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
 
-// Mock data
-function getMockTenantDetail(id: number): Tenant {
-  return {
-    id: id,
-    name: 'Nguyễn Văn Cường',
-    status: 'ACTIVE',
-    ownerId: id,
-    owner: {
-      id: id,
-      email: 'cuong.nguyen@example.com',
-      fullName: 'Nguyễn Văn Cường',
-      status: 'ACTIVE',
-      tenantMembers: [],
-      createdAt: '2023-10-15T00:00:00Z',
-      updatedAt: '2023-10-15T00:00:00Z',
-    },
-    createdAt: '2023-10-15T00:00:00Z',
-    updatedAt: '2023-10-15T00:00:00Z',
+function ShieldIcon({ status }: { status: string }) {
+  if (status === 'ACTIVE') {
+    return (
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+        <CheckCircle2 className="h-5 w-5" />
+      </div>
+    )
   }
+  if (status === 'INACTIVE') {
+    return (
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+        <Lock className="h-5 w-5" />
+      </div>
+    )
+  }
+  return (
+    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-600">
+      <Ban className="h-5 w-5" />
+    </div>
+  )
 }

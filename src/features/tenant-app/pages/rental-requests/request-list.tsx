@@ -3,64 +3,18 @@ import { useNavigate } from 'react-router'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { RENTAL_REQUEST_STATUS_MAP } from '@/shared/constants/status-config'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, FileText, CalendarClock, User, CheckCircle2, Clock, XCircle, ArrowRight } from 'lucide-react'
+import { Search, FileText, CalendarClock, User, ArrowRight } from 'lucide-react'
 import type { RentalRequest, RentalRequestStatus } from '@/types/rental-request'
 
-// Mock API hook since this feature might not have the API client setup completely
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const useRentalRequests = (_filters: unknown) => {
-  // Trả về mock data cho UI design testing
-  return {
-    data: {
-      data: [
-        {
-          id: 1,
-          tenantId: 1,
-          renterId: 101,
-          roomId: 201,
-          propertyId: 10,
-          status: 'PENDING',
-          expectedStartDate: '2026-09-01T00:00:00Z',
-          message: 'Tôi muốn thuê dài hạn 1 năm.',
-          createdAt: '2026-08-05T10:00:00Z',
-          updatedAt: '2026-08-05T10:00:00Z',
-        },
-        {
-          id: 2,
-          tenantId: 1,
-          renterId: 102,
-          roomId: 205,
-          propertyId: 10,
-          status: 'APPROVED',
-          expectedStartDate: '2026-08-15T00:00:00Z',
-          message: '',
-          createdAt: '2026-08-06T14:30:00Z',
-          updatedAt: '2026-08-07T09:00:00Z',
-        },
-        {
-          id: 3,
-          tenantId: 1,
-          renterId: 103,
-          roomId: 302,
-          propertyId: 11,
-          status: 'REJECTED',
-          expectedStartDate: '2026-08-10T00:00:00Z',
-          message: 'Có thể thương lượng giá không ạ?',
-          createdAt: '2026-08-02T08:15:00Z',
-          updatedAt: '2026-08-03T11:00:00Z',
-        }
-      ] as RentalRequest[]
-    },
-    isLoading: false
-  }
-}
+import { useRentalRequests } from '@/shared/api/rental-requests'
 
 export function Component() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<RentalRequestStatus | 'all'>('all')
 
   const { data, isLoading } = useRentalRequests({
     search: searchTerm,
@@ -68,57 +22,42 @@ export function Component() {
   })
 
   const getStatusBadge = (status: RentalRequestStatus) => {
-    switch (status) {
-      case 'PENDING':
-        return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none shadow-sm"><Clock className="w-3 h-3 mr-1" /> Chờ duyệt</Badge>
-      case 'APPROVED':
-        return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none shadow-sm"><CheckCircle2 className="w-3 h-3 mr-1" /> Đã duyệt</Badge>
-      case 'REJECTED':
-        return <Badge className="bg-red-100 text-red-700 hover:bg-red-200 border-none shadow-sm"><XCircle className="w-3 h-3 mr-1" /> Từ chối</Badge>
-      case 'NEED_MORE_INFO':
-        return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">Cần bổ sung</Badge>
-      case 'CANCELED':
-        return <Badge variant="secondary" className="text-slate-500">Đã hủy</Badge>
-      case 'CONVERTED_TO_CONTRACT':
-        return <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-none shadow-sm">Đã chuyển HĐ</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
+    return <StatusBadge status={status} statusMap={RENTAL_REQUEST_STATUS_MAP} fallbackLabel={status} />
   }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
+      year: 'numeric',
     })
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="animate-in fade-in space-y-8 duration-500">
       {/* Header Section */}
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">Yêu cầu thuê phòng</h2>
-          <p className="text-slate-500 mt-1">Quản lý và xét duyệt các đăng ký thuê từ khách hàng</p>
+          <p className="mt-1 text-slate-500">Quản lý và xét duyệt các đăng ký thuê từ khách hàng</p>
         </div>
       </div>
 
       {/* Filters Section */}
-      <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <div className="relative flex-1 min-w-[280px]">
-          <Search className="absolute top-1/2 -translate-y-1/2 left-3 h-4 w-4 text-slate-400" />
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="relative min-w-[280px] flex-1">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             type="search"
             placeholder="Tìm theo tên khách hoặc mã phòng..."
-            className="pl-9 bg-slate-50/50 border-slate-200"
+            className="border-slate-200 bg-slate-50/50 pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[200px] bg-slate-50/50 border-slate-200">
+        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as RentalRequestStatus | 'all')}>
+          <SelectTrigger className="w-[200px] border-slate-200 bg-slate-50/50">
             <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
@@ -134,14 +73,14 @@ export function Component() {
       {/* Table Section */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <Table>
-          <TableHeader className="bg-slate-50 border-b border-slate-200">
+          <TableHeader className="border-b border-slate-200 bg-slate-50">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[100px] py-4 text-slate-600 font-semibold text-center">ID</TableHead>
-              <TableHead className="py-4 text-slate-600 font-semibold">Khách hàng</TableHead>
-              <TableHead className="py-4 text-slate-600 font-semibold">Phòng quan tâm</TableHead>
-              <TableHead className="py-4 text-slate-600 font-semibold">Ngày mong muốn</TableHead>
-              <TableHead className="py-4 text-slate-600 font-semibold text-center">Trạng thái</TableHead>
-              <TableHead className="text-right py-4 text-slate-600 font-semibold">Thao tác</TableHead>
+              <TableHead className="w-[100px] py-4 text-center font-semibold text-slate-600">ID</TableHead>
+              <TableHead className="py-4 font-semibold text-slate-600">Khách hàng</TableHead>
+              <TableHead className="py-4 font-semibold text-slate-600">Phòng quan tâm</TableHead>
+              <TableHead className="py-4 font-semibold text-slate-600">Ngày mong muốn</TableHead>
+              <TableHead className="py-4 text-center font-semibold text-slate-600">Trạng thái</TableHead>
+              <TableHead className="py-4 text-right font-semibold text-slate-600">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -149,7 +88,7 @@ export function Component() {
               <TableRow>
                 <TableCell colSpan={6} className="h-48 text-center">
                   <div className="flex flex-col items-center justify-center space-y-4">
-                    <div className="border-slate-200 border-t-slate-900 h-8 w-8 animate-spin rounded-full border-4" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
                     <p className="text-sm text-slate-500">Đang tải dữ liệu...</p>
                   </div>
                 </TableCell>
@@ -159,49 +98,48 @@ export function Component() {
                 <TableCell colSpan={6} className="h-48 text-center">
                   <div className="flex flex-col items-center justify-center space-y-2">
                     <FileText className="h-12 w-12 text-slate-300" />
-                    <p className="text-slate-500 font-medium">Không có yêu cầu thuê nào</p>
+                    <p className="font-medium text-slate-500">Không có yêu cầu thuê nào</p>
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
-              data?.data.map((req: RentalRequest) => (
-                <TableRow key={req.id} className="group transition-colors hover:bg-slate-50/80 cursor-default">
-                  <TableCell className="text-center font-medium text-slate-500 py-4">
-                    #{req.id}
-                  </TableCell>
+              data?.data?.map((req: RentalRequest) => (
+                <TableRow key={req.id} className="group cursor-default transition-colors hover:bg-slate-50/80">
+                  <TableCell className="py-4 text-center font-medium text-slate-500">#{req.id}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-slate-600">
                         <User className="h-5 w-5" />
                       </div>
                       <div>
-                        <div className="font-semibold text-slate-900">Renter {req.renterId}</div>
-                        <div className="text-xs text-slate-500 mt-0.5">Ngày gửi: {formatDate(req.createdAt)}</div>
+                        <div className="font-semibold text-slate-900">
+                          {/* @ts-expect-error: TODO: update types */}
+                          {req.renter?.fullName || `Khách thuê #${req.renterId}`}
+                        </div>
+                        <div className="mt-0.5 text-xs text-slate-500">Ngày gửi: {formatDate(req.createdAt)}</div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium text-indigo-600 bg-indigo-50 px-2 py-1 inline-flex rounded-md border border-indigo-100">
+                    <div className="inline-flex rounded-md border border-indigo-100 bg-indigo-50 px-2 py-1 font-medium text-indigo-600">
                       Phòng #{req.roomId}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center text-slate-700">
-                      <CalendarClock className="w-4 h-4 mr-2 text-slate-400" />
+                      <CalendarClock className="mr-2 h-4 w-4 text-slate-400" />
                       {req.expectedStartDate ? formatDate(req.expectedStartDate) : 'Chưa xác định'}
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">
-                    {getStatusBadge(req.status)}
-                  </TableCell>
+                  <TableCell className="text-center">{getStatusBadge(req.status)}</TableCell>
                   <TableCell className="text-right">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="opacity-0 group-hover:opacity-100 transition-opacity font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-                      onClick={() => navigate(`/app/quan-ly-nha-tro/yeu-cau-thue/${req.id}`)}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="font-medium text-indigo-600 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-indigo-50 hover:text-indigo-700"
+                      onClick={() => navigate(`/yeu-cau-thue/${req.id}`)}
                     >
-                      Xử lý <ArrowRight className="w-4 h-4 ml-1" />
+                      Xử lý <ArrowRight className="ml-1 h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
