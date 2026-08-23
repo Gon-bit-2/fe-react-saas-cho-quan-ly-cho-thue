@@ -194,7 +194,7 @@ export const CurrentPlanPage = () => {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold">AI & OCR</span>
-                  <span className="text-muted-foreground text-sm">Quét CCCD & Hóa đơn điện nước</span>
+                  <span className="text-muted-foreground text-sm">Quét OCR chỉ số công tơ</span>
                 </div>
               </div>
             )}

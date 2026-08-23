@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useMarketplaceRooms } from '@/shared/api/marketplace'
 import { RoomCard } from '../components/room-card'
 import { AdministrativeAreaSelect } from '@/shared/components/administrative-area-select'
+import { toast } from 'sonner'
 
 export function Component() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -67,11 +68,13 @@ export function Component() {
 
   const handleFindNearMe = () => {
     if (!navigator.geolocation) {
-      alert('Trình duyệt không hỗ trợ định vị')
+      toast.error('Trình duyệt không hỗ trợ định vị')
       return
     }
+    const toastId = toast.loading('Đang lấy vị trí hiện tại...')
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        toast.dismiss(toastId)
         setFilters((f) => ({
           ...f,
           lat: position.coords.latitude.toString(),
@@ -80,9 +83,11 @@ export function Component() {
           wardCode: '',
         }))
       },
-      () => {
-        alert('Không thể lấy vị trí hiện tại. Vui lòng cấp quyền truy cập vị trí.')
+      (err) => {
+        console.error('Lỗi định vị:', err)
+        toast.dismiss(toastId)
       },
+      { timeout: 10000 }
     )
   }
 

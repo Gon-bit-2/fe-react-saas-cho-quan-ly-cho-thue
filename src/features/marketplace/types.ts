@@ -11,6 +11,7 @@ export interface MarketplaceRoom {
   status: string
   marketplaceStatus: string
   description?: string | null
+  tenantId: number
   property: {
     id: number
     name: string

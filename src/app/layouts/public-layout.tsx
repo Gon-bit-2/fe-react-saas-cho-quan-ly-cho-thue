@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router'
 import { MarketplaceHeader } from '@/features/marketplace/components/marketplace-header'
 import { MarketplaceFooter } from '@/features/marketplace/components/marketplace-footer'
+import { FloatingChatWidget } from '@/features/chat/components/floating-chat-widget'
 
 /**
  * Layout công khai cho marketplace.
@@ -13,6 +14,7 @@ export function Component() {
         <Outlet />
       </main>
       <MarketplaceFooter />
+      <FloatingChatWidget />
     </div>
   )
 }

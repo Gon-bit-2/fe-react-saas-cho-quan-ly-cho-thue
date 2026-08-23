@@ -24,6 +24,7 @@ interface MarketplaceRoomResponse {
   status: string
   marketplaceStatus: string
   description?: string | null
+  tenantId: number
   property: {
     id: number
     name: string
@@ -68,6 +69,7 @@ export function normalizeMarketplaceRoom(room: MarketplaceRoomResponse): Marketp
     status: room.status,
     marketplaceStatus: room.marketplaceStatus,
     description: room.description ?? null,
+    tenantId: room.tenantId,
     property: {
       id: room.property.id,
       name: room.property.name,
