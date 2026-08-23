@@ -11,6 +11,8 @@ import {
 import { profileApi } from '@/features/auth/api/profile.api'
 import { useAuth } from '@/shared/hooks/use-auth'
 
+import { FloatingChatWidget } from '@/features/chat/components/floating-chat-widget'
+
 /**
  * Layout cho trang account (profile, chọn tenant).
  */
@@ -171,6 +173,7 @@ export function Component() {
           <Outlet />
         </main>
       </div>
+      <FloatingChatWidget />
     </div>
   )
 }

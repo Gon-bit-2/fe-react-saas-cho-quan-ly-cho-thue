@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { TenantSwitcher } from '@/features/tenant-app/components/tenant-switcher'
 import { useNotificationsControllerCountUnread } from '@/shared/api/generated/notifications/notifications'
+import { FloatingChatWidget } from '@/features/chat/components/floating-chat-widget'
 
 const navItems = [
   { name: 'Tổng quan', path: '/tong-quan', icon: 'grid_view' },
@@ -37,20 +38,26 @@ export function Component() {
   const { profile, logout, selectedMembership } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  
+
   const { data: unreadCount = 0 } = useNotificationsControllerCountUnread()
 
   const getRoleLabel = (roleId?: string | null) => {
     switch (roleId) {
-      case 'ADMIN': return 'Quản trị viên'
-      case 'LANDLORD': return 'Chủ trọ'
-      case 'MANAGER': return 'Quản lý vận hành'
-      case 'TENANT': return 'Người thuê'
-      case 'USER': return 'Người dùng'
-      default: return 'Người dùng'
+      case 'ADMIN':
+        return 'Quản trị viên'
+      case 'LANDLORD':
+        return 'Chủ trọ'
+      case 'MANAGER':
+        return 'Quản lý vận hành'
+      case 'TENANT':
+        return 'Người thuê'
+      case 'USER':
+        return 'Người dùng'
+      default:
+        return 'Người dùng'
     }
   }
-  
+
   const displayRole = getRoleLabel(selectedMembership?.roleId || profile?.systemRole)
 
   const handleLogout = (e: React.MouseEvent) => {
@@ -178,6 +185,7 @@ export function Component() {
           <Outlet />
         </main>
       </div>
+      <FloatingChatWidget />
     </div>
   )
 }

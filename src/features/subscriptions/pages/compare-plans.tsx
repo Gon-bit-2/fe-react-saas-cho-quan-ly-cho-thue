@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router'
 import { cn } from '@/shared/lib/utils'
 import { usePlansControllerListAvailable } from '@/shared/api/generated/plans/plans'
+import { planApi, type Subscription } from '../api/plan.api'
+import { useAuth } from '@/shared/hooks/use-auth'
 
 type PlanDto = {
   id: number
@@ -19,8 +21,27 @@ type PlanDto = {
 
 export const ComparePlansPage = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually')
+  const [currentSubscription, setCurrentSubscription] = useState<Subscription | null>(null)
   const navigate = useNavigate()
   const { data = [], isLoading, error } = usePlansControllerListAvailable()
+  
+  const { selectedMembership } = useAuth()
+  const tenantId = Number(selectedMembership?.tenantId || 0)
+
+  useEffect(() => {
+    if (!tenantId) return
+    const fetchCurrentPlan = async () => {
+      try {
+        const { data } = await planApi.getCurrentSubscription(tenantId)
+        if (data?.subscription?.status === 'ACTIVE') {
+          setCurrentSubscription(data.subscription)
+        }
+      } catch (err) {
+        console.error('Failed to fetch current subscription', err)
+      }
+    }
+    fetchCurrentPlan()
+  }, [tenantId])
 
   // Extract plans array from data response (handles both array and nested data object)
   const plans = Array.isArray(data) ? data : (data as { data?: PlanDto[] })?.data || []
@@ -95,6 +116,10 @@ export const ComparePlansPage = () => {
             const isFree = currentPrice === 0 && !isEnterprise
             const formattedPrice = new Intl.NumberFormat('vi-VN').format(currentPrice || 0)
 
+            const isCurrentPlan = 
+              currentSubscription?.planId === plan.id && 
+              currentSubscription?.billingCycle === (billingCycle === 'annually' ? 'YEARLY' : 'MONTHLY')
+
             // Features list mapping
             const renderFeatures = (isWhiteText: boolean = false) => {
               const textClass = isWhiteText ? 'text-white' : 'text-foreground'
@@ -116,7 +141,7 @@ export const ComparePlansPage = () => {
                   {plan.allowAiOcr && (
                     <li className="flex items-start gap-3">
                       <span className={`material-symbols-outlined mt-0.5 text-[20px] ${iconClass}`}>check_circle</span>
-                      <span className={`text-sm ${textClass}`}>Hỗ trợ AI đọc CCCD/Hóa đơn</span>
+                      <span className={`text-sm ${textClass}`}>Hỗ trợ quét OCR công tơ</span>
                     </li>
                   )}
                   {plan.allowWebhookPayment && (
@@ -209,10 +234,11 @@ export const ComparePlansPage = () => {
                   </div>
                   {renderFeatures()}
                   <Button
+                    disabled={isCurrentPlan}
                     onClick={() => navigate('/goi-dich-vu/thanh-toan', { state: { plan, billingCycle } })}
-                    className="bg-primary mt-auto w-full"
+                    className="bg-primary mt-auto w-full disabled:opacity-50"
                   >
-                    Nâng cấp
+                    {isCurrentPlan ? 'Đang sử dụng' : 'Nâng cấp'}
                   </Button>
                 </div>
               )
@@ -250,11 +276,12 @@ export const ComparePlansPage = () => {
                 </div>
                 {renderFeatures()}
                 <Button
-                  variant="outline"
-                  className="mt-auto w-full"
+                  variant={isCurrentPlan ? 'secondary' : 'outline'}
+                  disabled={isCurrentPlan}
+                  className="mt-auto w-full disabled:opacity-50"
                   onClick={() => navigate('/goi-dich-vu/thanh-toan', { state: { plan, billingCycle } })}
                 >
-                  Sử dụng gói
+                  {isCurrentPlan ? 'Đang sử dụng' : 'Sử dụng gói'}
                 </Button>
               </div>
             )
@@ -331,7 +358,7 @@ export const ComparePlansPage = () => {
                 AI & OCR
                 <span
                   className="text-muted-foreground material-symbols-outlined cursor-help text-[16px]"
-                  title="Hỗ trợ đọc hóa đơn, thẻ CCCD tự động"
+                  title="Hỗ trợ quét tự động chỉ số công tơ điện/nước"
                 >
                   info
                 </span>

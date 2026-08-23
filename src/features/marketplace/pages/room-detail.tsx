@@ -6,6 +6,7 @@ import { useEffect } from 'react'
 
 import { useAuth } from '@/shared/hooks/use-auth'
 import { toast } from 'sonner'
+import { conversationsApi } from '@/shared/api/conversations'
 import { BookViewingDrawer } from '../components/book-viewing-drawer'
 import { RentalRequestDrawer } from '../components/rental-request-drawer'
 import { FavoriteButton } from '../components/favorite-button'
@@ -103,6 +104,20 @@ export function Component() {
   }).format(room.basePrice)
   const propertyType = room.property.type ? room.property.type.replaceAll('_', ' ') : 'Chưa phân loại'
   const location = [room.property.ward, room.property.district, room.property.province].filter(Boolean).join(', ')
+
+  const handleOpenChat = async () => {
+    try {
+      const conv = await conversationsApi.findOrCreateConversation({
+        type: 'ROOM_CHAT',
+        tenantId: room.tenantId,
+        roomId: room.id,
+      })
+      window.dispatchEvent(new CustomEvent('open-chat', { detail: { conversationId: conv.id } }))
+    } catch (e) {
+      toast.error('Không thể tạo cuộc trò chuyện')
+      console.error(e)
+    }
+  }
 
   return (
     <div className="bg-surface-container-low min-h-screen pb-20 md:pb-8">
@@ -362,7 +377,7 @@ export function Component() {
                       Đặt lịch xem
                     </button>
                     <button
-                      onClick={() => toast.info('Tính năng chat đang được phát triển')}
+                      onClick={handleOpenChat}
                       className="bg-secondary-container text-on-secondary-container font-label-md hover:bg-secondary-container/80 flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 transition-colors border border-surface-border"
                     >
                       <span className="material-symbols-outlined text-[18px]">chat</span>
