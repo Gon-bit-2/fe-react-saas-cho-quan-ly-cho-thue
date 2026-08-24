@@ -5,7 +5,9 @@
  * Interactive contract for Super Admin, landlord/staff and renter Web MVP flows. Existing route URLs are kept stable.
  * OpenAPI spec version: 1.0.0
  */
-import { useQuery } from '@tanstack/react-query'
+import {
+  useQuery
+} from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -15,8 +17,8 @@ import type {
   QueryKey,
   UndefinedInitialDataOptions,
   UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
+  UseQueryResult
+} from '@tanstack/react-query';
 
 import type {
   BadRequestResponse,
@@ -34,874 +36,480 @@ import type {
   UtilityMetersControllerList200,
   UtilityMetersControllerListParams,
   UtilityMetersControllerUpdate200,
-  UtilityMetersControllerUpdateStatus200,
-} from '../models'
+  UtilityMetersControllerUpdateStatus200
+} from '../models';
 
-import { customInstance } from '../../orval-mutator'
-import type { ErrorType, BodyType } from '../../orval-mutator'
+import { customInstance } from '../../orval-mutator';
+import type { ErrorType , BodyType } from '../../orval-mutator';
 
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
 
 const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
-  const result = { queryKey } as T & { queryKey: K }
+  const result = { queryKey } as T & { queryKey: K };
   for (const key of Object.keys(query)) {
     // The explicit queryKey always wins, matching the previous
     // `{ ...query, queryKey }` spread where it was set last.
-    if (key === 'queryKey') continue
+    if (key === 'queryKey') continue;
     Object.defineProperty(result, key, {
       enumerable: true,
       configurable: true,
       get: () => (query as Record<string, unknown>)[key],
-    })
+    });
   }
-  return result
-}
+  return result;
+};
 
 export const utilityMetersControllerList = (
-  params?: UtilityMetersControllerListParams,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+    params?: UtilityMetersControllerListParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
-  return customInstance<UtilityMetersControllerList200>(
-    { url: `/utility-meters`, method: 'GET', params, signal },
-    options,
-  )
-}
 
-export const getUtilityMetersControllerListQueryKey = (params?: UtilityMetersControllerListParams) => {
-  return [`/utility-meters`, ...(params ? [params] : [])] as const
-}
 
-export const getUtilityMetersControllerListQueryOptions = <
-  TData = Awaited<ReturnType<typeof utilityMetersControllerList>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  params?: UtilityMetersControllerListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
+      return customInstance<UtilityMetersControllerList200>(
+      {url: `/utility-meters`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getUtilityMetersControllerListQueryKey = (params?: UtilityMetersControllerListParams,) => {
+    return [
+    `/utility-meters`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getUtilityMetersControllerListQueryOptions = <TData = Awaited<ReturnType<typeof utilityMetersControllerList>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(params?: UtilityMetersControllerListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getUtilityMetersControllerListQueryKey(params)
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof utilityMetersControllerList>>> = ({ signal }) =>
-    utilityMetersControllerList(params, requestOptions, signal)
+  const queryKey =  queryOptions?.queryKey ?? getUtilityMetersControllerListQueryKey(params);
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof utilityMetersControllerList>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof utilityMetersControllerList>>> = ({ signal }) => utilityMetersControllerList(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type UtilityMetersControllerListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof utilityMetersControllerList>>
->
-export type UtilityMetersControllerListQueryError = ErrorType<
-  | BadRequestResponse
-  | UnauthorizedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | ConflictResponse
-  | RateLimitedResponse
-  | InternalErrorResponse
->
+export type UtilityMetersControllerListQueryResult = NonNullable<Awaited<ReturnType<typeof utilityMetersControllerList>>>
+export type UtilityMetersControllerListQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
 
-export function useUtilityMetersControllerList<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerList>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  params: undefined | UtilityMetersControllerListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData>> &
-      Pick<
+
+export function useUtilityMetersControllerList<TData = Awaited<ReturnType<typeof utilityMetersControllerList>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ params: undefined |  UtilityMetersControllerListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof utilityMetersControllerList>>,
           TError,
           Awaited<ReturnType<typeof utilityMetersControllerList>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUtilityMetersControllerList<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerList>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  params?: UtilityMetersControllerListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData>> &
-      Pick<
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUtilityMetersControllerList<TData = Awaited<ReturnType<typeof utilityMetersControllerList>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ params?: UtilityMetersControllerListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof utilityMetersControllerList>>,
           TError,
           Awaited<ReturnType<typeof utilityMetersControllerList>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUtilityMetersControllerList<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerList>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  params?: UtilityMetersControllerListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUtilityMetersControllerList<TData = Awaited<ReturnType<typeof utilityMetersControllerList>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ params?: UtilityMetersControllerListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useUtilityMetersControllerList<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerList>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  params?: UtilityMetersControllerListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getUtilityMetersControllerListQueryOptions(params, options)
+export function useUtilityMetersControllerList<TData = Awaited<ReturnType<typeof utilityMetersControllerList>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ params?: UtilityMetersControllerListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerList>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const queryOptions = getUtilityMetersControllerListQueryOptions(params,options)
 
-  return withQueryKey(query, queryOptions.queryKey)
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
 
 export const utilityMetersControllerCreate = (
-  createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+    createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
-  return customInstance<UtilityMetersControllerCreate201>(
-    {
-      url: `/utility-meters`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: createUtilityMeterBodyDTO,
-      signal,
+
+
+      return customInstance<UtilityMetersControllerCreate201>(
+      {url: `/utility-meters`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createUtilityMeterBodyDTO, signal
     },
-    options,
-  )
-}
+      options);
+    }
 
-export const getUtilityMetersControllerCreateQueryKey = (
-  createUtilityMeterBodyDTO?: BodyType<CreateUtilityMeterBodyDTO>,
+
+
+
+export const getUtilityMetersControllerCreateQueryKey = (createUtilityMeterBodyDTO?: BodyType<CreateUtilityMeterBodyDTO>,) => {
+    return [
+    'POST', `/utility-meters`, createUtilityMeterBodyDTO
+    ] as const;
+    }
+
+
+export const getUtilityMetersControllerCreateQueryOptions = <TData = Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
-  return ['POST', `/utility-meters`, createUtilityMeterBodyDTO] as const
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getUtilityMetersControllerCreateQueryKey(createUtilityMeterBodyDTO);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof utilityMetersControllerCreate>>> = ({ signal }) => utilityMetersControllerCreate(createUtilityMeterBodyDTO, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export const getUtilityMetersControllerCreateQueryOptions = <
-  TData = Awaited<ReturnType<typeof utilityMetersControllerCreate>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
+export type UtilityMetersControllerCreateQueryResult = NonNullable<Awaited<ReturnType<typeof utilityMetersControllerCreate>>>
+export type UtilityMetersControllerCreateQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
 
-  const queryKey = queryOptions?.queryKey ?? getUtilityMetersControllerCreateQueryKey(createUtilityMeterBodyDTO)
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof utilityMetersControllerCreate>>> = ({ signal }) =>
-    utilityMetersControllerCreate(createUtilityMeterBodyDTO, requestOptions, signal)
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof utilityMetersControllerCreate>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type UtilityMetersControllerCreateQueryResult = NonNullable<
-  Awaited<ReturnType<typeof utilityMetersControllerCreate>>
->
-export type UtilityMetersControllerCreateQueryError = ErrorType<
-  | BadRequestResponse
-  | UnauthorizedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | ConflictResponse
-  | RateLimitedResponse
-  | InternalErrorResponse
->
-
-export function useUtilityMetersControllerCreate<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerCreate>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData>> &
-      Pick<
+export function useUtilityMetersControllerCreate<TData = Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof utilityMetersControllerCreate>>,
           TError,
           Awaited<ReturnType<typeof utilityMetersControllerCreate>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUtilityMetersControllerCreate<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerCreate>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData>> &
-      Pick<
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUtilityMetersControllerCreate<TData = Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof utilityMetersControllerCreate>>,
           TError,
           Awaited<ReturnType<typeof utilityMetersControllerCreate>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUtilityMetersControllerCreate<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerCreate>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUtilityMetersControllerCreate<TData = Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useUtilityMetersControllerCreate<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerCreate>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getUtilityMetersControllerCreateQueryOptions(createUtilityMeterBodyDTO, options)
+export function useUtilityMetersControllerCreate<TData = Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ createUtilityMeterBodyDTO: BodyType<CreateUtilityMeterBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerCreate>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const queryOptions = getUtilityMetersControllerCreateQueryOptions(createUtilityMeterBodyDTO,options)
 
-  return withQueryKey(query, queryOptions.queryKey)
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
 
 export const utilityMetersControllerGetById = (
-  id: number,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+    id: number,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
-  return customInstance<UtilityMetersControllerGetById200>(
-    { url: `/utility-meters/${id}`, method: 'GET', signal },
-    options,
-  )
-}
 
-export const getUtilityMetersControllerGetByIdQueryKey = (id: number) => {
-  return [`/utility-meters/${id}`] as const
-}
 
-export const getUtilityMetersControllerGetByIdQueryOptions = <
-  TData = Awaited<ReturnType<typeof utilityMetersControllerGetById>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
+      return customInstance<UtilityMetersControllerGetById200>(
+      {url: `/utility-meters/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getUtilityMetersControllerGetByIdQueryKey = (id: number,) => {
+    return [
+    `/utility-meters/${id}`
+    ] as const;
+    }
+
+
+export const getUtilityMetersControllerGetByIdQueryOptions = <TData = Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getUtilityMetersControllerGetByIdQueryKey(id)
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof utilityMetersControllerGetById>>> = ({ signal }) =>
-    utilityMetersControllerGetById(id, requestOptions, signal)
+  const queryKey =  queryOptions?.queryKey ?? getUtilityMetersControllerGetByIdQueryKey(id);
 
-  return { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof utilityMetersControllerGetById>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof utilityMetersControllerGetById>>> = ({ signal }) => utilityMetersControllerGetById(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type UtilityMetersControllerGetByIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof utilityMetersControllerGetById>>
->
-export type UtilityMetersControllerGetByIdQueryError = ErrorType<
-  | BadRequestResponse
-  | UnauthorizedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | ConflictResponse
-  | RateLimitedResponse
-  | InternalErrorResponse
->
+export type UtilityMetersControllerGetByIdQueryResult = NonNullable<Awaited<ReturnType<typeof utilityMetersControllerGetById>>>
+export type UtilityMetersControllerGetByIdQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
 
-export function useUtilityMetersControllerGetById<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerGetById>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData>> &
-      Pick<
+
+export function useUtilityMetersControllerGetById<TData = Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof utilityMetersControllerGetById>>,
           TError,
           Awaited<ReturnType<typeof utilityMetersControllerGetById>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUtilityMetersControllerGetById<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerGetById>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData>> &
-      Pick<
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUtilityMetersControllerGetById<TData = Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof utilityMetersControllerGetById>>,
           TError,
           Awaited<ReturnType<typeof utilityMetersControllerGetById>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUtilityMetersControllerGetById<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerGetById>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUtilityMetersControllerGetById<TData = Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useUtilityMetersControllerGetById<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerGetById>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getUtilityMetersControllerGetByIdQueryOptions(id, options)
+export function useUtilityMetersControllerGetById<TData = Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerGetById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const queryOptions = getUtilityMetersControllerGetByIdQueryOptions(id,options)
 
-  return withQueryKey(query, queryOptions.queryKey)
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
 
 export const utilityMetersControllerUpdate = (
-  id: number,
-  updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+    id: number,
+    updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
-  return customInstance<UtilityMetersControllerUpdate200>(
-    {
-      url: `/utility-meters/${id}`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: updateUtilityMeterBodyDTO,
-      signal,
+
+
+      return customInstance<UtilityMetersControllerUpdate200>(
+      {url: `/utility-meters/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateUtilityMeterBodyDTO, signal
     },
-    options,
-  )
-}
+      options);
+    }
 
-export const getUtilityMetersControllerUpdateQueryKey = (
-  id: number,
-  updateUtilityMeterBodyDTO?: BodyType<UpdateUtilityMeterBodyDTO>,
+
+
+
+export const getUtilityMetersControllerUpdateQueryKey = (id: number,
+    updateUtilityMeterBodyDTO?: BodyType<UpdateUtilityMeterBodyDTO>,) => {
+    return [
+    'PATCH', `/utility-meters/${id}`, updateUtilityMeterBodyDTO
+    ] as const;
+    }
+
+
+export const getUtilityMetersControllerUpdateQueryOptions = <TData = Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number,
+    updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
-  return ['PATCH', `/utility-meters/${id}`, updateUtilityMeterBodyDTO] as const
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getUtilityMetersControllerUpdateQueryKey(id,updateUtilityMeterBodyDTO);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>> = ({ signal }) => utilityMetersControllerUpdate(id,updateUtilityMeterBodyDTO, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export const getUtilityMetersControllerUpdateQueryOptions = <
-  TData = Awaited<ReturnType<typeof utilityMetersControllerUpdate>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
+export type UtilityMetersControllerUpdateQueryResult = NonNullable<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>>
+export type UtilityMetersControllerUpdateQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
 
-  const queryKey = queryOptions?.queryKey ?? getUtilityMetersControllerUpdateQueryKey(id, updateUtilityMeterBodyDTO)
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>> = ({ signal }) =>
-    utilityMetersControllerUpdate(id, updateUtilityMeterBodyDTO, requestOptions, signal)
-
-  return { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof utilityMetersControllerUpdate>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type UtilityMetersControllerUpdateQueryResult = NonNullable<
-  Awaited<ReturnType<typeof utilityMetersControllerUpdate>>
->
-export type UtilityMetersControllerUpdateQueryError = ErrorType<
-  | BadRequestResponse
-  | UnauthorizedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | ConflictResponse
-  | RateLimitedResponse
-  | InternalErrorResponse
->
-
-export function useUtilityMetersControllerUpdate<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerUpdate>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData>> &
-      Pick<
+export function useUtilityMetersControllerUpdate<TData = Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof utilityMetersControllerUpdate>>,
           TError,
           Awaited<ReturnType<typeof utilityMetersControllerUpdate>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUtilityMetersControllerUpdate<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerUpdate>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData>> &
-      Pick<
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUtilityMetersControllerUpdate<TData = Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof utilityMetersControllerUpdate>>,
           TError,
           Awaited<ReturnType<typeof utilityMetersControllerUpdate>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUtilityMetersControllerUpdate<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerUpdate>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUtilityMetersControllerUpdate<TData = Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useUtilityMetersControllerUpdate<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerUpdate>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getUtilityMetersControllerUpdateQueryOptions(id, updateUtilityMeterBodyDTO, options)
+export function useUtilityMetersControllerUpdate<TData = Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    updateUtilityMeterBodyDTO: BodyType<UpdateUtilityMeterBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdate>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const queryOptions = getUtilityMetersControllerUpdateQueryOptions(id,updateUtilityMeterBodyDTO,options)
 
-  return withQueryKey(query, queryOptions.queryKey)
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
 
 export const utilityMetersControllerUpdateStatus = (
-  id: number,
-  updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+    id: number,
+    updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
-  return customInstance<UtilityMetersControllerUpdateStatus200>(
-    {
-      url: `/utility-meters/${id}/status`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: updateUtilityMeterStatusBodyDTO,
-      signal,
+
+
+      return customInstance<UtilityMetersControllerUpdateStatus200>(
+      {url: `/utility-meters/${id}/status`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateUtilityMeterStatusBodyDTO, signal
     },
-    options,
-  )
-}
+      options);
+    }
 
-export const getUtilityMetersControllerUpdateStatusQueryKey = (
-  id: number,
-  updateUtilityMeterStatusBodyDTO?: BodyType<UpdateUtilityMeterStatusBodyDTO>,
+
+
+
+export const getUtilityMetersControllerUpdateStatusQueryKey = (id: number,
+    updateUtilityMeterStatusBodyDTO?: BodyType<UpdateUtilityMeterStatusBodyDTO>,) => {
+    return [
+    'PATCH', `/utility-meters/${id}/status`, updateUtilityMeterStatusBodyDTO
+    ] as const;
+    }
+
+
+export const getUtilityMetersControllerUpdateStatusQueryOptions = <TData = Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(id: number,
+    updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
-  return ['PATCH', `/utility-meters/${id}/status`, updateUtilityMeterStatusBodyDTO] as const
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getUtilityMetersControllerUpdateStatusQueryKey(id,updateUtilityMeterStatusBodyDTO);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>> = ({ signal }) => utilityMetersControllerUpdateStatus(id,updateUtilityMeterStatusBodyDTO, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export const getUtilityMetersControllerUpdateStatusQueryOptions = <
-  TData = Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
+export type UtilityMetersControllerUpdateStatusQueryResult = NonNullable<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>>
+export type UtilityMetersControllerUpdateStatusQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>
 
-  const queryKey =
-    queryOptions?.queryKey ?? getUtilityMetersControllerUpdateStatusQueryKey(id, updateUtilityMeterStatusBodyDTO)
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>> = ({ signal }) =>
-    utilityMetersControllerUpdateStatus(id, updateUtilityMeterStatusBodyDTO, requestOptions, signal)
-
-  return { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type UtilityMetersControllerUpdateStatusQueryResult = NonNullable<
-  Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>
->
-export type UtilityMetersControllerUpdateStatusQueryError = ErrorType<
-  | BadRequestResponse
-  | UnauthorizedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | ConflictResponse
-  | RateLimitedResponse
-  | InternalErrorResponse
->
-
-export function useUtilityMetersControllerUpdateStatus<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData>> &
-      Pick<
+export function useUtilityMetersControllerUpdateStatus<TData = Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>,
           TError,
           Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUtilityMetersControllerUpdateStatus<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData>> &
-      Pick<
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUtilityMetersControllerUpdateStatus<TData = Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>,
           TError,
           Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUtilityMetersControllerUpdateStatus<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUtilityMetersControllerUpdateStatus<TData = Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useUtilityMetersControllerUpdateStatus<
-  TData = Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>,
-  TError = ErrorType<
-    | BadRequestResponse
-    | UnauthorizedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | ConflictResponse
-    | RateLimitedResponse
-    | InternalErrorResponse
-  >,
->(
-  id: number,
-  updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getUtilityMetersControllerUpdateStatusQueryOptions(id, updateUtilityMeterStatusBodyDTO, options)
+export function useUtilityMetersControllerUpdateStatus<TData = Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ConflictResponse | RateLimitedResponse | InternalErrorResponse>>(
+ id: number,
+    updateUtilityMeterStatusBodyDTO: BodyType<UpdateUtilityMeterStatusBodyDTO>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof utilityMetersControllerUpdateStatus>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const queryOptions = getUtilityMetersControllerUpdateStatusQueryOptions(id,updateUtilityMeterStatusBodyDTO,options)
 
-  return withQueryKey(query, queryOptions.queryKey)
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+

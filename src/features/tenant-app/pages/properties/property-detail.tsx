@@ -173,24 +173,29 @@ export function Component() {
 
         <TabsContent value="rooms" className="m-0 focus-visible:outline-none">
           <Card className="bg-surface-container-lowest border-surface-border overflow-hidden rounded-2xl shadow-sm">
-            <CardHeader className="border-surface-variant/30 bg-surface-container-low/30 flex flex-row items-center justify-between border-b px-6 py-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-full">
-                  <DoorOpen className="h-4 w-4" />
+            <CardHeader className="border-surface-variant/30 bg-surface-container-low/30 flex flex-col gap-4 border-b px-6 py-4">
+              <div className="flex flex-row items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-full">
+                    <DoorOpen className="h-4 w-4" />
+                  </div>
+                  <CardTitle className="font-headline-sm text-on-surface">Quản lý các phòng</CardTitle>
                 </div>
-                <CardTitle className="font-headline-sm text-on-surface">Quản lý các phòng</CardTitle>
+                <Button
+                  size="sm"
+                  onClick={() => navigate(`/quan-ly-phong/tao-moi?propertyId=${property.id}`)}
+                  className="bg-primary text-on-primary hover:bg-primary/90 font-label-md h-9 rounded-full shadow-sm"
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Thêm phòng mới
+                </Button>
               </div>
+
               {property.latitude !== null && property.latitude !== undefined &&
               property.longitude !== null && property.longitude !== undefined && (
-                <GoongMap latitude={property.latitude} longitude={property.longitude} className="mt-4 h-56" />
+                <div className="h-64 w-full overflow-hidden rounded-xl border border-surface-border mt-2 shadow-inner">
+                  <GoongMap latitude={property.latitude} longitude={property.longitude} className="h-full w-full" />
+                </div>
               )}
-              <Button
-                size="sm"
-                onClick={() => navigate(`/quan-ly-phong/tao-moi?propertyId=${property.id}`)}
-                className="bg-primary text-on-primary hover:bg-primary/90 font-label-md h-9 rounded-full shadow-sm"
-              >
-                <Plus className="mr-2 h-4 w-4" /> Thêm phòng mới
-              </Button>
             </CardHeader>
             <CardContent className="p-6">
               {loadingRooms ? (

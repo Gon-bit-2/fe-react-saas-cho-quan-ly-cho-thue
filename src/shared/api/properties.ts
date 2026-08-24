@@ -162,6 +162,21 @@ export const useUpdateProperty = (id: number) => {
   })
 }
 
+export const useDeleteProperty = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      await apiClient.delete(`/properties/${id}`, { tenantId })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROPERTY_KEYS.lists(tenantId) })
+    },
+  })
+}
+
 export const useCreateRoom = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')

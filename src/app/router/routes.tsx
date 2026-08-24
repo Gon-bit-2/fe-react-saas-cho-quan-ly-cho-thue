@@ -129,8 +129,16 @@ export const router = createBrowserRouter([
             lazy: () => import('@/features/account/pages/view-history'),
           },
           {
+            path: 'danh-gia',
+            lazy: () => import('@/features/account/pages/my-reviews'),
+          },
+          {
             path: 'yeu-cau-thue',
             lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'yeu-cau-thue/:id',
+            lazy: () => import('@/features/account/pages/request-detail').then((m) => ({ Component: m.default })),
           },
           {
             path: 'hop-dong',

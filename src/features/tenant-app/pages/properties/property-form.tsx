@@ -4,6 +4,7 @@ import {
   useProperty,
   useCreateProperty,
   useUpdateProperty,
+  useDeleteProperty,
   useUploadPropertyCoverImage,
   useUploadPropertyVerification,
 } from '@/shared/api/properties'
@@ -18,6 +19,14 @@ import { toast } from 'sonner'
 import type { CreatePropertyDto } from '@/features/tenant-app/types'
 import { AddressPicker, type AddressSelection } from '@/shared/components/address-picker'
 import { useAuth } from '@/shared/hooks/use-auth'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 export function Component() {
   const { id } = useParams()
@@ -31,6 +40,7 @@ export function Component() {
   const { data: initialData, isLoading } = useProperty(Number(id))
   const createProperty = useCreateProperty()
   const updateProperty = useUpdateProperty(Number(id))
+  const deleteProperty = useDeleteProperty(Number(id))
   const uploadCoverImage = useUploadPropertyCoverImage(Number(id))
   const uploadVerification = useUploadPropertyVerification()
 
@@ -45,6 +55,7 @@ export function Component() {
   const [propertyTypeState, setPropertyType] = useState<string | null>(null)
   const [statusState, setStatus] = useState<string | null>(null)
   const [addressSelection, setAddressSelection] = useState<AddressSelection | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   // Verification files
   const [idCardFront, setIdCardFront] = useState<File | null>(null)
@@ -71,6 +82,23 @@ export function Component() {
 
   const handlePrev = () => {
     setStep((s) => Math.max(s - 1, 1))
+  }
+
+  const handleDelete = () => {
+    setIsDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    try {
+      await deleteProperty.mutateAsync()
+      toast.success('Đã xóa khu trọ thành công!')
+      navigate('/khu-tro')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa nhà trọ.')
+    } finally {
+      setIsDeleteDialogOpen(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -115,12 +143,12 @@ export function Component() {
         province: addressSelection ? undefined : initialData?.province,
         district: addressSelection ? undefined : initialData?.district,
         ward: addressSelection ? undefined : initialData?.ward,
-        addressDetail: addressSelection?.addressDetail ?? initialData?.addressDetail ?? '',
-        location: addressSelection
+        addressDetail: addressSelection?.addressDetail || initialData?.addressDetail || 'Chưa có thông tin số nhà',
+        location: addressSelection?.provinceCode && addressSelection?.wardCode
           ? {
               provinceCode: addressSelection.provinceCode,
               wardCode: addressSelection.wardCode,
-              placeId: addressSelection.placeId,
+              placeId: addressSelection.placeId || 'unknown',
               sessionToken: addressSelection.sessionToken,
             }
           : undefined,
@@ -138,13 +166,27 @@ export function Component() {
         toast.success('Tạo mới thành công!')
       }
       navigate('/khu-tro')
-    } catch {
-      toast.error('Có lỗi xảy ra, vui lòng kiểm tra lại thông tin!')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      const data = err?.response?.data
+      let errorMessage = 'Có lỗi xảy ra, vui lòng kiểm tra lại thông tin!'
+      
+      if (data?.details && Array.isArray(data.details) && data.details.length > 0) {
+        const firstDetail = data.details[0]
+        errorMessage = typeof firstDetail === 'string' ? firstDetail : firstDetail.message || 'Lỗi dữ liệu đầu vào'
+      } else if (data?.message) {
+        errorMessage = Array.isArray(data.message) ? data.message[0] : data.message
+      } else if (err?.message) {
+        errorMessage = err.message
+      }
+      
+      toast.error(errorMessage)
+      console.error('Submit error:', data || err)
     }
   }
 
   const isSubmitting =
-    createProperty.isPending || updateProperty.isPending || uploadCoverImage.isPending || uploadVerification.isPending
+    createProperty.isPending || updateProperty.isPending || deleteProperty.isPending || uploadCoverImage.isPending || uploadVerification.isPending
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -170,6 +212,37 @@ export function Component() {
     )
   }
 
+  const handleStepClick = (targetStep: number) => {
+    // Quay lại luôn được phép
+    if (targetStep < step) {
+      setStep(targetStep)
+      return
+    }
+
+    // Nếu tiến lên bước 2 hoặc 3, phải kiểm tra dữ liệu bước 1
+    if (targetStep >= 2 && step < 2) {
+      const nameInput = document.getElementById('name') as HTMLInputElement
+      if (!nameInput?.value) {
+        toast.error('Vui lòng nhập tên khu trọ')
+        return
+      }
+      if (!addressSelection && (!isEditing || !initialData?.provinceCode)) {
+        toast.error('Vui lòng chọn một địa chỉ chuẩn từ danh sách gợi ý.')
+        return
+      }
+    }
+
+    // Nếu tiến lên bước 3, phải kiểm tra dữ liệu bước 2 (nếu bắt buộc xác minh)
+    if (targetStep >= 3 && step < 3 && needsVerification) {
+      if (!idCardFront || !idCardBack || verificationDocs.length === 0) {
+        toast.error('Vui lòng tải lên đầy đủ giấy tờ xác minh (CCCD 2 mặt và giấy tờ sở hữu)')
+        return
+      }
+    }
+
+    setStep(targetStep)
+  }
+
   const renderStepIndicator = () => (
     <div className="mb-8 flex items-center justify-center gap-2">
       {Array.from({ length: totalSteps }).map((_, idx) => {
@@ -177,7 +250,8 @@ export function Component() {
         return (
           <div key={s} className="flex items-center">
             <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors ${step >= s ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}
+              onClick={() => handleStepClick(s)}
+              className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-sm font-bold transition-colors hover:opacity-80 ${step >= s ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}
             >
               {s}
             </div>
@@ -486,6 +560,7 @@ export function Component() {
         {isEditing && (
           <Button
             type="button"
+            onClick={handleDelete}
             variant="outline"
             className="text-error border-error/50 hover:bg-error/10 hover:text-error bg-error/5 hidden sm:flex"
           >
@@ -497,9 +572,9 @@ export function Component() {
       {renderStepIndicator()}
 
       <form id="property-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
-        {step === 1 && stepBasicInfo}
-        {needsVerification && step === 2 && stepVerification}
-        {(step === 3 || (!needsVerification && step === 2)) && stepDetails}
+        <div className={step === 1 ? 'block' : 'hidden'}>{stepBasicInfo}</div>
+        <div className={needsVerification && step === 2 ? 'block' : 'hidden'}>{stepVerification}</div>
+        <div className={step === 3 || (!needsVerification && step === 2) ? 'block' : 'hidden'}>{stepDetails}</div>
 
         {/* Sticky Action Bar */}
         <div className="bg-surface/90 border-surface-border fixed right-0 bottom-0 left-[272px] z-20 flex justify-between gap-4 border-t p-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] backdrop-blur-md">
@@ -545,6 +620,26 @@ export function Component() {
           </div>
         </div>
       </form>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xóa nhà trọ</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa khu trọ này không? Tất cả dữ liệu liên quan sẽ bị vô hiệu hóa.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={deleteProperty.isPending}>
+              Hủy bỏ
+            </Button>
+            <Button type="button" variant="destructive" onClick={confirmDelete} disabled={deleteProperty.isPending}>
+              {deleteProperty.isPending ? 'Đang xóa...' : 'Xóa'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -100,6 +100,8 @@ export const useActivateContract = (id: number) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.detail(tenantId, id) })
       queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.lists(tenantId) })
+      queryClient.invalidateQueries({ queryKey: ['account-self-service'] })
+      queryClient.invalidateQueries({ queryKey: ['my-contract-detail', String(id)] })
     },
   })
 }
@@ -117,6 +119,8 @@ export const useCancelContract = (id: number) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.detail(tenantId, id) })
       queryClient.invalidateQueries({ queryKey: CONTRACT_KEYS.lists(tenantId) })
+      queryClient.invalidateQueries({ queryKey: ['account-self-service'] })
+      queryClient.invalidateQueries({ queryKey: ['my-contract-detail', String(id)] })
     },
   })
 }

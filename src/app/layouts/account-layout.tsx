@@ -47,6 +47,7 @@ export function Component() {
 
   const navItems = [
     { name: 'Hồ sơ', path: '/tai-khoan', icon: 'person', exact: true },
+    { name: 'Phòng yêu thích', path: '/tai-khoan/phong-yeu-thich', icon: 'favorite' },
     { name: 'Lịch xem phòng', path: '/tai-khoan/lich-xem-phong', icon: 'event' },
     { name: 'Yêu cầu thuê', path: '/tai-khoan/yeu-cau-thue', icon: 'send' },
     { name: 'Hợp đồng', path: '/tai-khoan/hop-dong', icon: 'description' },

@@ -5,6 +5,7 @@ import { ProfileForm, type UpdateProfileFormValues } from '../components/profile
 import { toast } from 'sonner'
 import type { AxiosResponse } from 'axios'
 import type { UserProfile } from '../api/types'
+import { useAuth } from '@/shared/hooks/use-auth'
 
 export function Component() {
   const queryClient = useQueryClient()
@@ -15,9 +16,35 @@ export function Component() {
     queryFn: () => profileApi.getProfile()
   })
 
+  const { selectedMembership } = useAuth()
+  
   // Mutation cập nhật profile
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateProfileFormValues) => profileApi.updateProfile(data),
+    mutationFn: async (data: UpdateProfileFormValues) => {
+      const { address, idCardFrontUrl, idCardBackUrl, ...profileData } = data
+      
+      // Update basic profile
+      await profileApi.updateProfile(profileData)
+      
+      // Update verification profile
+      const verificationData: Record<string, string> = {}
+      if (address !== undefined) verificationData.address = address
+      if (idCardFrontUrl !== undefined) verificationData.idCardFrontUrl = idCardFrontUrl
+      if (idCardBackUrl !== undefined) verificationData.idCardBackUrl = idCardBackUrl
+      
+      if (Object.keys(verificationData).length > 0) {
+        if (selectedMembership) {
+          await profileApi.updateTenantVerification(verificationData)
+        } else {
+          // For renters
+          await profileApi.updateRenterProfile({
+            permanentAddress: verificationData.address,
+            identityFrontUrl: verificationData.idCardFrontUrl,
+            identityBackUrl: verificationData.idCardBackUrl
+          })
+        }
+      }
+    },
     onSuccess: () => {
       toast.success('Cập nhật hồ sơ thành công')
       queryClient.invalidateQueries({ queryKey: ['auth', 'profile'] })

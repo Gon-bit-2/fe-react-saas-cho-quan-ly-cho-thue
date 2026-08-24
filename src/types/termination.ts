@@ -11,8 +11,7 @@ export interface ContractTerminationRequest {
   id: number
   contractId: number
   renterId: number
-  requestedDate: string
-  desiredEndDate: string
+  expectedMoveOutDate: string
   reason?: string
   status: TerminationRequestStatus
   notes?: string

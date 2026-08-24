@@ -45,7 +45,7 @@ export const useConversationSocket = (conversationId?: number) => {
       }
     })
 
-    socket.on('messageRead', (_data: { conversationId: number; userId: number; timestamp: string }) => {
+    socket.on('messageRead', () => {
       // can be used to update UI later
     })
 

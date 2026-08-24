@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams } from 'react-router'
 import {
   FileText,
@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   useContract,
   useCancelContract,
@@ -31,6 +32,7 @@ import { AssetHandover } from '@/features/contracts/components/asset-handover'
 
 export default function ContractDetailPage() {
   const { id } = useParams()
+  const [confirmAction, setConfirmAction] = useState<{ type: 'ACTIVATE' | 'CANCEL' | 'REMOVE_MEMBER', payload?: number } | null>(null)
   const { data: contract, isLoading } = useContract(Number(id))
   const { mutate: cancelContract, isPending: isCanceling } = useCancelContract(Number(id))
   const { mutate: activateContract, isPending: isActivating } = useActivateContract(Number(id))
@@ -38,9 +40,7 @@ export default function ContractDetailPage() {
   const { mutate: signLandlord, isPending: isSigning } = useSignContractLandlord(Number(id))
 
   const handleRemoveMember = (memberId: number) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa thành viên này khỏi hợp đồng?')) {
-      removeMember(memberId)
-    }
+    setConfirmAction({ type: 'REMOVE_MEMBER', payload: memberId })
   }
 
   const { durationMonths, monthsLeft, progressPercent } = useMemo(() => {
@@ -73,17 +73,11 @@ export default function ContractDetailPage() {
   }
 
   const handleCancel = () => {
-    if (window.confirm('Bạn có chắc chắn muốn hủy hợp đồng này?')) {
-      cancelContract()
-    }
+    setConfirmAction({ type: 'CANCEL' })
   }
 
   const handleActivate = () => {
-    if (
-      window.confirm('Bạn có chắc chắn muốn kích hoạt hợp đồng này? Hợp đồng sẽ chuyển sang trạng thái Đang hoạt động.')
-    ) {
-      activateContract()
-    }
+    setConfirmAction({ type: 'ACTIVATE' })
   }
 
   return (
@@ -412,10 +406,14 @@ export default function ContractDetailPage() {
                 </div>
               </TabsContent>
               <TabsContent value="handovers" className="mt-6">
-                <AssetHandover contractId={Number(id)} isLandlord={true} status="DRAFT" />
+                <AssetHandover contractId={Number(id)} roomId={contract.roomId} isLandlord={true} status="DRAFT" />
               </TabsContent>
               <TabsContent value="end" className="mt-6">
-                <TerminationRequest contractId={Number(id)} isLandlord={true} status="NONE" />
+                <TerminationRequest
+                  contractId={Number(id)}
+                  isLandlord={true}
+                  depositAmount={contract.depositAmount}
+                />
               </TabsContent>
             </Tabs>
           </div>
@@ -428,7 +426,7 @@ export default function ContractDetailPage() {
                 Lịch sử hoạt động
               </h3>
 
-              <div className="relative space-y-6 before:absolute before:inset-0 before:ml-[11px] before:h-full before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent md:before:mx-auto md:before:translate-x-0">
+              <div className="relative space-y-6 before:absolute before:inset-0 before:ml-[11px] before:h-full before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
                 {[
                   {
                     id: 'updated',
@@ -473,6 +471,38 @@ export default function ContractDetailPage() {
       </div>
 
       <ContractPrintTemplate contract={contract} />
+
+      <Dialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {confirmAction?.type === 'ACTIVATE' && 'Kích hoạt hợp đồng'}
+              {confirmAction?.type === 'CANCEL' && 'Hủy hợp đồng'}
+              {confirmAction?.type === 'REMOVE_MEMBER' && 'Xóa thành viên'}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmAction?.type === 'ACTIVATE' && 'Bạn có chắc chắn muốn kích hoạt hợp đồng này? Hợp đồng sẽ chuyển sang trạng thái Đang hoạt động.'}
+              {confirmAction?.type === 'CANCEL' && 'Bạn có chắc chắn muốn hủy hợp đồng này?'}
+              {confirmAction?.type === 'REMOVE_MEMBER' && 'Bạn có chắc chắn muốn xóa thành viên này khỏi hợp đồng?'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmAction(null)}>Hủy bỏ</Button>
+            <Button 
+              variant={confirmAction?.type === 'ACTIVATE' ? 'default' : 'destructive'}
+              className={confirmAction?.type === 'ACTIVATE' ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}
+              onClick={() => {
+                if (confirmAction?.type === 'ACTIVATE') activateContract()
+                if (confirmAction?.type === 'CANCEL') cancelContract()
+                if (confirmAction?.type === 'REMOVE_MEMBER') removeMember(confirmAction.payload)
+                setConfirmAction(null)
+              }}
+            >
+              Xác nhận
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

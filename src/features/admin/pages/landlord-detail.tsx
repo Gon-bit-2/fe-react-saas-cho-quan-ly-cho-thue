@@ -201,7 +201,7 @@ export const LandlordDetailPage = () => {
         <div className="space-y-6 lg:col-span-8">
           {/* Subscription Plan */}
           {data.ownedTenants[0]?.subscriptions?.[0] ? (
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white shadow-md">
+            <div className="relative overflow-hidden rounded-xl bg-blue-600 p-8 text-white shadow-md">
               <div className="absolute top-0 right-0 p-8 opacity-10">
                 <TrendingUp className="h-32 w-32" />
               </div>
@@ -234,7 +234,7 @@ export const LandlordDetailPage = () => {
               </div>
             </div>
           ) : (
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-slate-600 to-slate-700 p-8 text-white shadow-md">
+            <div className="relative overflow-hidden rounded-xl bg-slate-700 p-8 text-white shadow-md">
               <div className="absolute top-0 right-0 p-8 opacity-10">
                 <TrendingUp className="h-32 w-32" />
               </div>

@@ -4,8 +4,11 @@ import { Badge } from '@/components/ui/badge'
 import { notificationApi } from '../api/notification.api'
 import type { Notification, NotificationType } from '../api/types'
 import { Bell, Check, CheckCheck, CreditCard, FileText, Settings, BellOff, MoreHorizontal, Wrench } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { getNotificationsControllerCountUnreadQueryKey } from '@/shared/api/generated/notifications/notifications'
 
 export function NotificationCenterPage() {
+  const queryClient = useQueryClient()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<'ALL' | 'UNREAD'>('ALL')
@@ -40,6 +43,7 @@ export function NotificationCenterPage() {
     try {
       await notificationApi.markAsRead(id)
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)))
+      queryClient.invalidateQueries({ queryKey: getNotificationsControllerCountUnreadQueryKey() })
     } catch (error) {
       console.error('Failed to mark as read', error)
     }
@@ -49,6 +53,7 @@ export function NotificationCenterPage() {
     try {
       await notificationApi.markAllAsRead()
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
+      queryClient.invalidateQueries({ queryKey: getNotificationsControllerCountUnreadQueryKey() })
     } catch (error) {
       console.error('Failed to mark all as read', error)
     }

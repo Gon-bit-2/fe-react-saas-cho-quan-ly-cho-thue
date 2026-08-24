@@ -72,6 +72,7 @@ export interface Contract {
   tenant?: {
     id: number
     name: string
+    phone?: string | null
   }
 }
 

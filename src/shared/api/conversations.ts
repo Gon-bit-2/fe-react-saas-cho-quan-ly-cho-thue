@@ -66,7 +66,7 @@ export const conversationsApi = {
   },
 
   getMessages: async (conversationId: number, skip = 0, take = 50): Promise<Message[]> => {
-    const { data } = await AXIOS_INSTANCE.get<{ data: Message[], meta: any }>(`/conversations/${conversationId}/messages`, {
+    const { data } = await AXIOS_INSTANCE.get<{ data: Message[], meta: Record<string, unknown> }>(`/conversations/${conversationId}/messages`, {
       params: { skip, take },
     })
     return data.data

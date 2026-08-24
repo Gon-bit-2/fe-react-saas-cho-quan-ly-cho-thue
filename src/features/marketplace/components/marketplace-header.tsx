@@ -99,7 +99,15 @@ export function MarketplaceHeader() {
                       Thông tin tài khoản
                     </Link>
                     <Link 
-                      to="/lich-su-xem-phong" 
+                      to="/tai-khoan/phong-yeu-thich" 
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-surface-container-low text-on-surface font-body-md transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[20px] text-on-surface-variant">favorite</span>
+                      Phòng yêu thích
+                    </Link>
+                    <Link 
+                      to="/tai-khoan/lich-su-xem" 
                       onClick={() => setIsDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-2 hover:bg-surface-container-low text-on-surface font-body-md transition-colors"
                     >
@@ -107,7 +115,7 @@ export function MarketplaceHeader() {
                       Lịch sử xem phòng
                     </Link>
                     <Link 
-                      to="/danh-gia-cua-toi" 
+                      to="/tai-khoan/danh-gia" 
                       onClick={() => setIsDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-2 hover:bg-surface-container-low text-on-surface font-body-md transition-colors"
                     >

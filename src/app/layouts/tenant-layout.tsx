@@ -69,7 +69,7 @@ export function Component() {
   return (
     <div className="bg-background font-body-md text-body-md text-on-surface">
       {/* Sidebar */}
-      <aside className="w-sidebar-width bg-surface-container-lowest fixed top-0 left-0 z-50 flex h-full flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all">
+      <aside className="w-sidebar-width print:hidden bg-surface-container-lowest fixed top-0 left-0 z-50 flex h-full flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all">
         <div className="h-topbar-height border-surface-border flex items-center gap-3 border-b px-6">
           <Link to="/" className="flex items-center gap-3">
             <img alt="Nhà Trọ Việt Logo" className="h-8 w-auto object-contain" src="/logo.png" />
@@ -111,9 +111,9 @@ export function Component() {
       </aside>
 
       {/* Main Container */}
-      <div className="pl-sidebar-width flex min-h-screen flex-col">
+      <div className="pl-sidebar-width print:pl-0 flex min-h-screen flex-col">
         {/* Header */}
-        <header className="left-sidebar-width h-topbar-height bg-surface/90 border-surface-border px-page-padding-desktop fixed top-0 right-0 z-40 flex items-center justify-between border-b backdrop-blur-md">
+        <header className="left-sidebar-width print:hidden h-topbar-height bg-surface/90 border-surface-border px-page-padding-desktop fixed top-0 right-0 z-40 flex items-center justify-between border-b backdrop-blur-md">
           <div className="flex items-center gap-4">
             <TenantSwitcher />
           </div>
@@ -181,11 +181,13 @@ export function Component() {
         </header>
 
         {/* Main Content Area */}
-        <main className="pt-topbar-height bg-background p-page-padding-desktop flex-1">
+        <main className="pt-topbar-height print:pt-0 bg-background p-page-padding-desktop print:p-0 flex-1">
           <Outlet />
         </main>
       </div>
-      <FloatingChatWidget />
+      <div className="print:hidden">
+        <FloatingChatWidget />
+      </div>
     </div>
   )
 }

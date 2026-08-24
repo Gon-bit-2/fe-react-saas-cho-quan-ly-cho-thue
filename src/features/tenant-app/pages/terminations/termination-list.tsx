@@ -65,9 +65,9 @@ export default function TerminationList() {
               {data?.data.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium text-blue-600">#{item.contractId}</TableCell>
-                  <TableCell>{new Date(item.requestedDate).toLocaleDateString('vi-VN')}</TableCell>
+                  <TableCell>{new Date(item.createdAt).toLocaleDateString('vi-VN')}</TableCell>
                   <TableCell className="font-medium text-slate-700">
-                    {new Date(item.desiredEndDate).toLocaleDateString('vi-VN')}
+                    {new Date(item.expectedMoveOutDate).toLocaleDateString('vi-VN')}
                   </TableCell>
                   <TableCell>
                     <p className="line-clamp-2 text-sm text-slate-600" title={item.reason}>
@@ -165,12 +165,12 @@ function ReviewDialog({
           <div className="grid grid-cols-2 gap-4 rounded-lg border border-slate-100 bg-slate-50 p-4">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase">Ngày yêu cầu</p>
-              <p className="mt-1 font-medium">{new Date(request.requestedDate).toLocaleDateString('vi-VN')}</p>
+              <p className="mt-1 font-medium">{new Date(request.createdAt).toLocaleDateString('vi-VN')}</p>
             </div>
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase">Ngày dọn đi (Dự kiến)</p>
               <p className="mt-1 font-medium text-blue-600">
-                {new Date(request.desiredEndDate).toLocaleDateString('vi-VN')}
+                {new Date(request.expectedMoveOutDate).toLocaleDateString('vi-VN')}
               </p>
             </div>
             <div className="col-span-2">

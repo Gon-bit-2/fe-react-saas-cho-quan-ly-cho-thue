@@ -62,6 +62,25 @@ export const useTermination = (id: number) => {
   })
 }
 
+export const useActiveTerminationByContract = (contractId: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+
+  return useQuery({
+    queryKey: [...TERMINATION_KEYS.lists(tenantId), { contractId, type: 'active' }],
+    queryFn: async () => {
+      const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>('/contract-terminations', { 
+        params: { contractId }, 
+        tenantId 
+      })
+      const activeRequests = data.data.filter(t => !['CANCELED', 'REJECTED'].includes(t.status))
+      // Trả về cái đầu tiên không bị hủy hoặc từ chối
+      return activeRequests.length > 0 ? activeRequests[0] : null
+    },
+    enabled: !!tenantId && !!contractId,
+  })
+}
+
 export const useCreateTermination = () => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -7,9 +7,21 @@ import { ShieldCheck, Download, Trash2, Sofa, Tv, PenTool } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import SignatureCanvas from 'react-signature-canvas'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { toast } from 'sonner'
+import { 
+  handoversControllerCreate, 
+  handoversControllerUpdate, 
+  handoversControllerConfirm,
+  handoversControllerConfirmMine,
+  useHandoversControllerList,
+  useHandoversControllerListMine
+} from '@/shared/api/generated/handovers/handovers'
+import { useRoomAssetsControllerList } from '@/shared/api/generated/room-assets/room-assets'
+import { useMutation } from '@tanstack/react-query'
 
 interface AssetHandoverProps {
   contractId: number
+  roomId?: number
   isLandlord: boolean
   status?: 'DRAFT' | 'CONFIRMED'
 }
@@ -23,24 +35,112 @@ interface AssetItem {
   icon: React.ElementType
 }
 
-export function AssetHandover({ isLandlord, status = 'DRAFT' }: AssetHandoverProps) {
-  const [assets, setAssets] = useState<AssetItem[]>([
-    { id: 1, name: 'Tủ lạnh Casper 180L', quantity: 1, condition: 'GOOD', note: '', icon: Tv },
-    { id: 2, name: 'Điều hòa Daikin 9000BTU', quantity: 1, condition: 'GOOD', note: 'Chưa vệ sinh lưới lọc', icon: Tv },
-    { id: 3, name: 'Giường gỗ 1m6', quantity: 1, condition: null, note: '', icon: Sofa },
-    { id: 4, name: 'Bàn ghế làm việc', quantity: 1, condition: 'DAMAGED', note: 'Trầy xước nhẹ ở góc', icon: Sofa },
-  ])
+export function AssetHandover({ contractId, roomId, isLandlord, status: initialStatus = 'DRAFT' }: AssetHandoverProps) {
+  const { mutateAsync: createHandover, isPending } = useMutation({
+    mutationFn: (variables: Parameters<typeof handoversControllerCreate>[0]) => handoversControllerCreate(variables),
+  })
+
+  const { data: handoversResponseLandlord, refetch: refetchHandoversLandlord } = useHandoversControllerList(
+    { contractId, limit: 10 },
+    { query: { enabled: !!contractId && isLandlord } }
+  )
+
+  const { data: handoversResponseTenant, refetch: refetchHandoversTenant } = useHandoversControllerListMine(
+    { contractId, limit: 10 },
+    { query: { enabled: !!contractId && !isLandlord } }
+  )
+
+  const handoversResponse = isLandlord ? handoversResponseLandlord : handoversResponseTenant
+  const refetchHandovers = isLandlord ? refetchHandoversLandlord : refetchHandoversTenant
+
+  const { data: roomAssetsResponse } = useRoomAssetsControllerList(roomId!, undefined, {
+    query: { enabled: !!roomId },
+  })
+
+  const [assets, setAssets] = useState<AssetItem[]>([])
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handovers = (handoversResponse as any)?.data || []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const checkinHandover = handovers.find((h: any) => h.type === 'CHECKIN')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const checkoutHandover = handovers.find((h: any) => h.type === 'CHECKOUT')
   
+  const isCheckinConfirmed = checkinHandover?.status === 'CONFIRMED'
+  const isCheckoutConfirmed = checkoutHandover?.status === 'CONFIRMED'
+  
+  // Quyết định loại biên bản đang xem/tạo
+  const currentType = isCheckinConfirmed ? 'CHECKOUT' : 'CHECKIN'
+  const currentHandover = currentType === 'CHECKOUT' ? checkoutHandover : checkinHandover
+  
+  // Xác định trạng thái chi tiết dựa trên chữ ký
+  const hasLandlordSigned = !!currentHandover?.signedByLandlordAt
+  const hasRenterSigned = !!currentHandover?.signedByRenterAt
+  const isFullyConfirmed = currentHandover?.status === 'CONFIRMED'
+  
+  // Trạng thái hiển thị trên UI
+  // DRAFT: chưa ai ký (hoặc landlord chưa ký)
+  // WAITING_OTHER: mình đã ký, chờ người kia
+  // CONFIRMED: cả 2 đã ký
+  let status = 'DRAFT'
+  if (isFullyConfirmed) {
+    status = 'CONFIRMED'
+  } else if (currentHandover) {
+    if (isLandlord && hasLandlordSigned) {
+      status = 'WAITING_OTHER' // Chờ người thuê
+    } else if (!isLandlord && hasRenterSigned) {
+      status = 'WAITING_OTHER' // Chờ chủ trọ (thường không xảy ra vì chủ trọ tạo)
+    } else if (!isLandlord && hasLandlordSigned && !hasRenterSigned) {
+      status = 'DRAFT' // Tới lượt người thuê ký
+    }
+  }
+
+  const isConfirmed = status === 'CONFIRMED' || status === 'WAITING_OTHER'
+
+  useEffect(() => {
+    // Nếu đã có biên bản (và có items), hiển thị từ biên bản
+    if (currentHandover && currentHandover.assetItems && currentHandover.assetItems.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAssets(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        currentHandover.assetItems.map((item: any) => ({
+          id: item.roomAssetId,
+          name: item.roomAsset?.name || 'Tài sản',
+          quantity: item.actualQuantity || 1,
+          condition: item.condition || 'GOOD',
+          note: item.note || '',
+          icon: (item.roomAsset?.name || '').toLowerCase().includes('giường') || (item.roomAsset?.name || '').toLowerCase().includes('sofa') ? Sofa : Tv,
+        }))
+      )
+    } else if (roomAssetsResponse) {
+      // Nếu chưa có biên bản, lấy danh sách tài sản phòng mặc định
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const items = Array.isArray(roomAssetsResponse) ? roomAssetsResponse : (roomAssetsResponse as any).data || []
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAssets(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        items.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity || 1,
+          condition: 'GOOD',
+          note: item.description || '',
+          icon: item.name.toLowerCase().includes('giường') || item.name.toLowerCase().includes('sofa') ? Sofa : Tv,
+        })),
+      )
+    }
+  }, [currentHandover, roomAssetsResponse])
+
   const [showSignatureDialog, setShowSignatureDialog] = useState(false)
   const [signatureData, setSignatureData] = useState<string | null>(null)
   const sigPadRef = useRef<SignatureCanvas>(null)
 
   const handleConditionChange = (id: number, condition: AssetItem['condition']) => {
-    setAssets(assets.map(a => a.id === id ? { ...a, condition } : a))
+    setAssets(assets.map((a) => (a.id === id ? { ...a, condition } : a)))
   }
 
   const handleNoteChange = (id: number, note: string) => {
-    setAssets(assets.map(a => a.id === id ? { ...a, note } : a))
+    setAssets(assets.map((a) => (a.id === id ? { ...a, note } : a)))
   }
 
   const clearSignature = () => {
@@ -65,62 +165,138 @@ export function AssetHandover({ isLandlord, status = 'DRAFT' }: AssetHandoverPro
     }
   }
 
+  const handleComplete = async () => {
+    try {
+      if (!isLandlord) {
+        if (!currentHandover) {
+          toast.error('Chưa có biên bản bàn giao từ chủ trọ để xác nhận.')
+          return
+        }
+        await handoversControllerConfirmMine(currentHandover.id, { version: currentHandover.version })
+        toast.success(`Đã ký xác nhận biên bản ${currentType === 'CHECKIN' ? 'nhận' : 'trả'} phòng thành công!`)
+        refetchHandovers()
+        return
+      }
+
+      // Landlord flow
+      const itemsPayload = assets.map((a) => ({
+        roomAssetId: a.id,
+        actualQuantity: a.quantity,
+        condition: a.condition as NonNullable<AssetItem['condition']>,
+        note: a.note || null,
+      }))
+      
+      let handoverVersion = 1
+      let handoverId = 0
+      
+      if (!currentHandover) {
+        // Chưa có biên bản (chưa có DRAFT), tạo mới
+        const res = await createHandover({
+          contractId,
+          type: currentType as any,
+          items: itemsPayload,
+        })
+        handoverId = res.id
+        handoverVersion = res.version
+      } else {
+        // Đã có biên bản DRAFT, update items trước
+        handoverId = currentHandover.id
+        const res = await handoversControllerUpdate(handoverId, {
+          version: currentHandover.version,
+          items: itemsPayload,
+        })
+        handoverVersion = res.version
+      }
+      
+      // Ký xác nhận
+      await handoversControllerConfirm(handoverId, { version: handoverVersion })
+      
+      toast.success(`Đã lưu và xác nhận biên bản ${currentType === 'CHECKIN' ? 'nhận' : 'trả'} phòng thành công!`)
+      refetchHandovers()
+    } catch (error: any) {
+      console.error(error)
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lưu biên bản')
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div>
-          <h2 className="text-lg font-bold text-slate-900">Biên bản bàn giao tài sản</h2>
+          <h2 className="text-lg font-bold text-slate-900">
+            Biên bản {currentType === 'CHECKIN' ? 'nhận phòng (CHECKIN)' : 'trả phòng (CHECKOUT)'}
+          </h2>
           <p className="text-sm text-slate-500">
-            {status === 'DRAFT' ? 'Đang thực hiện kiểm kê' : 'Đã xác nhận bàn giao'}
+            {status === 'DRAFT' ? 'Đang thực hiện kiểm kê' : status === 'WAITING_OTHER' ? 'Đang chờ người kia ký' : 'Đã xác nhận bàn giao'}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className={status === 'DRAFT' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}>
-            {status === 'DRAFT' ? 'Bản nháp' : 'Đã hoàn tất'}
+          <Badge 
+            className={
+              status === 'DRAFT' ? 'bg-amber-100 text-amber-800' 
+              : status === 'WAITING_OTHER' ? 'bg-blue-100 text-blue-800'
+              : 'bg-emerald-100 text-emerald-800'
+            }
+          >
+            {status === 'DRAFT' ? 'Bản nháp' : status === 'WAITING_OTHER' ? 'Chờ xác nhận' : 'Đã hoàn tất'}
           </Badge>
           {status === 'CONFIRMED' && (
             <Button variant="outline" size="sm" className="gap-2">
-              <Download className="w-4 h-4" /> Xuất PDF
+              <Download className="h-4 w-4" /> Xuất PDF
             </Button>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
           {assets.map((asset) => {
             const Icon = asset.icon
             return (
-              <Card key={asset.id} className="border-slate-200 shadow-sm overflow-hidden">
-                <div className={`h-1 w-full ${
-                  asset.condition === 'GOOD' ? 'bg-emerald-500' : 
-                  asset.condition === 'DAMAGED' ? 'bg-amber-500' : 
-                  asset.condition === 'LOST' ? 'bg-red-500' : 'bg-slate-200'
-                }`}></div>
+              <Card key={asset.id} className="overflow-hidden border-slate-200 shadow-sm">
+                <div
+                  className={`h-1 w-full ${
+                    asset.condition === 'GOOD'
+                      ? 'bg-emerald-500'
+                      : asset.condition === 'DAMAGED'
+                        ? 'bg-amber-500'
+                        : asset.condition === 'LOST'
+                          ? 'bg-red-500'
+                          : 'bg-slate-200'
+                  }`}
+                ></div>
                 <CardContent className="p-5">
-                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                        <Icon className="w-5 h-5" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                        <Icon className="h-5 w-5" />
                       </div>
                       <div>
                         <p className="font-semibold text-slate-900">{asset.name}</p>
                         <p className="text-sm text-slate-500">Số lượng: {asset.quantity}</p>
                       </div>
                     </div>
-                    
-                    <div className="w-full sm:w-auto min-w-[140px]">
-                      {status === 'CONFIRMED' ? (
-                        <Badge variant="outline" className={`w-full justify-center ${
-                          asset.condition === 'GOOD' ? 'border-emerald-200 text-emerald-700 bg-emerald-50' :
-                          asset.condition === 'DAMAGED' ? 'border-amber-200 text-amber-700 bg-amber-50' :
-                          'border-red-200 text-red-700 bg-red-50'
-                        }`}>
+
+                    <div className="w-full min-w-[140px] sm:w-auto">
+                      {status === 'CONFIRMED' || !isLandlord ? (
+                        <Badge
+                          variant="outline"
+                          className={`w-full justify-center ${
+                            asset.condition === 'GOOD'
+                              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                              : asset.condition === 'DAMAGED'
+                                ? 'border-amber-200 bg-amber-50 text-amber-700'
+                                : 'border-red-200 bg-red-50 text-red-700'
+                          }`}
+                        >
                           {asset.condition === 'GOOD' ? 'Tốt' : asset.condition === 'DAMAGED' ? 'Hư hỏng' : 'Thất lạc'}
                         </Badge>
                       ) : (
-                        <Select value={asset.condition || ''} onValueChange={(v) => handleConditionChange(asset.id, v)}>
-                          <SelectTrigger className="w-full h-9">
+                        <Select
+                          value={asset.condition || ''}
+                          onValueChange={(v) => handleConditionChange(asset.id, v as AssetItem['condition'])}
+                        >
+                          <SelectTrigger className="h-9 w-full">
                             <SelectValue placeholder="Tình trạng" />
                           </SelectTrigger>
                           <SelectContent>
@@ -132,17 +308,20 @@ export function AssetHandover({ isLandlord, status = 'DRAFT' }: AssetHandoverPro
                       )}
                     </div>
                   </div>
-                  
+
                   {(asset.condition === 'DAMAGED' || asset.condition === 'LOST' || asset.note) && (
-                    <div className="mt-4 pt-3 border-t border-dashed border-slate-100">
-                      {status === 'CONFIRMED' ? (
-                        <p className="text-sm text-slate-600"><span className="font-medium text-slate-800">Ghi chú:</span> {asset.note || 'Không có ghi chú'}</p>
+                    <div className="mt-4 border-t border-dashed border-slate-100 pt-3">
+                      {status === 'CONFIRMED' || !isLandlord ? (
+                        <p className="text-sm text-slate-600">
+                          <span className="font-medium text-slate-800">Ghi chú:</span>{' '}
+                          {asset.note || 'Không có ghi chú'}
+                        </p>
                       ) : (
-                        <Textarea 
-                          placeholder="Ghi chú thêm về tình trạng hư hỏng..." 
+                        <Textarea
+                          placeholder="Ghi chú thêm về tình trạng hư hỏng..."
                           value={asset.note}
                           onChange={(e) => handleNoteChange(asset.id, e.target.value)}
-                          className="min-h-[60px] text-sm resize-none"
+                          className="min-h-[60px] resize-none text-sm"
                         />
                       )}
                     </div>
@@ -153,66 +332,79 @@ export function AssetHandover({ isLandlord, status = 'DRAFT' }: AssetHandoverPro
           })}
         </div>
 
-        <div className="lg:col-span-1 space-y-6">
+        <div className="space-y-6 lg:col-span-1">
           <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
-              <CardTitle className="text-lg text-slate-800 flex items-center gap-2">
+            <CardHeader className="border-b border-slate-100 bg-slate-50 pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg text-slate-800">
                 <ShieldCheck className="h-5 w-5 text-emerald-600" />
                 Xác nhận bàn giao
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-6">
+            <CardContent className="space-y-6 pt-6">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Tài sản bình thường</span>
-                  <span className="font-medium text-emerald-600">{assets.filter(a => a.condition === 'GOOD').length}</span>
+                  <span className="font-medium text-emerald-600">
+                    {assets.filter((a) => a.condition === 'GOOD').length}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Tài sản hư hỏng</span>
-                  <span className="font-medium text-amber-600">{assets.filter(a => a.condition === 'DAMAGED').length}</span>
+                  <span className="font-medium text-amber-600">
+                    {assets.filter((a) => a.condition === 'DAMAGED').length}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Tài sản thất lạc</span>
-                  <span className="font-medium text-red-600">{assets.filter(a => a.condition === 'LOST').length}</span>
+                  <span className="font-medium text-red-600">
+                    {assets.filter((a) => a.condition === 'LOST').length}
+                  </span>
                 </div>
               </div>
 
               {status === 'DRAFT' && (
-                <div className="bg-blue-50 text-blue-800 p-3 rounded-md text-xs border border-blue-100">
-                  Vui lòng kiểm tra kỹ tình trạng tài sản trước khi ký xác nhận. Tiền bồi thường (nếu có) sẽ được trừ vào tiền cọc.
+                <div className="rounded-md border border-blue-100 bg-blue-50 p-3 text-xs text-blue-800">
+                  Vui lòng kiểm tra kỹ tình trạng tài sản trước khi ký xác nhận. Tiền bồi thường (nếu có) sẽ được trừ
+                  vào tiền cọc.
                 </div>
               )}
 
-              <div className="pt-4 border-t border-slate-100">
-                <p className="text-sm font-medium text-slate-700 mb-3">Chữ ký xác nhận ({isLandlord ? 'Chủ trọ' : 'Người thuê'})</p>
+              <div className="border-t border-slate-100 pt-4">
+                <p className="mb-3 text-sm font-medium text-slate-700">
+                  Chữ ký xác nhận ({isLandlord ? 'Chủ trọ' : 'Người thuê'})
+                </p>
                 {signatureData ? (
-                  <div className="border border-slate-200 rounded-lg p-2 bg-slate-50 relative group">
-                    <img src={signatureData} alt="Signature" className="w-full h-24 object-contain" />
+                  <div className="group relative rounded-lg border border-slate-200 bg-slate-50 p-2">
+                    <img src={signatureData} alt="Signature" className="h-24 w-full object-contain" />
                     {status === 'DRAFT' && (
-                      <Button 
-                        variant="destructive" 
-                        size="icon" 
-                        className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
                         onClick={() => setSignatureData(null)}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     )}
                   </div>
                 ) : (
-                  <Button 
-                    variant="outline" 
-                    className="w-full h-20 border-dashed gap-2 text-slate-500"
+                  <Button
+                    variant="outline"
+                    className="h-20 w-full gap-2 border-dashed text-slate-500"
                     onClick={() => setShowSignatureDialog(true)}
                   >
-                    <PenTool className="w-5 h-5" /> Chạm để ký tên
+                    <PenTool className="h-5 w-5" /> Chạm để ký tên
                   </Button>
                 )}
               </div>
 
               {status === 'DRAFT' && (
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={!signatureData || assets.some(a => !a.condition)}>
-                  Hoàn tất biên bản
+                <Button
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  disabled={!signatureData || assets.some((a) => !a.condition) || isPending}
+                  onClick={handleComplete}
+                >
+                  {isPending ? 'Đang lưu...' : 'Hoàn tất biên bản'}
                 </Button>
               )}
             </CardContent>
@@ -225,15 +417,15 @@ export function AssetHandover({ isLandlord, status = 'DRAFT' }: AssetHandoverPro
           <DialogHeader>
             <DialogTitle>Ký xác nhận bàn giao</DialogTitle>
           </DialogHeader>
-          <div className="border-2 border-slate-200 rounded-lg overflow-hidden bg-white">
-            <SignatureCanvas 
+          <div className="overflow-hidden rounded-lg border-2 border-slate-200 bg-white">
+            <SignatureCanvas
               ref={sigPadRef}
               canvasProps={{
-                className: 'w-full h-[200px] cursor-crosshair'
+                className: 'w-full h-[200px] cursor-crosshair',
               }}
             />
           </div>
-          <DialogFooter className="flex justify-between sm:justify-between items-center w-full">
+          <DialogFooter className="flex w-full items-center justify-between sm:justify-between">
             <Button variant="ghost" onClick={clearSignature} className="text-slate-500">
               Ký lại
             </Button>

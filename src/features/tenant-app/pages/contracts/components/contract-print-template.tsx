@@ -28,7 +28,7 @@ export const ContractPrintTemplate = forwardRef<HTMLDivElement, ContractPrintTem
           <p>
             - Ông/Bà: <strong>{contract.tenant?.name || '...........................................'}</strong>
           </p>
-          <p>- Số điện thoại: ...........................................</p>
+          <p>- Số điện thoại: <strong>{contract.tenant?.phone || '...........................................'}</strong></p>
         </div>
 
         <div className="space-y-1">

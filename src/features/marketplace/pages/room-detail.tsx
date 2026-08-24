@@ -160,7 +160,6 @@ export function Component() {
           <section className="bg-surface-container-lowest border-surface-border rounded-2xl border p-6 shadow-sm">
             <div className="mb-4 flex items-start justify-between gap-4">
               <h1 className="font-headline-lg text-text-main">{room.title}</h1>
-              <FavoriteButton roomId={room.id} className="flex-shrink-0" />
             </div>
             <p className="font-body-md text-on-surface-variant mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-[20px]">location_on</span>
@@ -383,6 +382,9 @@ export function Component() {
                       <span className="material-symbols-outlined text-[18px]">chat</span>
                       Chat
                     </button>
+                  </div>
+                  <div className="flex">
+                    <FavoriteButton roomId={room.id} withText={true} className="w-full" />
                   </div>
                 </>
               )}

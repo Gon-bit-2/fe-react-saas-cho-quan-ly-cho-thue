@@ -14,8 +14,7 @@ import {
   Calculator,
   ClipboardCheck,
   Receipt,
-  FileCheck2,
-  Clock,
+  FileCheck2
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
@@ -32,8 +31,8 @@ export default function Component() {
     roomId: '302',
     roomName: 'Phòng 302 - Tòa B',
     requester: 'Nguyễn Văn A',
-    requestedDate: '2023-11-20',
-    expectedDate: '2023-11-30',
+    createdAt: '2023-11-20',
+    expectedMoveOutDate: '2023-12-20',
     reason:
       'Chuyển công tác sang khu vực khác nên cần chuyển chỗ ở. Đã thông báo trước 30 ngày theo quy định hợp đồng.',
     deposit: 5000000,
@@ -132,20 +131,16 @@ export default function Component() {
 
                 <div className="space-y-4">
                   <div>
-                    <div className="mb-1 flex items-center gap-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                      <Calendar className="h-3 w-3" /> Ngày gửi yêu cầu
-                    </div>
-                    <div className="font-medium text-slate-900">
-                      {new Date(mockTermination.requestedDate).toLocaleDateString('vi-VN')}
-                    </div>
+                    <p className="text-xs font-semibold text-slate-500 uppercase">Ngày yêu cầu</p>
+                    <p className="mt-1 font-medium">
+                      {new Date(mockTermination.createdAt).toLocaleDateString('vi-VN')}
+                    </p>
                   </div>
                   <div>
-                    <div className="mb-1 flex items-center gap-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                      <Clock className="h-3 w-3 text-amber-500" /> Ngày đề xuất kết thúc
-                    </div>
-                    <div className="font-bold text-slate-900">
-                      {new Date(mockTermination.expectedDate).toLocaleDateString('vi-VN')}
-                    </div>
+                    <p className="text-xs font-semibold text-slate-500 uppercase">Ngày dọn đi (Dự kiến)</p>
+                    <p className="mt-1 font-medium text-blue-600">
+                      {new Date(mockTermination.expectedMoveOutDate).toLocaleDateString('vi-VN')}
+                    </p>
                   </div>
                   <div>
                     <div className="mb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">Trạng thái</div>

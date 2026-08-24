@@ -67,9 +67,13 @@ export function ModerationDetailPage() {
       <div className="p-page-padding-desktop mx-auto w-full max-w-[1440px]">
         <div className="flex w-full flex-col items-start gap-6 xl:flex-row">
           <div className="bg-surface-container-lowest flex w-full flex-1 flex-col overflow-hidden rounded-xl shadow-sm">
-            <div className="relative h-[400px] w-full">
+            <div className="relative h-[400px] w-full overflow-hidden bg-black/5">
               <div
-                className="absolute inset-0 bg-cover bg-center"
+                className="absolute inset-0 bg-cover bg-center blur-xl opacity-30 scale-110"
+                style={{ backgroundImage: `url('${listing.images?.[0]?.url || ''}')` }}
+              ></div>
+              <div
+                className="absolute inset-0 bg-contain bg-center bg-no-repeat"
                 style={{ backgroundImage: `url('${listing.images?.[0]?.url || ''}')` }}
               ></div>
               <div className="from-background/90 absolute inset-0 bg-gradient-to-t to-transparent"></div>
@@ -202,8 +206,11 @@ export function ModerationDetailPage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="font-label-md text-on-surface-variant">Điểm tin cậy (AI):</span>
-                  <span className="font-label-md text-tertiary">92/100 (Cao)</span>
+                  <span className="font-label-md text-on-surface-variant">Đánh giá:</span>
+                  <div className="flex items-center gap-1">
+                    <span className="font-label-md text-tertiary">4.5/5</span>
+                    <span className="material-symbols-outlined text-[16px] text-[#f59e0b] fill-[#f59e0b]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  </div>
                 </div>
               </div>
 

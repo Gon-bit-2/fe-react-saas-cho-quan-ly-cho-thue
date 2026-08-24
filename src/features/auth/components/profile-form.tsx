@@ -8,6 +8,9 @@ import { Settings, User, Mail, Phone, ChevronDown, ArrowRight } from 'lucide-rea
 const updateProfileSchema = z.object({
   fullName: z.string().min(1, 'Vui lòng nhập họ và tên'),
   phone: z.string().optional(),
+  address: z.string().optional(),
+  idCardFrontUrl: z.string().optional(),
+  idCardBackUrl: z.string().optional(),
 })
 
 export type UpdateProfileFormValues = z.infer<typeof updateProfileSchema>
@@ -18,8 +21,18 @@ interface ProfileFormProps {
   onUpdate: (data: UpdateProfileFormValues) => void
 }
 
+import { useUploadRenterImages } from '@/shared/api/renters'
+import { MapPin, Upload } from 'lucide-react'
+
 export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
   const { selectedMembership } = useAuth()
+  const uploadImage = useUploadRenterImages()
+  
+  const tenant = user.tenantMembers?.[0]?.tenant
+  const renterProfile = user.renterProfile
+  const defaultAddress = tenant?.address || renterProfile?.permanentAddress || ''
+  const defaultFrontUrl = tenant?.idCardFrontUrl || renterProfile?.identityFrontUrl || ''
+  const defaultBackUrl = tenant?.idCardBackUrl || renterProfile?.identityBackUrl || ''
 
   const getRoleLabel = (roleId?: string | null) => {
     switch (roleId) {
@@ -44,8 +57,30 @@ export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
     defaultValues: {
       fullName: user.fullName,
       phone: user.phone || '',
+      address: defaultAddress,
+      idCardFrontUrl: defaultFrontUrl,
+      idCardBackUrl: defaultBackUrl,
     },
   })
+
+  const watchedIdCardFrontUrl = form.watch('idCardFrontUrl')
+  const watchedIdCardBackUrl = form.watch('idCardBackUrl')
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'idCardFrontUrl' | 'idCardBackUrl') => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const renterId = user.renterProfile?.id
+    if (!renterId) return
+    
+    try {
+      const res = await uploadImage.mutateAsync({ renterId, files: [file] })
+      if (res?.[0]?.url) {
+        form.setValue(field, res[0].url, { shouldDirty: true })
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   return (
     <div className="bg-surface-container-lowest flex-1 rounded-2xl p-6 shadow-sm md:p-8">
@@ -162,6 +197,71 @@ export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
               <ChevronDown className="text-outline pointer-events-none absolute top-2.5 right-3 h-5 w-5" />
             </div>
           </div>
+          
+          {/* Address */}
+          <div className="col-span-1 mt-4 flex flex-col gap-2 md:col-span-2">
+            <label
+              className="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase"
+              htmlFor="address"
+            >
+              Địa chỉ thường trú
+            </label>
+            <div className="relative">
+              <input
+                id="address"
+                placeholder="Nhập địa chỉ"
+                type="text"
+                {...form.register('address')}
+                className="bg-surface font-body-md text-body-md text-on-surface focus:ring-primary h-10 w-full rounded-lg px-4 transition-shadow focus:ring-2 focus:outline-none"
+              />
+              <MapPin className="text-outline pointer-events-none absolute top-2.5 right-3 h-5 w-5" />
+            </div>
+          </div>
+          
+          {/* Identity Cards */}
+          <div className="col-span-1 mt-4 flex flex-col gap-2">
+            <label className="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">
+              Mặt trước CCCD
+            </label>
+            <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-outline-variant bg-surface transition-colors hover:bg-surface-container">
+              {watchedIdCardFrontUrl ? (
+                <img src={watchedIdCardFrontUrl} alt="CCCD Mặt trước" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-outline">
+                  <Upload className="h-8 w-8" />
+                  <span className="font-label-sm text-label-sm">Tải lên ảnh</span>
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, 'idCardFrontUrl')}
+                className="absolute inset-0 cursor-pointer opacity-0"
+              />
+            </div>
+          </div>
+          
+          <div className="col-span-1 mt-4 flex flex-col gap-2">
+            <label className="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">
+              Mặt sau CCCD
+            </label>
+            <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-outline-variant bg-surface transition-colors hover:bg-surface-container">
+              {watchedIdCardBackUrl ? (
+                <img src={watchedIdCardBackUrl} alt="CCCD Mặt sau" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-outline">
+                  <Upload className="h-8 w-8" />
+                  <span className="font-label-sm text-label-sm">Tải lên ảnh</span>
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, 'idCardBackUrl')}
+                className="absolute inset-0 cursor-pointer opacity-0"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Divider */}
@@ -196,11 +296,11 @@ export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
           </button>
           <button
             type="submit"
-            className="bg-primary font-label-md text-label-md text-on-primary hover:bg-primary-container group/btn flex items-center gap-2 rounded-lg px-5 py-2.5 shadow-sm transition-colors"
-            disabled={isUpdating || !form.formState.isDirty}
+            className="bg-primary font-label-md text-label-md text-on-primary hover:bg-primary-container group/btn flex items-center gap-2 rounded-lg px-5 py-2.5 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isUpdating || !form.formState.isDirty || uploadImage.isPending}
           >
-            {isUpdating ? 'Đang lưu...' : 'Lưu thay đổi'}
-            {!isUpdating && (
+            {isUpdating || uploadImage.isPending ? 'Đang xử lý...' : 'Lưu thay đổi'}
+            {(!isUpdating && !uploadImage.isPending) && (
               <ArrowRight className="h-[18px] w-[18px] transition-transform group-hover/btn:translate-x-1" />
             )}
           </button>

@@ -32,7 +32,7 @@ export function TicketCommentSection({ comments, onAddComment }: TicketCommentSe
       <CardContent className="p-0">
         <div className="p-6">
           <div className="relative space-y-6 pl-8 before:absolute before:top-2 before:bottom-2 before:left-[15px] before:w-0.5 before:bg-slate-100 before:content-['']">
-            {comments.map((comment) => (
+            {(comments || []).map((comment) => (
               <div key={comment.id} className="relative">
                 <div className="absolute top-0 -left-[39px] z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-200 bg-white text-slate-500 shadow-sm">
                   <MessageCircle className="h-4 w-4" />
@@ -70,7 +70,7 @@ export function TicketCommentSection({ comments, onAddComment }: TicketCommentSe
               </div>
             ))}
 
-            {comments.length === 0 && (
+            {(comments || []).length === 0 && (
               <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-8 text-center text-sm text-slate-500 italic">
                 Chưa có hoạt động hay trao đổi nào.
               </div>

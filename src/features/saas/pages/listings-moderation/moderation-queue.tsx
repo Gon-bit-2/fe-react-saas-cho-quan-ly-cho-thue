@@ -49,7 +49,7 @@ export function ModerationQueuePage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
           <div>
-            <p className="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">PENDING</p>
+            <p className="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">CHỜ DUYỆT</p>
             <p className="text-4xl font-bold text-slate-900">{pending.data?.meta.total ?? '—'}</p>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-200 bg-amber-100">
@@ -59,7 +59,7 @@ export function ModerationQueuePage() {
 
         <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
           <div>
-            <p className="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">TODAY'S APPROVED</p>
+            <p className="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">ĐÃ DUYỆT HÔM NAY</p>
             <p className="text-4xl font-bold text-slate-900">{published.data?.meta.total ?? '—'}</p>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-200 bg-emerald-100">
@@ -69,7 +69,7 @@ export function ModerationQueuePage() {
 
         <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
           <div>
-            <p className="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">REJECTED</p>
+            <p className="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">TỪ CHỐI</p>
             <p className="text-4xl font-bold text-slate-900">{rejected.data?.meta.total ?? '—'}</p>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-red-200 bg-red-100">
@@ -89,10 +89,10 @@ export function ModerationQueuePage() {
           <div className="flex w-full flex-wrap gap-4 md:w-auto">
             <Select defaultValue="all">
               <SelectTrigger className="w-full border-slate-200 bg-white md:w-48">
-                <SelectValue placeholder="All Statuses" />
+                <SelectValue placeholder="Tất cả trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="all">Tất cả trạng thái</SelectItem>
                 <SelectItem value="PENDING_REVIEW">Chờ duyệt</SelectItem>
                 <SelectItem value="PUBLISHED">Đã duyệt</SelectItem>
                 <SelectItem value="REJECTED">Từ chối</SelectItem>
@@ -101,7 +101,7 @@ export function ModerationQueuePage() {
             </Select>
             <Button variant="outline" className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
               <CalendarDays className="mr-2 h-4 w-4 text-slate-500" />
-              Date Range
+              Khoảng thời gian
             </Button>
           </div>
         </div>

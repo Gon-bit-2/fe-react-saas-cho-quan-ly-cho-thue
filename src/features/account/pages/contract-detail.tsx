@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useParams, useNavigate } from 'react-router'
+import { useParams, useNavigate, useSearchParams } from 'react-router'
 import { ArrowLeft, FileText, CheckCircle2, CalendarDays, Building, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,7 @@ import { AssetHandover } from '@/features/contracts/components/asset-handover'
 export default function ContractDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   const { data: contract, isLoading, isError } = useQuery({
     queryKey: ['my-contract-detail', id],
@@ -116,7 +117,7 @@ export default function ContractDetailPage() {
       </div>
 
       <div className="space-y-6">
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs defaultValue={searchParams.get('tab') || 'overview'} className="w-full">
           <TabsList className="h-auto w-full justify-start gap-8 rounded-none border-b border-slate-200 bg-transparent p-0">
             <TabsTrigger
               value="overview"
@@ -231,11 +232,15 @@ export default function ContractDetailPage() {
           </TabsContent>
 
           <TabsContent value="handovers" className="mt-6">
-            <AssetHandover contractId={Number(id)} isLandlord={false} status="DRAFT" />
+            <AssetHandover contractId={Number(id)} roomId={contract.roomId} isLandlord={false} status="DRAFT" />
           </TabsContent>
 
           <TabsContent value="end" className="mt-6">
-            <TerminationRequest contractId={Number(id)} isLandlord={false} status="NONE" />
+            <TerminationRequest
+              contractId={Number(id)}
+              isLandlord={false}
+              depositAmount={contract.depositAmount}
+            />
           </TabsContent>
         </Tabs>
       </div>

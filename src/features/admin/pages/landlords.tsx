@@ -32,6 +32,13 @@ export const LandlordsPage = () => {
 
   return (
     <div className="animate-in fade-in mx-auto flex w-full max-w-[1440px] flex-col gap-6 pb-12 duration-500">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900">Quản lý chủ trọ</h1>
+        <p className="mt-2 text-sm text-slate-500">
+          Quản lý và giám sát tất cả tài khoản chủ trọ trên hệ thống.
+        </p>
+      </div>
+
       {/* Top Stats Cards */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="relative overflow-hidden rounded-2xl border border-blue-100/50 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm">

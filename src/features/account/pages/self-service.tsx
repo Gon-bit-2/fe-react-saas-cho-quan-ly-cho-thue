@@ -199,8 +199,10 @@ export function Component() {
                       size="sm"
                       variant="secondary"
                       onClick={() => {
-                        if (slug === 'hoa-don' || slug === 'hop-dong') {
+                        if (slug === 'hoa-don' || slug === 'hop-dong' || slug === 'yeu-cau-thue') {
                           navigate(`/tai-khoan/${slug}/${itemId}`)
+                        } else if (slug === 'ban-giao' && item.contractId) {
+                          navigate(`/tai-khoan/hop-dong/${item.contractId}?tab=handovers`)
                         } else {
                           setDetailId(itemId)
                         }

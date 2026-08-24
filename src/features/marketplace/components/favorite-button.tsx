@@ -5,9 +5,10 @@ import { useQueryClient } from '@tanstack/react-query'
 interface FavoriteButtonProps {
   roomId: number
   className?: string
+  withText?: boolean
 }
 
-export function FavoriteButton({ roomId, className = '' }: FavoriteButtonProps) {
+export function FavoriteButton({ roomId, className = '', withText = false }: FavoriteButtonProps) {
   const { state } = useAuth()
   const isAuthenticated = state === 'authenticated'
   const queryClient = useQueryClient()
@@ -44,6 +45,24 @@ export function FavoriteButton({ roomId, className = '' }: FavoriteButtonProps) 
         },
       })
     }
+  }
+
+  if (withText) {
+    return (
+      <button
+        onClick={toggleFavorite}
+        className={`flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 transition-colors border font-label-md ${
+          isFavorited 
+            ? 'bg-primary-container text-primary border-primary-container hover:bg-primary-container/80' 
+            : 'bg-surface-container-lowest text-on-surface border-surface-border hover:bg-surface-container-high'
+        } ${className}`}
+      >
+        <span className={`material-symbols-outlined ${isFavorited ? 'text-primary' : 'text-on-surface-variant'} text-[18px]`}>
+          {isFavorited ? 'bookmark' : 'bookmark_border'}
+        </span>
+        {isFavorited ? 'Đã lưu' : 'Lưu phòng'}
+      </button>
+    )
   }
 
   return (
