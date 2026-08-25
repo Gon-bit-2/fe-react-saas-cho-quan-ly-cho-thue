@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { useActiveTerminationByContract, useCreateTermination, useCompleteTermination } from '@/shared/api/terminations'
 import { useHandoversControllerList } from '@/shared/api/generated/handovers/handovers'
 import { useInvoicesControllerListDebts } from '@/shared/api/generated/invoices/invoices'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   Dialog,
   DialogContent,
@@ -29,11 +30,13 @@ interface TerminationRequestProps {
  */
 export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }: TerminationRequestProps) {
   const { data: request, isLoading: isLoadingRequest } = useActiveTerminationByContract(contractId)
-  
+
   const status = request?.status || 'NONE'
-  
+
   const [reason, setReason] = useState('')
-  const { mutateAsync: createTermination, isPending: isSubmitting } = useCreateTermination()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { mutateAsync: createTermination } = useCreateTermination()
+  const queryClient = useQueryClient()
   const completeMutation = useCompleteTermination(request?.id || 0)
 
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false)
@@ -44,17 +47,17 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
   // Lấy danh sách handover để check Biên bản trả phòng (CHECKOUT)
   const { data: handoversResponse } = useHandoversControllerList(
     { contractId, limit: 10 },
-    { query: { enabled: !!contractId } }
+    { query: { enabled: !!contractId } },
   )
-  const handovers = (handoversResponse as any)?.data || []
-  const checkoutHandover = handovers.find((h: any) => h.type === 'CHECKOUT' && h.status === 'CONFIRMED')
+  const handovers =
+    (handoversResponse as unknown as { data: { type?: string; status?: string; id?: number }[] })?.data || []
+  const checkoutHandover = handovers.find(
+    (h: { type?: string; status?: string; id?: number }) => h?.type === 'CHECKOUT' && h?.status === 'CONFIRMED',
+  )
 
   // Lấy tổng công nợ
-  const { data: debtsResponse } = useInvoicesControllerListDebts(
-    { contractId },
-    { query: { enabled: !!contractId } }
-  )
-  const outstandingDebt = (debtsResponse as any)?.totalRemainingAmount || 0
+  const { data: debtsResponse } = useInvoicesControllerListDebts({ contractId }, { query: { enabled: !!contractId } })
+  const outstandingDebt = (debtsResponse as unknown as { totalRemainingAmount: number })?.totalRemainingAmount || 0
 
   // Giả lập trạng thái quy trình thanh lý
   const steps = [
@@ -82,7 +85,7 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      await createMutation.mutateAsync({
+      await createTermination({
         contractId: contractId,
         reason,
         expectedMoveOutDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -95,19 +98,6 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
       toast.error('Có lỗi xảy ra')
     } finally {
       setIsSubmitting(false)
-    }
-  }
-
-  const handleCancel = async () => {
-    if (!request) return
-    if (!confirm('Bạn có chắc chắn muốn hủy yêu cầu này?')) return
-    try {
-      await cancelMutation.mutateAsync({ id: request.id })
-      toast.success('Đã hủy yêu cầu thanh lý')
-      queryClient.invalidateQueries({ queryKey: ['/terminations/active', contractId] })
-    } catch (error) {
-      console.error(error)
-      toast.error('Có lỗi xảy ra')
     }
   }
 
@@ -127,20 +117,18 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
         return
       }
       await completeMutation.mutateAsync({
-        id: request.id,
-        data: {
-          checkoutHandoverId: checkoutHandover.id,
-          actualMoveOutDate,
-          completionNote,
-          acknowledgeOutstandingDebt: acknowledgeDebt,
-        }
+        checkoutHandoverId: checkoutHandover.id,
+        actualMoveOutDate,
+        completionNote,
+        acknowledgeOutstandingDebt: acknowledgeDebt,
       })
       toast.success('Đã hoàn tất thanh lý hợp đồng')
       setIsCompleteModalOpen(false)
       queryClient.invalidateQueries({ queryKey: ['/terminations/active', contractId] })
-    } catch (error: any) {
-      console.error(error)
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi hoàn tất thanh lý')
+    } catch (error: unknown) {
+      const err = error as Error & { response?: { data?: { message?: string } } }
+      console.error(err)
+      toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi hoàn tất thanh lý')
     }
   }
 
@@ -209,7 +197,13 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
                     <CardDescription>Yêu cầu đang được xử lý</CardDescription>
                   </div>
                   <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
-                    {status === 'PENDING' ? 'Chờ duyệt' : status === 'APPROVED' ? 'Đã duyệt (Chờ hoàn tất)' : status === 'COMPLETED' ? 'Đã hoàn tất' : 'Từ chối'}
+                    {status === 'PENDING'
+                      ? 'Chờ duyệt'
+                      : status === 'APPROVED'
+                        ? 'Đã duyệt (Chờ hoàn tất)'
+                        : status === 'COMPLETED'
+                          ? 'Đã hoàn tất'
+                          : 'Từ chối'}
                   </Badge>
                 </div>
               </CardHeader>
@@ -250,23 +244,33 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
                           {step.status === 'COMPLETED' && idx === 0 && (
                             <div className="mt-2 rounded-md border border-slate-100 bg-slate-50 p-3 text-sm text-slate-600">
                               <p>
-                                <span className="font-medium">Người yêu cầu:</span> {request?.user?.fullName || 'Người thuê'}
+                                <span className="font-medium">Người yêu cầu:</span>{' '}
+                                {(request as unknown as { user?: { fullName?: string } })?.user?.fullName ||
+                                  'Người thuê'}
                               </p>
                               <p>
                                 <span className="font-medium">Lý do:</span> {request?.reason}
                               </p>
-                              <p className="mt-1 text-xs text-slate-400">{new Date(request?.createdAt || Date.now()).toLocaleString('vi-VN')}</p>
+                              <p className="mt-1 text-xs text-slate-400">
+                                {request?.createdAt ? new Date(request.createdAt).toLocaleString('vi-VN') : ''}
+                              </p>
                             </div>
                           )}
                           {/* Nút Duyệt chỉ show ở màn hình Danh sách duyệt (ReviewDialog) hoặc có thể show ở đây nếu muốn. Hiện tại ta ẩn đi để đồng bộ với mock */}
                           {step.status === 'IN_PROGRESS' && idx === 1 && isLandlord && (
                             <div className="mt-3 flex gap-2">
-                              <span className="text-sm text-slate-500 italic">Vui lòng duyệt yêu cầu ở trang Danh sách yêu cầu thanh lý.</span>
+                              <span className="text-sm text-slate-500 italic">
+                                Vui lòng duyệt yêu cầu ở trang Danh sách yêu cầu thanh lý.
+                              </span>
                             </div>
                           )}
                           {step.status === 'IN_PROGRESS' && idx === 2 && isLandlord && (
                             <div className="mt-3 flex gap-2">
-                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setIsCompleteModalOpen(true)}>
+                              <Button
+                                size="sm"
+                                className="bg-emerald-600 hover:bg-emerald-700"
+                                onClick={() => setIsCompleteModalOpen(true)}
+                              >
                                 Hoàn tất thanh lý
                               </Button>
                             </div>
@@ -327,28 +331,29 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
           <DialogHeader>
             <DialogTitle>Hoàn tất thanh lý hợp đồng</DialogTitle>
             <DialogDescription>
-              Bước này sẽ chính thức kết thúc hợp đồng. Vui lòng đảm bảo bạn đã hoàn thành biên bản bàn giao phòng và chốt điện nước.
+              Bước này sẽ chính thức kết thúc hợp đồng. Vui lòng đảm bảo bạn đã hoàn thành biên bản bàn giao phòng và
+              chốt điện nước.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {!checkoutHandover && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 mb-2">
-                <AlertTriangle className="h-4 w-4 inline mr-1" />
+              <div className="mb-2 rounded-md bg-red-50 p-3 text-sm text-red-600">
+                <AlertTriangle className="mr-1 inline h-4 w-4" />
                 Chưa có Biên bản trả phòng (CHECKOUT) đã xác nhận. Vui lòng sang tab <b>Bàn giao</b> để tạo.
               </div>
             )}
-            
+
             {outstandingDebt > 0 && (
-              <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-600 mb-2">
-                <AlertTriangle className="h-4 w-4 inline mr-1" />
+              <div className="mb-2 rounded-md bg-amber-50 p-3 text-sm text-amber-600">
+                <AlertTriangle className="mr-1 inline h-4 w-4" />
                 Hợp đồng này đang còn nợ <b>{new Intl.NumberFormat('vi-VN').format(outstandingDebt)} ₫</b>.
               </div>
             )}
             <div className="space-y-2">
               <Label>Ngày dọn đi thực tế</Label>
-              <input 
-                type="date" 
-                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              <input
+                type="date"
+                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 value={actualMoveOutDate}
                 onChange={(e) => setActualMoveOutDate(e.target.value)}
               />
@@ -362,10 +367,10 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
               />
             </div>
             {outstandingDebt > 0 && (
-              <div className="flex items-center space-x-2 mt-2">
-                <input 
-                  type="checkbox" 
-                  id="ack-debt" 
+              <div className="mt-2 flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="ack-debt"
                   className="rounded border-slate-300"
                   checked={acknowledgeDebt}
                   onChange={(e) => setAcknowledgeDebt(e.target.checked)}
@@ -377,13 +382,19 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCompleteModalOpen(false)}>Hủy</Button>
-            <Button 
-              onClick={handleComplete} 
-              disabled={completeMutation.isPending || !checkoutHandover || (outstandingDebt > 0 && !acknowledgeDebt)} 
+            <Button variant="outline" onClick={() => setIsCompleteModalOpen(false)}>
+              Hủy
+            </Button>
+            <Button
+              onClick={handleComplete}
+              disabled={completeMutation.isPending || !checkoutHandover || (outstandingDebt > 0 && !acknowledgeDebt)}
               className="bg-blue-600 text-white hover:bg-blue-700"
             >
-              {completeMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+              {completeMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+              )}
               Xác nhận hoàn tất
             </Button>
           </DialogFooter>

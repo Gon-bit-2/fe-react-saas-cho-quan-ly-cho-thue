@@ -16,7 +16,14 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   useContract,
   useCancelContract,
@@ -32,7 +39,10 @@ import { AssetHandover } from '@/features/contracts/components/asset-handover'
 
 export default function ContractDetailPage() {
   const { id } = useParams()
-  const [confirmAction, setConfirmAction] = useState<{ type: 'ACTIVATE' | 'CANCEL' | 'REMOVE_MEMBER', payload?: number } | null>(null)
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'ACTIVATE' | 'CANCEL' | 'REMOVE_MEMBER'
+    payload?: number
+  } | null>(null)
   const { data: contract, isLoading } = useContract(Number(id))
   const { mutate: cancelContract, isPending: isCanceling } = useCancelContract(Number(id))
   const { mutate: activateContract, isPending: isActivating } = useActivateContract(Number(id))
@@ -62,6 +72,16 @@ export default function ContractDetailPage() {
     if (percent > 100) percent = 100
 
     return { durationMonths, monthsLeft, progressPercent: percent }
+  }, [contract])
+
+  // Kiểm tra ngày bắt đầu hợp đồng có trong tương lai không (dùng cho Bug 2)
+  const isFutureStart = useMemo(() => {
+    if (!contract) return false
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const start = new Date(contract.startDate)
+    start.setHours(0, 0, 0, 0)
+    return start.getTime() > today.getTime()
   }, [contract])
 
   if (isLoading) {
@@ -135,14 +155,22 @@ export default function ContractDetailPage() {
               </SignContractDialog>
             )}
             {(contract.status === 'WAITING_LANDLORD_SIGN' || contract.status === 'WAITING_RENTER_SIGN') && (
-              <Button
-                className="bg-blue-600 text-white hover:bg-blue-700"
-                onClick={handleActivate}
-                disabled={isActivating}
-              >
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Kích hoạt ngay
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  className="bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={handleActivate}
+                  disabled={isActivating || isFutureStart}
+                  title={isFutureStart ? `Ngày bắt đầu: ${new Date(contract.startDate).toLocaleDateString('vi-VN')}` : undefined}
+                >
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Kích hoạt ngay
+                </Button>
+                {isFutureStart && (
+                  <span className="text-xs text-amber-600 font-medium">
+                    Chưa đến ngày bắt đầu ({new Date(contract.startDate).toLocaleDateString('vi-VN')})
+                  </span>
+                )}
+              </div>
             )}
             {contract.status !== 'CANCELED' && contract.status !== 'TERMINATED' && (
               <Button
@@ -262,8 +290,16 @@ export default function ContractDetailPage() {
                             <div className="mb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
                               TIỀN CỌC
                             </div>
-                            <div className="text-lg font-semibold text-slate-900">
-                              {new Intl.NumberFormat('vi-VN').format(contract.depositAmount)} ₫
+                            <div className="flex items-center gap-2">
+                              <div className="text-lg font-semibold text-slate-900">
+                                {new Intl.NumberFormat('vi-VN').format(contract.depositAmount)} ₫
+                              </div>
+                              {/* Hiển thị trạng thái cọc dựa trên trạng thái hợp đồng */}
+                              {contract.status === 'ACTIVE' || contract.status === 'EXPIRED' || contract.status === 'TERMINATED' ? (
+                                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Đã thu</Badge>
+                              ) : (
+                                <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Chưa thu</Badge>
+                              )}
                             </div>
                           </div>
 
@@ -409,11 +445,7 @@ export default function ContractDetailPage() {
                 <AssetHandover contractId={Number(id)} roomId={contract.roomId} isLandlord={true} status="DRAFT" />
               </TabsContent>
               <TabsContent value="end" className="mt-6">
-                <TerminationRequest
-                  contractId={Number(id)}
-                  isLandlord={true}
-                  depositAmount={contract.depositAmount}
-                />
+                <TerminationRequest contractId={Number(id)} isLandlord={true} depositAmount={contract.depositAmount} />
               </TabsContent>
             </Tabs>
           </div>
@@ -481,16 +513,19 @@ export default function ContractDetailPage() {
               {confirmAction?.type === 'REMOVE_MEMBER' && 'Xóa thành viên'}
             </DialogTitle>
             <DialogDescription>
-              {confirmAction?.type === 'ACTIVATE' && 'Bạn có chắc chắn muốn kích hoạt hợp đồng này? Hợp đồng sẽ chuyển sang trạng thái Đang hoạt động.'}
+              {confirmAction?.type === 'ACTIVATE' &&
+                'Bạn có chắc chắn muốn kích hoạt hợp đồng này? Hợp đồng sẽ chuyển sang trạng thái Đang hoạt động.'}
               {confirmAction?.type === 'CANCEL' && 'Bạn có chắc chắn muốn hủy hợp đồng này?'}
               {confirmAction?.type === 'REMOVE_MEMBER' && 'Bạn có chắc chắn muốn xóa thành viên này khỏi hợp đồng?'}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmAction(null)}>Hủy bỏ</Button>
-            <Button 
+            <Button variant="outline" onClick={() => setConfirmAction(null)}>
+              Hủy bỏ
+            </Button>
+            <Button
               variant={confirmAction?.type === 'ACTIVATE' ? 'default' : 'destructive'}
-              className={confirmAction?.type === 'ACTIVATE' ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}
+              className={confirmAction?.type === 'ACTIVATE' ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
               onClick={() => {
                 if (confirmAction?.type === 'ACTIVATE') activateContract()
                 if (confirmAction?.type === 'CANCEL') cancelContract()

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { ArrowLeft, Users, FileText, Search, CreditCard, Upload, X, Wand2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,13 @@ export default function ContractFormPage() {
   const roomIdParam = searchParams.get('roomId')
   const rentalRequestIdParam = searchParams.get('rentalRequestId')
   const isEditing = !!id
+
+  // Kiểm tra ngày tối đa cho phép chọn (hiện tại + 10 ngày)
+  const maxAllowedDate = useMemo(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 10)
+    return d.toISOString().substring(0, 10)
+  }, [])
 
   const { data: contractData, isLoading: isLoadingContract } = useContract(Number(id))
   const { mutateAsync: createContract, isPending: isCreating } = useCreateContract()
@@ -62,6 +69,8 @@ export default function ContractFormPage() {
   const frontInputRef = useRef<HTMLInputElement>(null)
   const backInputRef = useRef<HTMLInputElement>(null)
 
+  // Số tháng thuê (dùng để tự động tính endDate)
+  const [durationMonths, setDurationMonths] = useState('12')
   const [renterSearch, setRenterSearch] = useState('')
 
   // Queries
@@ -76,6 +85,7 @@ export default function ContractFormPage() {
       setFormData({
         roomId: String(contractData.roomId),
         renterId: String(contractData.renterId),
+        rentalRequestId: String(contractData.rentalRequestId || ''),
         startDate: contractData.startDate ? contractData.startDate.substring(0, 10) : '',
         endDate: contractData.endDate ? contractData.endDate.substring(0, 10) : '',
         monthlyPrice: String(contractData.monthlyPrice || ''),
@@ -116,6 +126,18 @@ export default function ContractFormPage() {
     }
   }
 
+  /**
+   * Tự động tính endDate = startDate + số tháng thuê.
+   * Nếu thiếu startDate hoặc months thì không tính.
+   */
+  const calculateEndDate = (start: string, months: string) => {
+    if (!start || !months) return
+    const startDate = new Date(start)
+    startDate.setMonth(startDate.getMonth() + Number(months))
+    const endDateStr = startDate.toISOString().substring(0, 10)
+    setFormData((prev) => ({ ...prev, endDate: endDateStr }))
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -154,7 +176,7 @@ export default function ContractFormPage() {
 
   const handleGenerateTemplate = () => {
     const room = roomsData?.data.find((r) => String(r.id) === formData.roomId)
-    const roomName = room ? (room.title || room.roomCode) : '[Tên phòng]'
+    const roomName = room ? room.title || room.roomCode : '[Tên phòng]'
     const price = formData.monthlyPrice ? Number(formData.monthlyPrice).toLocaleString('vi-VN') : '[Giá tiền]'
     const deposit = formData.depositAmount ? Number(formData.depositAmount).toLocaleString('vi-VN') : '[Tiền cọc]'
     const start = formData.startDate ? new Date(formData.startDate).toLocaleDateString('vi-VN') : '[Ngày bắt đầu]'
@@ -347,7 +369,11 @@ export default function ContractFormPage() {
                 type="date"
                 name="startDate"
                 value={formData.startDate}
-                onChange={handleChange}
+                max={maxAllowedDate}
+                onChange={(e) => {
+                  handleChange(e)
+                  calculateEndDate(e.target.value, durationMonths)
+                }}
                 className="border-slate-200 focus:ring-blue-500"
                 required
               />
@@ -355,11 +381,19 @@ export default function ContractFormPage() {
 
             <div className="space-y-2">
               <Label className="text-xs font-bold text-slate-600 uppercase">Thời hạn (Tháng)</Label>
-              <Select defaultValue="12">
+              <Select
+                value={durationMonths}
+                onValueChange={(val) => {
+                  setDurationMonths(val)
+                  calculateEndDate(formData.startDate, val)
+                }}
+              >
                 <SelectTrigger className="border-slate-200 bg-white">
                   <SelectValue placeholder="Thời hạn" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="1">1 Tháng</SelectItem>
+                  <SelectItem value="3">3 Tháng</SelectItem>
                   <SelectItem value="6">6 Tháng</SelectItem>
                   <SelectItem value="12">12 Tháng</SelectItem>
                   <SelectItem value="24">24 Tháng</SelectItem>

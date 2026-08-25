@@ -241,6 +241,11 @@ export const router = createBrowserRouter([
                 lazy: () => import('@/features/tenant-app/pages/viewing-schedules/schedule-detail'),
               },
               {
+                path: 'quan-ly-nhan-vien',
+                lazy: () =>
+                  import('@/features/tenant-members/pages/tenant-members.page').then((m) => ({ Component: m.default })),
+              },
+              {
                 path: 'nguoi-thue',
                 lazy: () =>
                   import('@/features/tenant-app/pages/renters/renter-list').then((m) => ({ Component: m.default })),

@@ -16,8 +16,8 @@ export const RentersPage = () => {
     const fetchRenters = async () => {
       try {
         const response = await adminRenterApi.getRenters()
-        if (response.data) {
-          setRenters(response.data)
+        if (response.data && response.data.data) {
+          setRenters(response.data.data)
         } else {
           setRenters([])
         }

@@ -8,13 +8,13 @@ import { Textarea } from '@/components/ui/textarea'
 import SignatureCanvas from 'react-signature-canvas'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import { 
-  handoversControllerCreate, 
-  handoversControllerUpdate, 
+import {
+  handoversControllerCreate,
+  handoversControllerUpdate,
   handoversControllerConfirm,
   handoversControllerConfirmMine,
   useHandoversControllerList,
-  useHandoversControllerListMine
+  useHandoversControllerListMine,
 } from '@/shared/api/generated/handovers/handovers'
 import { useRoomAssetsControllerList } from '@/shared/api/generated/room-assets/room-assets'
 import { useMutation } from '@tanstack/react-query'
@@ -35,19 +35,19 @@ interface AssetItem {
   icon: React.ElementType
 }
 
-export function AssetHandover({ contractId, roomId, isLandlord, status: initialStatus = 'DRAFT' }: AssetHandoverProps) {
+export function AssetHandover({ contractId, roomId, isLandlord }: AssetHandoverProps) {
   const { mutateAsync: createHandover, isPending } = useMutation({
     mutationFn: (variables: Parameters<typeof handoversControllerCreate>[0]) => handoversControllerCreate(variables),
   })
 
   const { data: handoversResponseLandlord, refetch: refetchHandoversLandlord } = useHandoversControllerList(
     { contractId, limit: 10 },
-    { query: { enabled: !!contractId && isLandlord } }
+    { query: { enabled: !!contractId && isLandlord } },
   )
 
   const { data: handoversResponseTenant, refetch: refetchHandoversTenant } = useHandoversControllerListMine(
     { contractId, limit: 10 },
-    { query: { enabled: !!contractId && !isLandlord } }
+    { query: { enabled: !!contractId && !isLandlord } },
   )
 
   const handoversResponse = isLandlord ? handoversResponseLandlord : handoversResponseTenant
@@ -65,19 +65,18 @@ export function AssetHandover({ contractId, roomId, isLandlord, status: initialS
   const checkinHandover = handovers.find((h: any) => h.type === 'CHECKIN')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const checkoutHandover = handovers.find((h: any) => h.type === 'CHECKOUT')
-  
+
   const isCheckinConfirmed = checkinHandover?.status === 'CONFIRMED'
-  const isCheckoutConfirmed = checkoutHandover?.status === 'CONFIRMED'
-  
+
   // Quyết định loại biên bản đang xem/tạo
   const currentType = isCheckinConfirmed ? 'CHECKOUT' : 'CHECKIN'
   const currentHandover = currentType === 'CHECKOUT' ? checkoutHandover : checkinHandover
-  
+
   // Xác định trạng thái chi tiết dựa trên chữ ký
   const hasLandlordSigned = !!currentHandover?.signedByLandlordAt
   const hasRenterSigned = !!currentHandover?.signedByRenterAt
   const isFullyConfirmed = currentHandover?.status === 'CONFIRMED'
-  
+
   // Trạng thái hiển thị trên UI
   // DRAFT: chưa ai ký (hoặc landlord chưa ký)
   // WAITING_OTHER: mình đã ký, chờ người kia
@@ -95,8 +94,6 @@ export function AssetHandover({ contractId, roomId, isLandlord, status: initialS
     }
   }
 
-  const isConfirmed = status === 'CONFIRMED' || status === 'WAITING_OTHER'
-
   useEffect(() => {
     // Nếu đã có biên bản (và có items), hiển thị từ biên bản
     if (currentHandover && currentHandover.assetItems && currentHandover.assetItems.length > 0) {
@@ -109,14 +106,17 @@ export function AssetHandover({ contractId, roomId, isLandlord, status: initialS
           quantity: item.actualQuantity || 1,
           condition: item.condition || 'GOOD',
           note: item.note || '',
-          icon: (item.roomAsset?.name || '').toLowerCase().includes('giường') || (item.roomAsset?.name || '').toLowerCase().includes('sofa') ? Sofa : Tv,
-        }))
+          icon:
+            (item.roomAsset?.name || '').toLowerCase().includes('giường') ||
+            (item.roomAsset?.name || '').toLowerCase().includes('sofa')
+              ? Sofa
+              : Tv,
+        })),
       )
     } else if (roomAssetsResponse) {
       // Nếu chưa có biên bản, lấy danh sách tài sản phòng mặc định
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const items = Array.isArray(roomAssetsResponse) ? roomAssetsResponse : (roomAssetsResponse as any).data || []
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAssets(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         items.map((item: any) => ({
@@ -185,19 +185,19 @@ export function AssetHandover({ contractId, roomId, isLandlord, status: initialS
         condition: a.condition as NonNullable<AssetItem['condition']>,
         note: a.note || null,
       }))
-      
+
       let handoverVersion = 1
       let handoverId = 0
-      
+
       if (!currentHandover) {
         // Chưa có biên bản (chưa có DRAFT), tạo mới
         const res = await createHandover({
           contractId,
-          type: currentType as any,
+          type: currentType as 'CHECKIN' | 'CHECKOUT',
           items: itemsPayload,
         })
-        handoverId = res.id
-        handoverVersion = res.version
+        handoverId = (res as { id: number }).id
+        handoverVersion = (res as { version: number }).version
       } else {
         // Đã có biên bản DRAFT, update items trước
         handoverId = currentHandover.id
@@ -205,17 +205,18 @@ export function AssetHandover({ contractId, roomId, isLandlord, status: initialS
           version: currentHandover.version,
           items: itemsPayload,
         })
-        handoverVersion = res.version
+        handoverVersion = (res as { version: number }).version
       }
-      
+
       // Ký xác nhận
       await handoversControllerConfirm(handoverId, { version: handoverVersion })
-      
+
       toast.success(`Đã lưu và xác nhận biên bản ${currentType === 'CHECKIN' ? 'nhận' : 'trả'} phòng thành công!`)
       refetchHandovers()
-    } catch (error: any) {
-      console.error(error)
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lưu biên bản')
+    } catch (error: unknown) {
+      const err = error as Error & { response?: { data?: { message?: string } } }
+      console.error(err)
+      toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi lưu biên bản')
     }
   }
 
@@ -227,15 +228,21 @@ export function AssetHandover({ contractId, roomId, isLandlord, status: initialS
             Biên bản {currentType === 'CHECKIN' ? 'nhận phòng (CHECKIN)' : 'trả phòng (CHECKOUT)'}
           </h2>
           <p className="text-sm text-slate-500">
-            {status === 'DRAFT' ? 'Đang thực hiện kiểm kê' : status === 'WAITING_OTHER' ? 'Đang chờ người kia ký' : 'Đã xác nhận bàn giao'}
+            {status === 'DRAFT'
+              ? 'Đang thực hiện kiểm kê'
+              : status === 'WAITING_OTHER'
+                ? 'Đang chờ người kia ký'
+                : 'Đã xác nhận bàn giao'}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge 
+          <Badge
             className={
-              status === 'DRAFT' ? 'bg-amber-100 text-amber-800' 
-              : status === 'WAITING_OTHER' ? 'bg-blue-100 text-blue-800'
-              : 'bg-emerald-100 text-emerald-800'
+              status === 'DRAFT'
+                ? 'bg-amber-100 text-amber-800'
+                : status === 'WAITING_OTHER'
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-emerald-100 text-emerald-800'
             }
           >
             {status === 'DRAFT' ? 'Bản nháp' : status === 'WAITING_OTHER' ? 'Chờ xác nhận' : 'Đã hoàn tất'}

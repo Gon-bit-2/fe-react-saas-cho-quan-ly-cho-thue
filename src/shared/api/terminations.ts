@@ -41,7 +41,10 @@ export const useTerminations = (params: Record<string, unknown> = {}) => {
   return useQuery({
     queryKey: TERMINATION_KEYS.list(tenantId, params),
     queryFn: async () => {
-      const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>('/contract-terminations', { params, tenantId })
+      const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>('/contract-terminations', {
+        params,
+        tenantId,
+      })
       return data
     },
     enabled: !!tenantId,
@@ -69,11 +72,11 @@ export const useActiveTerminationByContract = (contractId: number) => {
   return useQuery({
     queryKey: [...TERMINATION_KEYS.lists(tenantId), { contractId, type: 'active' }],
     queryFn: async () => {
-      const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>('/contract-terminations', { 
-        params: { contractId }, 
-        tenantId 
+      const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>('/contract-terminations', {
+        params: { contractId },
+        tenantId,
       })
-      const activeRequests = data.data.filter(t => !['CANCELED', 'REJECTED'].includes(t.status))
+      const activeRequests = data.data.filter((t) => !['CANCELED', 'REJECTED'].includes(t.status))
       // Trả về cái đầu tiên không bị hủy hoặc từ chối
       return activeRequests.length > 0 ? activeRequests[0] : null
     },
@@ -146,7 +149,11 @@ export const useCompleteTermination = (id: number) => {
 
   return useMutation({
     mutationFn: async (payload: CompleteTerminationBody) => {
-      const { data } = await apiClient.patch<ContractTerminationRequest>(`/contract-terminations/${id}/complete`, payload, { tenantId })
+      const { data } = await apiClient.patch<ContractTerminationRequest>(
+        `/contract-terminations/${id}/complete`,
+        payload,
+        { tenantId },
+      )
       return data
     },
     onSuccess: () => {

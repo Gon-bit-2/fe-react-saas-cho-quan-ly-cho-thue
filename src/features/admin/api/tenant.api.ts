@@ -83,7 +83,7 @@ export const adminLandlordApi = {
 export const adminRenterApi = {
   getRenters: (params?: Record<string, unknown>) => {
     // API lấy danh sách người thuê (tenant) trên toàn hệ thống
-    return apiClient.get<UserProfile[]>('/admin/renters', { params })
+    return apiClient.get<PaginatedResponse<UserProfile>>('/admin/renters', { params })
   },
   getRenterDetails: (id: number) => {
     return apiClient.get<UserProfile>(`/admin/renters/${id}`)

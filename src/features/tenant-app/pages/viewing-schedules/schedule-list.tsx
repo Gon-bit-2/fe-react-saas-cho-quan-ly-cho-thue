@@ -6,12 +6,15 @@ import { APPOINTMENT_STATUS_MAP } from '@/shared/constants/status-config'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useViewingAppointments } from '@/shared/api/viewing-appointments'
-import type { AppointmentStatus } from '@/shared/api/generated/models'
+import { AssignAppointmentModal } from './components/AssignAppointmentModal'
+import { Button } from '@/components/ui/button'
+import type { Appointment, AppointmentStatus } from '@/shared/api/generated/models'
 
 export function Component() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<AppointmentStatus | undefined>()
+  const [assigningAppointment, setAssigningAppointment] = useState<Appointment | null>(null)
   const { data, isLoading, isError, refetch } = useViewingAppointments({
     page: 1,
     limit: 50,
@@ -74,6 +77,7 @@ export function Component() {
                 <th className="p-4">Thời gian</th>
                 <th className="p-4">Nhân viên</th>
                 <th className="p-4">Trạng thái</th>
+                <th className="p-4 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -104,12 +108,31 @@ export function Component() {
                       fallbackLabel={appointment.status}
                     />
                   </td>
+                  <td className="p-4 text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setAssigningAppointment(appointment)
+                      }}
+                    >
+                      Phân công
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+      <AssignAppointmentModal
+        appointment={assigningAppointment}
+        open={!!assigningAppointment}
+        onOpenChange={(open) => {
+          if (!open) setAssigningAppointment(null)
+        }}
+      />
     </div>
   )
 }

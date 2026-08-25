@@ -19,6 +19,7 @@ const navItems = [
   { name: 'Yêu cầu thuê', path: '/yeu-cau-thue', icon: 'assignment_turned_in' },
   { name: 'Lịch xem phòng', path: '/lich-xem-phong', icon: 'calendar_month' },
   { name: 'Người thuê', path: '/nguoi-thue', icon: 'group' },
+  { name: 'Nhân viên', path: '/quan-ly-nhan-vien', icon: 'badge' },
   { name: 'Hợp đồng', path: '/hop-dong', icon: 'description' },
   { name: 'Yêu cầu kết thúc', path: '/yeu-cau-ket-thuc-hop-dong', icon: 'assignment_late' },
   { name: 'Tài sản', path: '/quan-ly-tai-san', icon: 'inventory_2' },
@@ -69,7 +70,7 @@ export function Component() {
   return (
     <div className="bg-background font-body-md text-body-md text-on-surface">
       {/* Sidebar */}
-      <aside className="w-sidebar-width print:hidden bg-surface-container-lowest fixed top-0 left-0 z-50 flex h-full flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all">
+      <aside className="w-sidebar-width bg-surface-container-lowest fixed top-0 left-0 z-50 flex h-full flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all print:hidden">
         <div className="h-topbar-height border-surface-border flex items-center gap-3 border-b px-6">
           <Link to="/" className="flex items-center gap-3">
             <img alt="Nhà Trọ Việt Logo" className="h-8 w-auto object-contain" src="/logo.png" />
@@ -111,9 +112,9 @@ export function Component() {
       </aside>
 
       {/* Main Container */}
-      <div className="pl-sidebar-width print:pl-0 flex min-h-screen flex-col">
+      <div className="pl-sidebar-width flex min-h-screen flex-col print:pl-0">
         {/* Header */}
-        <header className="left-sidebar-width print:hidden h-topbar-height bg-surface/90 border-surface-border px-page-padding-desktop fixed top-0 right-0 z-40 flex items-center justify-between border-b backdrop-blur-md">
+        <header className="left-sidebar-width h-topbar-height bg-surface/90 border-surface-border px-page-padding-desktop fixed top-0 right-0 z-40 flex items-center justify-between border-b backdrop-blur-md print:hidden">
           <div className="flex items-center gap-4">
             <TenantSwitcher />
           </div>
@@ -181,7 +182,7 @@ export function Component() {
         </header>
 
         {/* Main Content Area */}
-        <main className="pt-topbar-height print:pt-0 bg-background p-page-padding-desktop print:p-0 flex-1">
+        <main className="pt-topbar-height bg-background p-page-padding-desktop flex-1 print:p-0 print:pt-0">
           <Outlet />
         </main>
       </div>
