@@ -18,6 +18,7 @@ import {
   Upload,
   UserCircle2,
   Phone,
+  Clock,
   Mail,
   MapPin,
   Settings,
@@ -296,16 +297,32 @@ export function TicketDetailPage() {
 
               <div>
                 <div className="mb-2 text-xs text-slate-500">Người phụ trách</div>
-                {ticket.assignedToUser ? (
-                  <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-2">
-                    <Avatar className="h-8 w-8 border border-slate-200">
-                      <AvatarFallback className="bg-blue-100 text-xs font-bold text-blue-700">
-                        {ticket.assignedToUser.fullName.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium text-slate-900">{ticket.assignedToUser.fullName}</span>
-                  </div>
-                ) : (
+                                  {ticket.assignedToUser ? (
+                    <div className="flex flex-col gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8 border border-slate-200">
+                          <AvatarFallback className="bg-blue-100 text-xs font-bold text-blue-700">
+                            {ticket.assignedToUser.fullName.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium text-slate-900">{ticket.assignedToUser.fullName}</span>
+                      </div>
+                      
+                      {ticket.scheduledAt && (
+                        <div className="flex flex-col gap-1 mt-2 text-sm text-slate-600 border-t border-slate-200 pt-2">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-blue-500" />
+                            <span>Dự kiến: <strong>{new Date(ticket.scheduledAt).toLocaleString('vi-VN')}</strong></span>
+                          </div>
+                          {ticket.scheduledNote && (
+                            <div className="text-slate-500 italic">
+                              "{ticket.scheduledNote}"
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
                   <div className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700">
                     <AlertTriangle className="h-4 w-4" /> Chưa phân công
                   </div>
@@ -399,3 +416,5 @@ export function TicketDetailPage() {
     </div>
   )
 }
+
+

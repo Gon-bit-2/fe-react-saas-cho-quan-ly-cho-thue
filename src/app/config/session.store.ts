@@ -4,13 +4,13 @@ import type { SessionState, TokenPair } from '@/shared/types/auth'
  * Session store độc lập React — quản lý token và trạng thái session.
  *
  * - Access token: chỉ lưu trong memory (closure), không persist
- * - Refresh token: lưu trong sessionStorage (mất khi đóng tab)
- * - Selected tenant ID: lưu trong sessionStorage
+ * - Refresh token: lưu trong localStorage (giữ đăng nhập qua các tab)
+ * - Selected tenant ID: lưu trong localStorage
  * - State: broadcast qua event listeners
  *
  * Thiết kế này đảm bảo:
- * - Token không bao giờ xuất hiện trong localStorage (tránh XSS persist)
- * - Đóng tab = kết thúc phiên (refresh token mất)
+ * - Token không bao giờ xuất hiện lộ liễu, chỉ refresh token được lưu localStorage
+ * - Vẫn giữ được session khi reload trang
  * - Axios interceptor truy cập token không qua React render cycle
  */
 
@@ -56,10 +56,10 @@ export function getAccessToken(): string | null {
   return accessToken
 }
 
-/** Lấy refresh token từ sessionStorage */
+/** Lấy refresh token từ localStorage */
 export function getRefreshToken(): string | null {
   try {
-    return sessionStorage.getItem(STORAGE_KEY_REFRESH_TOKEN)
+    return localStorage.getItem(STORAGE_KEY_REFRESH_TOKEN)
   } catch {
     return null
   }
@@ -67,27 +67,27 @@ export function getRefreshToken(): string | null {
 
 /**
  * Lưu cặp token mới.
- * Access token vào memory, refresh token vào sessionStorage.
+ * Access token vào memory, refresh token vào localStorage.
  * Gọi sau khi login/refresh/google session thành công.
  */
 export function setTokenPair(pair: TokenPair): void {
   accessToken = pair.accessToken
   try {
-    sessionStorage.setItem(STORAGE_KEY_REFRESH_TOKEN, pair.refreshToken)
+    localStorage.setItem(STORAGE_KEY_REFRESH_TOKEN, pair.refreshToken)
   } catch {
-    // sessionStorage không khả dụng (private browsing trên một số browser cũ)
+    // localStorage không khả dụng (private browsing trên một số browser cũ)
   }
 }
 
 /**
- * Xóa toàn bộ session: token memory + sessionStorage.
+ * Xóa toàn bộ session: token memory + localStorage.
  * Gọi khi logout, refresh thất bại, hoặc session expired.
  */
 export function clearSession(): void {
   accessToken = null
   try {
-    sessionStorage.removeItem(STORAGE_KEY_REFRESH_TOKEN)
-    sessionStorage.removeItem(STORAGE_KEY_TENANT_ID)
+    localStorage.removeItem(STORAGE_KEY_REFRESH_TOKEN)
+    localStorage.removeItem(STORAGE_KEY_TENANT_ID)
   } catch {
     // Ignore
   }
@@ -118,10 +118,10 @@ export function subscribe(listener: StateListener): () => void {
 
 // ─── Tenant Selection ───────────────────────────────────────────
 
-/** Lấy tenant ID đang chọn từ sessionStorage */
+/** Lấy tenant ID đang chọn từ localStorage */
 export function getSelectedTenantId(): number | null {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY_TENANT_ID)
+    const raw = localStorage.getItem(STORAGE_KEY_TENANT_ID)
     if (!raw) return null
     const id = Number(raw)
     return Number.isFinite(id) && id > 0 ? id : null
@@ -133,7 +133,7 @@ export function getSelectedTenantId(): number | null {
 /** Lưu tenant ID đang chọn */
 export function setSelectedTenantId(id: number): void {
   try {
-    sessionStorage.setItem(STORAGE_KEY_TENANT_ID, String(id))
+    localStorage.setItem(STORAGE_KEY_TENANT_ID, String(id))
   } catch {
     // Ignore
   }
@@ -142,7 +142,7 @@ export function setSelectedTenantId(id: number): void {
 /** Xóa tenant ID đang chọn */
 export function clearSelectedTenant(): void {
   try {
-    sessionStorage.removeItem(STORAGE_KEY_TENANT_ID)
+    localStorage.removeItem(STORAGE_KEY_TENANT_ID)
   } catch {
     // Ignore
   }

@@ -62,6 +62,9 @@ export function RentalRequestDrawer({ isOpen, onClose, roomId }: RentalRequestDr
 
   // Get current date string in YYYY-MM-DD format for min attribute
   const today = new Date().toISOString().split('T')[0]
+  const maxDate = new Date()
+  maxDate.setDate(maxDate.getDate() + 10)
+  const maxDateString = maxDate.toISOString().split('T')[0]
 
   return (
     <div className="fixed inset-0 z-[100] flex justify-end">
@@ -124,6 +127,7 @@ export function RentalRequestDrawer({ isOpen, onClose, roomId }: RentalRequestDr
                 onChange={e => setExpectedStartDate(e.target.value)}
                 required
                 min={today}
+                max={maxDateString}
               />
             </div>
             

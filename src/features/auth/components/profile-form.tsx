@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { UserProfile } from '../api/types'
@@ -63,8 +63,14 @@ export function ProfileForm({ user, isUpdating, onUpdate }: ProfileFormProps) {
     },
   })
 
-  const watchedIdCardFrontUrl = form.watch('idCardFrontUrl')
-  const watchedIdCardBackUrl = form.watch('idCardBackUrl')
+  const watchedIdCardFrontUrl = useWatch({
+    control: form.control,
+    name: 'idCardFrontUrl',
+  })
+  const watchedIdCardBackUrl = useWatch({
+    control: form.control,
+    name: 'idCardBackUrl',
+  })
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'idCardFrontUrl' | 'idCardBackUrl') => {
     const file = e.target.files?.[0]

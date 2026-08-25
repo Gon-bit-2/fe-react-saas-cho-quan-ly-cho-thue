@@ -121,6 +121,10 @@ export const router = createBrowserRouter([
             lazy: () => import('@/features/account/pages/self-service'),
           },
           {
+            path: 'lich-xem-phong/:id',
+            lazy: () => import('@/features/account/pages/self-service-detail').then((m) => ({ Component: m.default })),
+          },
+          {
             path: 'phong-yeu-thich',
             lazy: () => import('@/features/account/pages/favorites'),
           },
@@ -165,8 +169,16 @@ export const router = createBrowserRouter([
             lazy: () => import('@/features/account/pages/self-service'),
           },
           {
+            path: 'thanh-toan/:id',
+            lazy: () => import('@/features/account/pages/self-service-detail').then((m) => ({ Component: m.default })),
+          },
+          {
             path: 'ho-tro',
             lazy: () => import('@/features/account/pages/self-service'),
+          },
+          {
+            path: 'ho-tro/:id',
+            lazy: () => import('@/features/account/pages/self-service-detail').then((m) => ({ Component: m.default })),
           },
         ],
       },

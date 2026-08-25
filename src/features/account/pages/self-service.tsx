@@ -199,7 +199,7 @@ export function Component() {
                       size="sm"
                       variant="secondary"
                       onClick={() => {
-                        if (slug === 'hoa-don' || slug === 'hop-dong' || slug === 'yeu-cau-thue') {
+                        if (slug === 'hoa-don' || slug === 'hop-dong' || slug === 'yeu-cau-thue' || slug === 'thanh-toan' || slug === 'ho-tro' || slug === 'lich-xem-phong') {
                           navigate(`/tai-khoan/${slug}/${itemId}`)
                         } else if (slug === 'ban-giao' && item.contractId) {
                           navigate(`/tai-khoan/hop-dong/${item.contractId}?tab=handovers`)

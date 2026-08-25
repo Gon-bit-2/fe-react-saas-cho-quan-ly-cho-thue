@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { apiClient } from './axios-client'
+import { useAuth } from '@/shared/hooks/use-auth'
 import type {
   MarketplaceFilters,
   MarketplaceRoom,
@@ -195,9 +196,11 @@ export function useViewingAppointment(id: number) {
 }
 
 export function useFavorites() {
+  const { profile } = useAuth()
   return useQuery({
     queryKey: marketplaceKeys.favorites(),
     queryFn: () => marketplaceApi.getFavorites(),
+    enabled: !!profile,
   })
 }
 

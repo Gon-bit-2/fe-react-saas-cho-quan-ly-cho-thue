@@ -19,10 +19,13 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { LiquidationModal } from './components/liquidation-modal'
+import { useState } from 'react'
 
 export default function Component() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [isLiquidationOpen, setIsLiquidationOpen] = useState(false)
 
   // Mock data for UI demonstration
   const mockTermination = {
@@ -244,16 +247,23 @@ export default function Component() {
                   </div>
                 </div>
 
-                {/* Step 3: Pending */}
-                <div className="relative opacity-60">
-                  <div className="absolute top-1 -left-[35px] z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-300 bg-slate-50 ring-4 ring-white">
-                    <Receipt className="h-3.5 w-3.5 text-slate-400" />
+                {/* Step 3: Actionable */}
+                <div className="relative">
+                  <div className="absolute top-1 -left-[35px] z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-indigo-600 bg-white shadow-sm ring-4 ring-white">
+                    <div className="h-2.5 w-2.5 rounded-full bg-indigo-600"></div>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-slate-700">Giai đoạn 3: Quyết toán chi phí</h4>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Chốt các khoản phí phát sinh, tiền điện nước và hoàn cọc.
+                    <h4 className="text-sm font-bold text-indigo-700">Giai đoạn 3: Quyết toán chi phí</h4>
+                    <p className="mt-1 mb-3 text-xs text-indigo-600/80">
+                      Chốt các khoản phí phát sinh, tiền điện nước và hoàn cọc để đóng hợp đồng.
                     </p>
+                    <Button 
+                      size="sm" 
+                      className="w-full bg-indigo-600 shadow-sm hover:bg-indigo-700"
+                      onClick={() => setIsLiquidationOpen(true)}
+                    >
+                      <Receipt className="mr-2 h-4 w-4" /> Tiến hành Quyết toán
+                    </Button>
                   </div>
                 </div>
 
@@ -272,6 +282,18 @@ export default function Component() {
           </Card>
         </div>
       </div>
+      
+      <LiquidationModal 
+        isOpen={isLiquidationOpen}
+        onClose={() => setIsLiquidationOpen(false)}
+        onComplete={() => {
+          toast.success('Hợp đồng đã được đóng thành công!')
+          navigate('/yeu-cau-ket-thuc-hop-dong')
+        }}
+        depositAmount={mockTermination.deposit}
+        contractId={mockTermination.contractId}
+        roomName={mockTermination.roomName}
+      />
     </div>
   )
 }

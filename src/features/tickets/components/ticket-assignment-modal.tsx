@@ -18,7 +18,7 @@ interface TicketAssignmentModalProps {
   onClose: () => void
   currentStatus: TicketStatus
   currentAssigneeId?: number | null
-  onUpdate: (data: { status?: TicketStatus; assigneeId?: number | null; note?: string }) => void
+  onUpdate: (data: { status?: TicketStatus; assigneeId?: number | null; scheduledAt?: string | null; scheduledNote?: string | null; note?: string }) => void
 }
 
 export function TicketAssignmentModal({
@@ -31,11 +31,15 @@ export function TicketAssignmentModal({
   const [status, setStatus] = useState<TicketStatus>(currentStatus)
   const [assigneeId, setAssigneeId] = useState<string>(currentAssigneeId ? String(currentAssigneeId) : 'unassigned')
   const [note, setNote] = useState('')
+  const [scheduledAt, setScheduledAt] = useState<string>('')
+  const [scheduledNote, setScheduledNote] = useState<string>('')
 
   const handleSubmit = () => {
     onUpdate({
       status: status !== currentStatus ? status : undefined,
       assigneeId: assigneeId !== 'unassigned' ? Number(assigneeId) : null,
+      scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+      scheduledNote: scheduledNote.trim() || null,
       note: note.trim() || undefined,
     })
     onClose()
@@ -84,12 +88,32 @@ export function TicketAssignmentModal({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="note">Ghi chú cập nhật</Label>
+            <Label htmlFor="scheduledAt">Thời gian tiến hành (dự kiến)</Label>
+            <Input
+              id="scheduledAt"
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="scheduledNote">Ghi chú lịch hẹn bảo trì</Label>
+            <Input
+              id="scheduledNote"
+              value={scheduledNote}
+              onChange={(e) => setScheduledNote(e.target.value)}
+              placeholder="Ví dụ: Nhớ mang theo thang, gọi trước khi đến..."
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="note">Ghi chú cập nhật (Nội bộ)</Label>
             <Input
               id="note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Nhập ghi chú cho thay đổi này..."
+              placeholder="Nhập ghi chú nội bộ cho thay đổi này..."
             />
           </div>
         </div>

@@ -34,6 +34,8 @@ export interface TicketSummary {
   priority: TicketPriority
   status: TicketStatus
   resolvedAt: string | null
+  scheduledAt?: string | null
+  scheduledNote?: string | null
   room: TicketRoom
   contract: TicketContract | null
   assignedToUser: TicketUser | null
@@ -75,3 +77,4 @@ export interface TicketComment {
   createdAt: string
   updatedAt: string
 }
+
