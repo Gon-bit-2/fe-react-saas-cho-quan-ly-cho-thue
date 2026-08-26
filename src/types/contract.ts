@@ -1,6 +1,16 @@
 export type ContractStatus = 'DRAFT' | 'WAITING_LANDLORD_SIGN' | 'WAITING_RENTER_SIGN' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED' | 'CANCELED'
 export type ContractBillingCycle = 'MONTHLY' | 'QUARTERLY'
 
+export const CONTRACT_STATUS_MAP: Record<ContractStatus, string> = {
+  DRAFT: 'Bản nháp',
+  WAITING_LANDLORD_SIGN: 'Chờ chủ trọ ký',
+  WAITING_RENTER_SIGN: 'Chờ người thuê ký',
+  ACTIVE: 'Đang hoạt động',
+  EXPIRED: 'Đã hết hạn',
+  TERMINATED: 'Đã chấm dứt',
+  CANCELED: 'Đã hủy',
+}
+
 export interface ContractMember {
   id: number
   userId?: number | null

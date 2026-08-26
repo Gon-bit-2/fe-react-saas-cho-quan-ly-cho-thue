@@ -138,6 +138,22 @@ export default function ContractFormPage() {
     setFormData((prev) => ({ ...prev, endDate: endDateStr }))
   }
 
+  // Tự động điền giá tiền và cọc nếu có roomIdParam
+  useEffect(() => {
+    if (!isEditing && roomIdParam && roomsData?.data && !formData.monthlyPrice) {
+      const selectedRoom = roomsData.data.find((r) => String(r.id) === roomIdParam)
+      if (selectedRoom) {
+        setTimeout(() => {
+          setFormData((prev) => ({
+            ...prev,
+            monthlyPrice: String(selectedRoom.basePrice || ''),
+            depositAmount: String(selectedRoom.depositAmount || selectedRoom.basePrice || ''),
+          }))
+        }, 0)
+      }
+    }
+  }, [roomIdParam, roomsData, isEditing, formData.monthlyPrice])
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -252,8 +268,8 @@ export default function ContractFormPage() {
       const updatePayload: UpdateContractBody = {
         startDate: new Date(formData.startDate).toISOString(),
         endDate: new Date(formData.endDate).toISOString(),
-        monthlyPrice: Number(formData.monthlyPrice),
-        depositAmount: Number(formData.depositAmount),
+        monthlyPrice: Math.max(0, Number(formData.monthlyPrice)),
+        depositAmount: Math.max(0, Number(formData.depositAmount)),
         billingCycle: formData.billingCycle,
         paymentDueDay: Number(formData.paymentDueDay),
         contentSnapshot: formData.contentSnapshot.trim() || 'Hợp đồng tiêu chuẩn',
@@ -279,9 +295,11 @@ export default function ContractFormPage() {
         await createContract(createPayload)
       }
       navigate('/hop-dong')
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to submit contract', error)
-      alert('Có lỗi xảy ra khi lưu hợp đồng.')
+      const err = error as { response?: { data?: { message?: string } } }
+      const errorMessage = err?.response?.data?.message || 'Có lỗi xảy ra khi lưu hợp đồng.'
+      alert(errorMessage)
     }
   }
 
@@ -603,6 +621,7 @@ export default function ContractFormPage() {
                   name="monthlyPrice"
                   value={formData.monthlyPrice}
                   onChange={handleChange}
+                  min="0"
                   className="border-slate-200 pr-14 text-right text-lg font-bold focus:ring-blue-500"
                   required
                 />
@@ -622,6 +641,7 @@ export default function ContractFormPage() {
                   name="depositAmount"
                   value={formData.depositAmount}
                   onChange={handleChange}
+                  min="0"
                   className="border-slate-200 pr-14 text-right text-lg font-bold focus:ring-blue-500"
                   required
                 />

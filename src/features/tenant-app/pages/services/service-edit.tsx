@@ -73,7 +73,7 @@ function ServiceEditForm({ service }: { service: Service }) {
                 <Label htmlFor="defaultUnitPrice">Đơn giá (VND)</Label>
                 <Input 
                   id="defaultUnitPrice" 
-                  type="number" 
+                  type="number" min="0"
                   value={formData.defaultUnitPrice} 
                   onChange={(e) => setFormData({...formData, defaultUnitPrice: Number(e.target.value)})} 
                   required 

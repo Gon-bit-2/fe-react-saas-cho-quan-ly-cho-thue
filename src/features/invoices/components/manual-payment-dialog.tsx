@@ -106,7 +106,7 @@ export function ManualPaymentDialog({ invoiceId, remainingAmount, trigger }: Pro
             </Label>
             <Input
               id="amount"
-              type="number"
+              type="number" min="0"
               {...register('amount', { required: 'Vui lòng nhập số tiền', min: 1 })}
               placeholder="VD: 500000"
             />

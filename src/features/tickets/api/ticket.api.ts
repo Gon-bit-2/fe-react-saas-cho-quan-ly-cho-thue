@@ -36,8 +36,8 @@ export const ticketApi = {
 
   /** Lấy danh sách bình luận của ticket */
   getTicketComments: async (id: number) => {
-    const { data } = await apiClient.get<TicketComment[]>(`/tickets/${id}/comments`)
-    return data
+    const { data } = await apiClient.get<PaginatedResponse<TicketComment> | TicketComment[]>(`/tickets/${id}/comments`)
+    return Array.isArray(data) ? data : data.data
   },
 
   /** Lấy danh sách ticket của tôi (Renter) */
@@ -54,8 +54,8 @@ export const ticketApi = {
 
   /** Lấy bình luận ticket của tôi */
   getMyTicketComments: async (id: number) => {
-    const { data } = await apiClient.get<TicketComment[]>(`/tickets/me/${id}/comments`)
-    return data
+    const { data } = await apiClient.get<PaginatedResponse<TicketComment> | TicketComment[]>(`/tickets/me/${id}/comments`)
+    return Array.isArray(data) ? data : data.data
   },
 
   /** Tạo bình luận mới */
@@ -93,7 +93,7 @@ export const ticketApi = {
   uploadAttachment: async (id: number, file: File) => {
     const formData = new FormData()
     formData.append('file', file)
-    const { data } = await apiClient.post(`/tickets/${id}/attachments`, formData, {
+    const { data } = await apiClient.post(`/tickets/${id}/attachments/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

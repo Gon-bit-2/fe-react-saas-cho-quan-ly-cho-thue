@@ -198,7 +198,7 @@ export function PlanFormPage() {
                       <div className="relative">
                         <input
                           {...form.register('price')}
-                          type="number"
+                          type="number" min="0"
                           className="bg-surface font-body-md text-body-md text-on-surface placeholder:text-outline focus:ring-primary h-10 w-full rounded-lg pr-12 pl-3 text-right font-medium transition-all focus:ring-2 focus:outline-none"
                         />
                         <span className="font-label-md text-label-md text-outline absolute top-1/2 right-3 -translate-y-1/2">
@@ -234,7 +234,7 @@ export function PlanFormPage() {
                     <div className="flex flex-col gap-2">
                       <label className="font-label-md text-label-md text-on-surface">Số lượng nhà trọ tối đa</label>
                       <input
-                        type="number"
+                        type="number" min="0"
                         {...form.register('maxProperties')}
                         className="bg-surface font-body-md h-10 rounded-lg px-3 text-center"
                       />
@@ -243,7 +243,7 @@ export function PlanFormPage() {
                     <div className="flex flex-col gap-2">
                       <label className="font-label-md text-label-md text-on-surface">Số lượng phòng tối đa</label>
                       <input
-                        type="number"
+                        type="number" min="0"
                         {...form.register('maxRooms')}
                         className="bg-surface font-body-md h-10 rounded-lg px-3 text-center"
                       />
@@ -252,7 +252,7 @@ export function PlanFormPage() {
                     <div className="flex flex-col gap-2">
                       <label className="font-label-md text-label-md text-on-surface">Số lượng nhân viên</label>
                       <input
-                        type="number"
+                        type="number" min="0"
                         {...form.register('maxManagers')}
                         className="bg-surface font-body-md h-10 rounded-lg px-3 text-center"
                       />

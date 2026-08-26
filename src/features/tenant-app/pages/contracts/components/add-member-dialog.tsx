@@ -193,7 +193,7 @@ export function AddMemberDialog({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="age">Độ tuổi</Label>
-                <Input id="age" name="age" type="number" value={ghostForm.age} onChange={handleGhostChange} placeholder="Ví dụ: 25" />
+                <Input id="age" name="age" type="number" min="0" value={ghostForm.age} onChange={handleGhostChange} placeholder="Ví dụ: 25" />
               </div>
               <Button type="submit" className="w-full bg-blue-600 text-white hover:bg-blue-700" disabled={isAdding}>
                 {isAdding ? 'Đang thêm...' : 'Thêm thành viên'}

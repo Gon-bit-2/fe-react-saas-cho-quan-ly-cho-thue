@@ -229,7 +229,7 @@ export function InvoiceEditPage() {
                   <Input className="flex-1" placeholder="Mô tả" {...register(`extraItems.${index}.description` as const)} />
                   
                   <div className="flex items-center gap-2 w-32">
-                    <Input type="number" className="text-right" placeholder="Số tiền" {...register(`extraItems.${index}.unitPrice` as const, { valueAsNumber: true })} />
+                    <Input type="number" min="0" className="text-right" placeholder="Số tiền" {...register(`extraItems.${index}.unitPrice` as const, { valueAsNumber: true })} />
                     <span className="text-sm text-slate-500">₫</span>
                   </div>
                   

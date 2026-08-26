@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { CONTRACT_STATUS_MAP } from '@/types/contract'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -122,13 +123,7 @@ export default function ContractDetailPage() {
                   }
                 >
                   <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-current"></span>
-                  {contract.status === 'ACTIVE'
-                    ? 'Đang hoạt động'
-                    : contract.status === 'DRAFT'
-                      ? 'Bản nháp'
-                      : contract.status === 'CANCELED'
-                        ? 'Đã hủy'
-                        : contract.status}
+                  {CONTRACT_STATUS_MAP[contract.status] || contract.status}
                 </Badge>
                 <span className="flex items-center gap-1.5 text-sm text-slate-500">
                   <CalendarDays className="h-4 w-4" /> Tạo ngày{' '}
@@ -466,7 +461,7 @@ export default function ContractDetailPage() {
                       new Date(contract.updatedAt),
                     ),
                     title: 'Cập nhật hợp đồng',
-                    desc: `Trạng thái hiện tại: ${contract.status}`,
+                    desc: `Trạng thái hiện tại: ${CONTRACT_STATUS_MAP[contract.status] || contract.status}`,
                     active: true,
                   },
                   {

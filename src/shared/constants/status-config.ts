@@ -31,6 +31,16 @@ export const TICKET_PRIORITY_MAP: Record<string, StatusVisual> = {
   LOW: { label: 'Thấp', tone: 'neutral' },
 }
 
+export const TICKET_CATEGORY_MAP: Record<string, string> = {
+  ELECTRICITY: 'Điện',
+  WATER: 'Nước',
+  INTERNET: 'Internet',
+  FURNITURE: 'Đồ nội thất',
+  SECURITY: 'An ninh',
+  CLEANING: 'Vệ sinh',
+  OTHER: 'Khác'
+}
+
 export const METER_STATUS_MAP: Record<string, StatusVisual> = {
   ACTIVE: { label: 'Hoạt động', tone: 'success' },
   BROKEN: { label: 'Báo hỏng', tone: 'danger' },
@@ -113,10 +123,14 @@ export const TERMINATION_STATUS_MAP: Record<string, StatusVisual> = {
 }
 
 export const CONTRACT_STATUS_MAP: Record<string, StatusVisual> = {
+  DRAFT: { label: 'Bản nháp', tone: 'neutral' },
+  WAITING_LANDLORD_SIGN: { label: 'Chờ chủ trọ ký', tone: 'warning' },
+  WAITING_RENTER_SIGN: { label: 'Chờ người thuê ký', tone: 'warning' },
   ACTIVE: { label: 'Đang hiệu lực', tone: 'success' },
   PENDING: { label: 'Chờ ký', tone: 'warning' },
   EXPIRED: { label: 'Đã hết hạn', tone: 'neutral' },
   TERMINATED: { label: 'Đã chấm dứt', tone: 'danger' },
+  CANCELED: { label: 'Đã hủy', tone: 'neutral' },
 }
 
 export const SERVICE_STATUS_MAP: Record<string, StatusVisual> = {

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -12,12 +13,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import type { TicketStatus } from '../api/types'
+import { tenantMembersApi } from '@/features/tenant-members/api/tenant-members.api'
 
 interface TicketAssignmentModalProps {
   isOpen: boolean
   onClose: () => void
   currentStatus: TicketStatus
   currentAssigneeId?: number | null
+  currentScheduledAt?: string | null
+  currentScheduledNote?: string | null
   onUpdate: (data: { status?: TicketStatus; assigneeId?: number | null; scheduledAt?: string | null; scheduledNote?: string | null; note?: string }) => void
 }
 
@@ -26,6 +30,8 @@ export function TicketAssignmentModal({
   onClose,
   currentStatus,
   currentAssigneeId,
+  currentScheduledAt,
+  currentScheduledNote,
   onUpdate,
 }: TicketAssignmentModalProps) {
   const [status, setStatus] = useState<TicketStatus>(currentStatus)
@@ -33,6 +39,33 @@ export function TicketAssignmentModal({
   const [note, setNote] = useState('')
   const [scheduledAt, setScheduledAt] = useState<string>('')
   const [scheduledNote, setScheduledNote] = useState<string>('')
+
+  // Đồng bộ lại state mỗi khi mở modal
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        setStatus(currentStatus)
+        setAssigneeId(currentAssigneeId ? String(currentAssigneeId) : 'unassigned')
+        setNote('')
+        // Tự động điền lại ngày giờ nếu đã có (định dạng YYYY-MM-DDThh:mm để dùng cho input type datetime-local)
+        setScheduledAt(currentScheduledAt ? new Date(currentScheduledAt).toISOString().slice(0, 16) : '')
+        setScheduledNote(currentScheduledNote || '')
+      }, 0)
+    }
+  }, [isOpen, currentStatus, currentAssigneeId, currentScheduledAt, currentScheduledNote])
+
+  const { data: members, isLoading: isLoadingMembers } = useQuery({
+    queryKey: ['tenant-members'],
+    queryFn: tenantMembersApi.getTenantMembers,
+    enabled: isOpen,
+  })
+
+  // Chỉ cho phép assign cho các vai trò quản lý / bảo trì
+  const assignableMembers = useMemo(() => {
+    if (!members) return []
+    const ASSIGNABLE_ROLES = ['LANDLORD', 'MANAGER', 'MAINTENANCE_STAFF']
+    return members.filter(m => m.status === 'ACTIVE' && ASSIGNABLE_ROLES.includes(m.roleId))
+  }, [members])
 
   const handleSubmit = () => {
     onUpdate({
@@ -59,14 +92,16 @@ export function TicketAssignmentModal({
           <div className="grid gap-2">
             <Label htmlFor="assignee">Người phụ trách</Label>
             <Select value={assigneeId} onValueChange={setAssigneeId}>
-              <SelectTrigger id="assignee">
-                <SelectValue placeholder="Chọn người phụ trách" />
+              <SelectTrigger id="assignee" disabled={isLoadingMembers}>
+                <SelectValue placeholder={isLoadingMembers ? "Đang tải danh sách..." : "Chọn người phụ trách"} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="unassigned">Chưa phân công</SelectItem>
-                <SelectItem value="1">Nguyễn Văn A (Quản lý)</SelectItem>
-                <SelectItem value="2">Trần Văn Kỹ Thuật (Bảo trì)</SelectItem>
-                <SelectItem value="3">Lê Thị C (Kế toán)</SelectItem>
+                {assignableMembers.map(member => (
+                  <SelectItem key={member.id} value={String(member.userId)}>
+                    {member.user?.fullName} ({member.role?.name || member.roleId})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -88,7 +123,9 @@ export function TicketAssignmentModal({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="scheduledAt">Thời gian tiến hành (dự kiến)</Label>
+            <Label htmlFor="scheduledAt">
+              {status === 'RESOLVED' || status === 'CLOSED' ? 'Thời gian hoàn thành' : 'Thời gian tiến hành (dự kiến)'}
+            </Label>
             <Input
               id="scheduledAt"
               type="datetime-local"
@@ -98,12 +135,14 @@ export function TicketAssignmentModal({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="scheduledNote">Ghi chú lịch hẹn bảo trì</Label>
+            <Label htmlFor="scheduledNote">
+              {status === 'RESOLVED' || status === 'CLOSED' ? 'Ghi chú hoàn thành' : 'Ghi chú lịch hẹn bảo trì'}
+            </Label>
             <Input
               id="scheduledNote"
               value={scheduledNote}
               onChange={(e) => setScheduledNote(e.target.value)}
-              placeholder="Ví dụ: Nhớ mang theo thang, gọi trước khi đến..."
+              placeholder={status === 'RESOLVED' || status === 'CLOSED' ? "Ví dụ: Đã thay linh kiện mới..." : "Ví dụ: Nhớ mang theo thang, gọi trước khi đến..."}
             />
           </div>
 

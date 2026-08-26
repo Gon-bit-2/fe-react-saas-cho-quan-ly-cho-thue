@@ -9,7 +9,7 @@ const HIDDEN_KEYS = new Set([
   'id', 'renterId', 'roomId', 'propertyId', 'tenantId', 
   'appointmentId', 'contractId', 'createdAt', 'updatedAt', 
   'userId', 'password', 'avatar', 'avatarUrl', 'signature',
-  '_count', 'deletedAt', 'updatedById', 'createdById'
+  '_count', 'deletedAt', 'updatedById', 'createdById', 'assignedTo'
 ])
 
 const KEY_LABELS: Record<string, string> = {
@@ -220,11 +220,14 @@ function renderObject(obj: Record<string, unknown>, level = 0) {
               PROPERTY: 'Khu trọ',
               GENERAL: 'Chung',
               RENT: 'Tiền thuê phòng',
-              ELECTRICITY: 'Tiền điện',
-              WATER: 'Tiền nước',
+              ELECTRICITY: k === 'category' || k === 'Category' ? 'Điện' : 'Tiền điện',
+              WATER: k === 'category' || k === 'Category' ? 'Nước' : 'Tiền nước',
               SERVICE: 'Tiền dịch vụ',
               PARKING: 'Tiền gửi xe',
-              INTERNET: 'Tiền mạng',
+              INTERNET: k === 'category' || k === 'Category' ? 'Internet' : 'Tiền mạng',
+              FURNITURE: 'Nội thất',
+              SECURITY: 'An ninh',
+              CLEANING: 'Vệ sinh',
               PENALTY: 'Phạt trễ hạn',
               DISCOUNT: 'Giảm giá',
               OTHER: 'Khác',

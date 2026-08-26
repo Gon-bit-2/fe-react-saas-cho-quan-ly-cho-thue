@@ -352,7 +352,7 @@ export function Component() {
                 <Input
                   {...register('area')}
                   id="area"
-                  type="number"
+                  type="number" min="0"
                   className="border-slate-200 bg-slate-50 focus-visible:ring-emerald-500"
                 />
                 {errors.area && <p className="mt-1 text-sm font-medium text-red-500">{errors.area.message}</p>}
@@ -364,7 +364,7 @@ export function Component() {
                 <Input
                   {...register('maxOccupants')}
                   id="maxOccupants"
-                  type="number"
+                  type="number" min="0"
                   className="border-slate-200 bg-slate-50 focus-visible:ring-emerald-500"
                 />
                 {errors.maxOccupants && (
@@ -381,7 +381,7 @@ export function Component() {
                 <Input
                   {...register('basePrice')}
                   id="basePrice"
-                  type="number"
+                  type="number" min="0"
                   className="border-slate-200 bg-slate-50 font-semibold text-emerald-700 focus-visible:ring-emerald-500"
                 />
                 {errors.basePrice && (
@@ -395,7 +395,7 @@ export function Component() {
                 <Input
                   {...register('depositAmount')}
                   id="depositAmount"
-                  type="number"
+                  type="number" min="0"
                   className="border-slate-200 bg-slate-50 font-semibold focus-visible:ring-emerald-500"
                 />
                 {errors.depositAmount && (
@@ -412,7 +412,7 @@ export function Component() {
                 <Input
                   {...register('electricityPrice')}
                   id="electricityPrice"
-                  type="number"
+                  type="number" min="0"
                   className="border-slate-200 bg-slate-50 focus-visible:ring-emerald-500"
                 />
                 {errors.electricityPrice && (
@@ -426,7 +426,7 @@ export function Component() {
                 <Input
                   {...register('waterPrice')}
                   id="waterPrice"
-                  type="number"
+                  type="number" min="0"
                   className="border-slate-200 bg-slate-50 focus-visible:ring-emerald-500"
                 />
                 {errors.waterPrice && (

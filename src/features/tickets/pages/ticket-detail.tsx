@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/status-badge'
-import { TICKET_STATUS_MAP, TICKET_PRIORITY_MAP } from '@/shared/constants/status-config'
+import { TICKET_STATUS_MAP, TICKET_PRIORITY_MAP, TICKET_CATEGORY_MAP } from '@/shared/constants/status-config'
 import { TicketCommentSection } from '../components/ticket-comment-section'
 import { TicketAssignmentModal } from '../components/ticket-assignment-modal'
 import { ticketApi } from '../api/ticket.api'
@@ -290,41 +290,52 @@ export function TicketDetailPage() {
             <CardContent className="space-y-5 p-6 pt-2">
               <div>
                 <div className="mb-1 text-xs text-slate-500">Phân loại</div>
-                <div className="font-semibold text-slate-900">{ticket.category}</div>
+                <div className="font-semibold text-slate-900">{TICKET_CATEGORY_MAP[ticket.category] || ticket.category}</div>
               </div>
 
               <div className="h-px w-full bg-slate-100"></div>
 
               <div>
                 <div className="mb-2 text-xs text-slate-500">Người phụ trách</div>
-                                  {ticket.assignedToUser ? (
-                    <div className="flex flex-col gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8 border border-slate-200">
-                          <AvatarFallback className="bg-blue-100 text-xs font-bold text-blue-700">
-                            {ticket.assignedToUser.fullName.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-medium text-slate-900">{ticket.assignedToUser.fullName}</span>
-                      </div>
-                      
-                      {ticket.scheduledAt && (
-                        <div className="flex flex-col gap-1 mt-2 text-sm text-slate-600 border-t border-slate-200 pt-2">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-blue-500" />
-                            <span>Dự kiến: <strong>{new Date(ticket.scheduledAt).toLocaleString('vi-VN')}</strong></span>
-                          </div>
-                          {ticket.scheduledNote && (
-                            <div className="text-slate-500 italic">
-                              "{ticket.scheduledNote}"
-                            </div>
-                          )}
-                        </div>
-                      )}
+                {ticket.assignedToUser ? (
+                  <div className="flex flex-col gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8 border border-slate-200">
+                        <AvatarFallback className="bg-blue-100 text-xs font-bold text-blue-700">
+                          {ticket.assignedToUser.fullName.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium text-slate-900">{ticket.assignedToUser.fullName}</span>
                     </div>
-                  ) : (
-                  <div className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700">
-                    <AlertTriangle className="h-4 w-4" /> Chưa phân công
+                    
+                    {ticket.scheduledAt && (
+                      <div className="flex flex-col gap-1 mt-2 text-sm text-slate-600 border-t border-slate-200 pt-2">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-blue-500" />
+                          <span>Dự kiến: <strong>{new Date(ticket.scheduledAt).toLocaleString('vi-VN')}</strong></span>
+                        </div>
+                        {ticket.scheduledNote && (
+                          <div className="text-slate-500 italic">
+                            "{ticket.scheduledNote}"
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+                      <AlertTriangle className="mr-1 h-3 w-3" />
+                      Chưa phân công
+                    </Badge>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      onClick={() => setIsModalOpen(true)}
+                    >
+                      Phân công
+                    </Button>
                   </div>
                 )}
               </div>
@@ -411,6 +422,8 @@ export function TicketDetailPage() {
         onClose={() => setIsModalOpen(false)}
         currentStatus={ticket.status}
         currentAssigneeId={ticket.assignedTo}
+        currentScheduledAt={ticket.scheduledAt}
+        currentScheduledNote={ticket.scheduledNote}
         onUpdate={handleUpdateTicket}
       />
     </div>

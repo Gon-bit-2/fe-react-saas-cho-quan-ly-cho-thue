@@ -92,7 +92,7 @@ export function LiquidationModal({ isOpen, onClose, onComplete, depositAmount, c
                 <Label htmlFor="electricity">Chỉ số điện chốt (Chữ)</Label>
                 <Input
                   id="electricity"
-                  type="number"
+                  type="number" min="0"
                   placeholder="Ví dụ: 150"
                   value={electricityIndex}
                   onChange={(e) => setElectricityIndex(e.target.value)}
@@ -102,7 +102,7 @@ export function LiquidationModal({ isOpen, onClose, onComplete, depositAmount, c
                 <Label htmlFor="water">Chỉ số nước chốt (Khối)</Label>
                 <Input
                   id="water"
-                  type="number"
+                  type="number" min="0"
                   placeholder="Ví dụ: 12"
                   value={waterIndex}
                   onChange={(e) => setWaterIndex(e.target.value)}
@@ -118,7 +118,7 @@ export function LiquidationModal({ isOpen, onClose, onComplete, depositAmount, c
                 <Label htmlFor="damage">Tiền bồi thường hư hỏng (VNĐ)</Label>
                 <Input
                   id="damage"
-                  type="number"
+                  type="number" min="0"
                   placeholder="0"
                   value={damageFee}
                   onChange={(e) => setDamageFee(e.target.value)}
@@ -128,7 +128,7 @@ export function LiquidationModal({ isOpen, onClose, onComplete, depositAmount, c
                 <Label htmlFor="penalty">Tiền phạt vi phạm hợp đồng (VNĐ)</Label>
                 <Input
                   id="penalty"
-                  type="number"
+                  type="number" min="0"
                   placeholder="0"
                   value={penaltyFee}
                   onChange={(e) => setPenaltyFee(e.target.value)}

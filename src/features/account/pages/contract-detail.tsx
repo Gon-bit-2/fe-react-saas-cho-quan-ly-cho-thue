@@ -4,7 +4,9 @@ import { ArrowLeft, FileText, CheckCircle2, CalendarDays, Building, Phone } from
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useQuery } from '@tanstack/react-query'
+import { CONTRACT_STATUS_MAP } from '@/types/contract'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { SignContractDialog } from '@/features/tenant-app/pages/contracts/components/sign-contract-dialog'
 import { apiClient } from '@/shared/api/axios-client'
 import { TerminationRequest } from '@/features/contracts/components/termination-request'
 import { AssetHandover } from '@/features/contracts/components/asset-handover'
@@ -14,10 +16,15 @@ export default function ContractDetailPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  const { data: contract, isLoading, isError } = useQuery({
+  const { data: contract, isLoading, isError, refetch } = useQuery({
     queryKey: ['my-contract-detail', id],
     queryFn: () => apiClient.get(`/contracts/me/${id}`).then((r) => r.data),
     enabled: !!id,
+  })
+
+  const signContract = useMutation({
+    mutationFn: (signature: string) => apiClient.post(`/contracts/me/${id}/sign`, { signature }),
+    onSuccess: () => refetch(),
   })
 
   const { durationMonths, monthsLeft, progressPercent } = useMemo(() => {
@@ -98,21 +105,27 @@ export default function ContractDetailPage() {
                 }
               >
                 <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-current"></span>
-                {contract.status === 'ACTIVE'
-                  ? 'Đang hoạt động'
-                  : contract.status === 'DRAFT'
-                    ? 'Bản nháp'
-                    : contract.status === 'WAITING_RENTER_SIGN'
-                      ? 'Chờ bạn ký'
-                      : contract.status === 'CANCELED'
-                        ? 'Đã hủy'
-                        : contract.status}
+                {CONTRACT_STATUS_MAP[contract.status] || contract.status}
               </Badge>
               <span className="flex items-center gap-1.5 text-sm text-slate-500">
                 <CalendarDays className="h-4 w-4" /> Bắt đầu {new Date(contract.startDate).toLocaleDateString('vi-VN')}
               </span>
             </div>
           </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {contract.status === 'WAITING_RENTER_SIGN' && (
+            <SignContractDialog
+              title="Khách thuê ký hợp đồng"
+              onSign={(signature) => signContract.mutate(signature)}
+              isPending={signContract.isPending}
+            >
+              <Button className="bg-blue-600 text-white hover:bg-blue-700">
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Ký hợp đồng
+              </Button>
+            </SignContractDialog>
+          )}
         </div>
       </div>
 

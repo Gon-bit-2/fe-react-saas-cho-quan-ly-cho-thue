@@ -264,7 +264,7 @@ export function InvoiceCreatePage() {
 
                   <div className="flex w-32 items-center gap-2">
                     <Input
-                      type="number"
+                      type="number" min="0"
                       className="text-right"
                       placeholder="Số tiền"
                       {...register(`extraItems.${index}.unitPrice` as const, {

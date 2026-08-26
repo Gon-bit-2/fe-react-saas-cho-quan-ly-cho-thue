@@ -4,7 +4,7 @@ import { apiClient } from '@/shared/api/axios-client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { SignContractDialog } from '@/features/tenant-app/pages/contracts/components/sign-contract-dialog'
+
 import { SelfServiceDetailDialog } from './components/self-service-detail-dialog'
 import { useState } from 'react'
 import { StatusBadge } from '@/components/ui/status-badge'
@@ -104,8 +104,11 @@ function itemAmount(item: SelfServiceItem): string | undefined {
   return Number.isFinite(amount) ? `${amount.toLocaleString('vi-VN')} ₫` : undefined
 }
 
+import { CreateTenantTicketDialog } from './components/create-tenant-ticket-dialog'
+
 export function Component() {
   const [detailId, setDetailId] = useState<number | null>(null)
+  const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const slug = location.pathname.split('/').filter(Boolean).at(-1) as keyof typeof sections
@@ -128,18 +131,19 @@ export function Component() {
     onSuccess: () => query.refetch(),
   })
 
-  const signContract = useMutation({
-    mutationFn: ({ id, signature }: { id: number; signature: string }) => {
-      return apiClient.post(`/contracts/me/${id}/sign`, { signature })
-    },
-    onSuccess: () => query.refetch(),
-  })
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div>
-        <p className="text-sm text-slate-500">Khu vực tự phục vụ</p>
-        <h1 className="text-2xl font-bold text-slate-900">{section.title}</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-slate-500">Khu vực tự phục vụ</p>
+          <h1 className="text-2xl font-bold text-slate-900">{section.title}</h1>
+        </div>
+        {slug === 'ho-tro' && (
+          <Button onClick={() => setIsCreateTicketOpen(true)}>
+            Tạo yêu cầu mới
+          </Button>
+        )}
       </div>
 
       {query.isLoading && (
@@ -224,17 +228,7 @@ export function Component() {
                       Hủy
                     </Button>
                   )}
-                  {slug === 'hop-dong' && status === 'WAITING_RENTER_SIGN' && (
-                    <SignContractDialog
-                      title="Khách thuê ký hợp đồng"
-                      onSign={(signature) => signContract.mutate({ id: itemId, signature })}
-                      isPending={signContract.isPending}
-                    >
-                      <Button type="button" size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
-                        Ký hợp đồng
-                      </Button>
-                    </SignContractDialog>
-                  )}
+
                 </div>
               </CardContent>
             </Card>
@@ -250,6 +244,11 @@ export function Component() {
         endpoint={section.endpoint}
         id={detailId}
         title={`Chi tiết ${section.title.toLowerCase()}`}
+      />
+
+      <CreateTenantTicketDialog 
+        open={isCreateTicketOpen} 
+        onOpenChange={setIsCreateTicketOpen} 
       />
     </div>
   )
