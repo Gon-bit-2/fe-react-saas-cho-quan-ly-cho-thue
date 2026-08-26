@@ -63,6 +63,8 @@ export interface Contract {
   endDate: string
   monthlyPrice: number
   depositAmount: number
+  isDepositPaid?: boolean
+  depositInvoiceId?: number | null
   billingCycle: ContractBillingCycle
   paymentDueDay: number
   contentSnapshot: string

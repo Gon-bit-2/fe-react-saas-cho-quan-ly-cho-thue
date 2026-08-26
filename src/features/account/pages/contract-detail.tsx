@@ -212,8 +212,15 @@ export default function ContractDetailPage() {
                         <div className="mb-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
                           TIỀN CỌC ĐÃ ĐÓNG
                         </div>
-                        <div className="text-lg font-semibold text-slate-900">
-                          {new Intl.NumberFormat('vi-VN').format(contract.depositAmount)} ₫
+                        <div className="flex items-center gap-2">
+                          <div className="text-lg font-semibold text-slate-900">
+                            {new Intl.NumberFormat('vi-VN').format(contract.depositAmount)} ₫
+                          </div>
+                          {contract.isDepositPaid ? (
+                            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">Đã thu</Badge>
+                          ) : (
+                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none">Chưa thu</Badge>
+                          )}
                         </div>
                       </div>
 

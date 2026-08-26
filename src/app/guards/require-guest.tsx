@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
 import { useAuth } from '@/shared/hooks/use-auth'
+import { getPostLoginPath } from '@/shared/lib/auth-navigation'
 
 /**
  * Guard cho guest-only routes (login, register, forgot-password).
@@ -7,7 +8,7 @@ import { useAuth } from '@/shared/hooks/use-auth'
  * Nếu đang bootstrap → hiện loading, không redirect sớm.
  */
 export function RequireGuest() {
-  const { state } = useAuth()
+  const { state, profile } = useAuth()
   const location = useLocation()
 
   if (state === 'bootstrapping') {
@@ -16,7 +17,7 @@ export function RequireGuest() {
 
   if (state === 'authenticated') {
     // Redirect về trang trước đó hoặc về home
-    const returnUrl = (location.state as { from?: string })?.from ?? '/'
+    const returnUrl = (location.state as { from?: string })?.from ?? (profile ? getPostLoginPath(profile) : '/')
     return <Navigate to={returnUrl} replace />
   }
 

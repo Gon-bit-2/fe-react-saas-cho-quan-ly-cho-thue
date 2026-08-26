@@ -210,6 +210,23 @@ export const useUpdateRoom = (id: number) => {
   })
 }
 
+export const useUpdateRoomStatus = (id: number) => {
+  const { selectedMembership } = useAuth()
+  const tenantId = String(selectedMembership?.tenantId || '')
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (status: string) => {
+      const response = await apiClient.patch<Room>(`/rooms/${id}/status`, { status }, { tenantId })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ROOM_KEYS.detail(tenantId, id) })
+      queryClient.invalidateQueries({ queryKey: ROOM_KEYS.lists(tenantId) })
+    },
+  })
+}
+
 export const useUpdateRoomMarketplace = (id: number) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')

@@ -168,19 +168,52 @@ export function Component() {
                   </button>
                   <div className="flex flex-wrap gap-2 mb-3">
                     <button
-                      onClick={() => setFilters(f => ({ ...f, provinceCode: '01', wardCode: '', lat: '', lng: '' }))}
+                      onClick={() => {
+                        const newCode = filters.provinceCode === '01' ? '' : '01';
+                        const newFilters = { ...filters, provinceCode: newCode, wardCode: '', lat: '', lng: '' };
+                        setFilters(newFilters);
+                        const params = new URLSearchParams(searchParams);
+                        if (newCode) params.set('provinceCode', newCode);
+                        else params.delete('provinceCode');
+                        params.delete('wardCode');
+                        params.delete('lat');
+                        params.delete('lng');
+                        setSearchParams(params);
+                      }}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filters.provinceCode === '01' ? 'bg-primary text-white' : 'bg-surface-container hover:bg-surface-container-high text-on-surface'}`}
                     >
                       Hà Nội
                     </button>
                     <button
-                      onClick={() => setFilters(f => ({ ...f, provinceCode: '79', wardCode: '', lat: '', lng: '' }))}
+                      onClick={() => {
+                        const newCode = filters.provinceCode === '79' ? '' : '79';
+                        const newFilters = { ...filters, provinceCode: newCode, wardCode: '', lat: '', lng: '' };
+                        setFilters(newFilters);
+                        const params = new URLSearchParams(searchParams);
+                        if (newCode) params.set('provinceCode', newCode);
+                        else params.delete('provinceCode');
+                        params.delete('wardCode');
+                        params.delete('lat');
+                        params.delete('lng');
+                        setSearchParams(params);
+                      }}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filters.provinceCode === '79' ? 'bg-primary text-white' : 'bg-surface-container hover:bg-surface-container-high text-on-surface'}`}
                     >
                       Hồ Chí Minh
                     </button>
                     <button
-                      onClick={() => setFilters(f => ({ ...f, provinceCode: '48', wardCode: '', lat: '', lng: '' }))}
+                      onClick={() => {
+                        const newCode = filters.provinceCode === '48' ? '' : '48';
+                        const newFilters = { ...filters, provinceCode: newCode, wardCode: '', lat: '', lng: '' };
+                        setFilters(newFilters);
+                        const params = new URLSearchParams(searchParams);
+                        if (newCode) params.set('provinceCode', newCode);
+                        else params.delete('provinceCode');
+                        params.delete('wardCode');
+                        params.delete('lat');
+                        params.delete('lng');
+                        setSearchParams(params);
+                      }}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filters.provinceCode === '48' ? 'bg-primary text-white' : 'bg-surface-container hover:bg-surface-container-high text-on-surface'}`}
                     >
                       Đà Nẵng

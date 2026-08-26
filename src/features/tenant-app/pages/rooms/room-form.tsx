@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useRoom, useProperties, useCreateRoom, useUpdateRoom, useFloors, useUploadRoomImages } from '@/shared/api/properties'
+import { useRoom, useProperties, useCreateRoom, useUpdateRoom, useUpdateRoomStatus, useFloors, useUploadRoomImages } from '@/shared/api/properties'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -46,6 +46,7 @@ export function Component() {
 
   const createRoom = useCreateRoom()
   const updateRoom = useUpdateRoom(Number(id))
+  const updateRoomStatus = useUpdateRoomStatus(Number(id))
   const uploadRoomImage = useUploadRoomImages(Number(id))
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -114,6 +115,11 @@ export function Component() {
           floorId,
         }
         await updateRoom.mutateAsync(updatePayload)
+        
+        if (data.status !== initialData?.status) {
+          await updateRoomStatus.mutateAsync(data.status)
+        }
+        
         toast.success('Cập nhật phòng thành công!')
       } else {
         const createPayload: CreateRoomDto = {
@@ -139,7 +145,7 @@ export function Component() {
     }
   }
 
-  const isSubmitting = createRoom.isPending || updateRoom.isPending || uploadRoomImage.isPending
+  const isSubmitting = createRoom.isPending || updateRoom.isPending || updateRoomStatus.isPending || uploadRoomImage.isPending
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

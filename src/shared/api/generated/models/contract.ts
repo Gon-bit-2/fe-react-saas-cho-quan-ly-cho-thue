@@ -30,6 +30,8 @@ export interface Contract {
   monthlyPrice: string;
   /** @pattern ^-?\d+(?:\.\d+)?$ */
   depositAmount?: string;
+  isDepositPaid?: boolean;
+  depositInvoiceId?: number | null;
   billingCycle?: ContractBillingCycle;
   /**
      * @minimum 1

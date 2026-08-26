@@ -18,6 +18,10 @@ import { CONTRACT_STATUS_MAP } from '@/types/contract'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
+  getContractsControllerGetForLandlordQueryKey,
+  getContractsControllerListForLandlordQueryKey,
+} from '@/shared/api/generated/contracts/contracts'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -37,6 +41,9 @@ import { SignContractDialog } from './components/sign-contract-dialog'
 import { ContractPrintTemplate } from './components/contract-print-template'
 import { TerminationRequest } from '@/features/contracts/components/termination-request'
 import { AssetHandover } from '@/features/contracts/components/asset-handover'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { customInstance } from '@/shared/api/orval-mutator'
+import { toast } from 'sonner'
 
 export default function ContractDetailPage() {
   const { id } = useParams()
@@ -48,6 +55,21 @@ export default function ContractDetailPage() {
   const { mutate: cancelContract, isPending: isCanceling } = useCancelContract(Number(id))
   const { mutate: activateContract, isPending: isActivating } = useActivateContract(Number(id))
   const { mutate: removeMember, isPending: isRemoving } = useRemoveContractMember(Number(id))
+
+  const queryClient = useQueryClient()
+  const { mutate: generateDepositInvoice, isPending: isGeneratingInvoice } = useMutation({
+    mutationFn: (contractId: number) =>
+      customInstance({ url: `/contracts/${contractId}/deposit-invoice`, method: 'POST' }),
+    onSuccess: () => {
+      toast.success('Đã tạo hóa đơn cọc thành công!')
+      queryClient.invalidateQueries({ queryKey: getContractsControllerGetForLandlordQueryKey(Number(id)) })
+      queryClient.invalidateQueries({ queryKey: getContractsControllerListForLandlordQueryKey() })
+      queryClient.invalidateQueries({ queryKey: ['/invoices'] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Lỗi khi tạo hóa đơn')
+    },
+  })
   const { mutate: signLandlord, isPending: isSigning } = useSignContractLandlord(Number(id))
 
   const handleRemoveMember = (memberId: number) => {
@@ -155,13 +177,17 @@ export default function ContractDetailPage() {
                   className="bg-blue-600 text-white hover:bg-blue-700"
                   onClick={handleActivate}
                   disabled={isActivating || isFutureStart}
-                  title={isFutureStart ? `Ngày bắt đầu: ${new Date(contract.startDate).toLocaleDateString('vi-VN')}` : undefined}
+                  title={
+                    isFutureStart
+                      ? `Ngày bắt đầu: ${new Date(contract.startDate).toLocaleDateString('vi-VN')}`
+                      : undefined
+                  }
                 >
                   <CheckCircle2 className="mr-2 h-4 w-4" />
                   Kích hoạt ngay
                 </Button>
                 {isFutureStart && (
-                  <span className="text-xs text-amber-600 font-medium">
+                  <span className="text-xs font-medium text-amber-600">
                     Chưa đến ngày bắt đầu ({new Date(contract.startDate).toLocaleDateString('vi-VN')})
                   </span>
                 )}
@@ -289,12 +315,29 @@ export default function ContractDetailPage() {
                               <div className="text-lg font-semibold text-slate-900">
                                 {new Intl.NumberFormat('vi-VN').format(contract.depositAmount)} ₫
                               </div>
-                              {/* Hiển thị trạng thái cọc dựa trên trạng thái hợp đồng */}
-                              {contract.status === 'ACTIVE' || contract.status === 'EXPIRED' || contract.status === 'TERMINATED' ? (
-                                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Đã thu</Badge>
+                              {/* Hiển thị trạng thái cọc dựa trên trạng thái thanh toán */}
+                              {contract.isDepositPaid ? (
+                                <Badge className="border-none bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                                  Đã thu
+                                </Badge>
                               ) : (
-                                <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Chưa thu</Badge>
+                                <Badge className="border-none bg-amber-100 text-amber-700 hover:bg-amber-100">
+                                  Chưa thu
+                                </Badge>
                               )}
+                              {!contract.isDepositPaid &&
+                                !contract.depositInvoiceId &&
+                                contract.status === 'ACTIVE' && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-6 border-blue-200 bg-white text-xs text-blue-600 hover:bg-blue-50"
+                                    onClick={() => generateDepositInvoice(contract.id)}
+                                    disabled={isGeneratingInvoice}
+                                  >
+                                    {isGeneratingInvoice ? 'Đang tạo...' : 'Tạo hóa đơn cọc'}
+                                  </Button>
+                                )}
                             </div>
                           </div>
 
