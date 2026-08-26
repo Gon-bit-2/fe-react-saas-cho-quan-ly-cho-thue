@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { CheckCircle2, Clock, XCircle, AlertTriangle, Calculator, CalendarDays, Loader2 } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
@@ -18,6 +19,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { LiquidationModal } from '@/features/tenant-app/pages/terminations/components/liquidation-modal'
 
 interface TerminationRequestProps {
   contractId: number
@@ -29,13 +31,18 @@ interface TerminationRequestProps {
  * Component quản lý quy trình yêu cầu kết thúc / thanh lý hợp đồng (gửi yêu cầu, duyệt, hoàn tất thanh lý và dự tính quyết toán)
  */
 export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }: TerminationRequestProps) {
-  const { data: request, isLoading: isLoadingRequest } = useActiveTerminationByContract(contractId)
+  const { data: request, isLoading: isLoadingRequest } = useActiveTerminationByContract(contractId, isLandlord)
 
   const status = request?.status || 'NONE'
 
   const [reason, setReason] = useState('')
+  const [expectedMoveOutDate, setExpectedMoveOutDate] = useState(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 30)
+    return d.toISOString().split('T')[0]
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { mutateAsync: createTermination } = useCreateTermination()
+  const { mutateAsync: createTermination } = useCreateTermination(isLandlord)
   const queryClient = useQueryClient()
   const completeMutation = useCompleteTermination(request?.id || 0)
 
@@ -47,7 +54,7 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
   // Lấy danh sách handover để check Biên bản trả phòng (CHECKOUT)
   const { data: handoversResponse } = useHandoversControllerList(
     { contractId, limit: 10 },
-    { query: { enabled: !!contractId } },
+    { query: { enabled: !!contractId && isLandlord } },
   )
   const handovers =
     (handoversResponse as unknown as { data: { type?: string; status?: string; id?: number }[] })?.data || []
@@ -56,7 +63,7 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
   )
 
   // Lấy tổng công nợ
-  const { data: debtsResponse } = useInvoicesControllerListDebts({ contractId }, { query: { enabled: !!contractId } })
+  const { data: debtsResponse } = useInvoicesControllerListDebts({ contractId }, { query: { enabled: !!contractId && isLandlord } })
   const outstandingDebt = (debtsResponse as unknown as { totalRemainingAmount: number })?.totalRemainingAmount || 0
 
   // Giả lập trạng thái quy trình thanh lý
@@ -88,7 +95,7 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
       await createTermination({
         contractId: contractId,
         reason,
-        expectedMoveOutDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        expectedMoveOutDate,
       })
       toast.success('Đã gửi yêu cầu thanh lý')
       setReason('')
@@ -164,6 +171,18 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="min-h-[100px]"
+              />
+            </div>
+            
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Ngày dự kiến dọn đi (Báo trước theo hợp đồng)
+              </label>
+              <Input
+                type="date"
+                value={expectedMoveOutDate}
+                onChange={(e) => setExpectedMoveOutDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
               />
             </div>
 
@@ -325,81 +344,38 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
         </div>
       )}
 
-      {/* Modal Hoàn tất thanh lý */}
-      <Dialog open={isCompleteModalOpen} onOpenChange={setIsCompleteModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Hoàn tất thanh lý hợp đồng</DialogTitle>
-            <DialogDescription>
-              Bước này sẽ chính thức kết thúc hợp đồng. Vui lòng đảm bảo bạn đã hoàn thành biên bản bàn giao phòng và
-              chốt điện nước.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {!checkoutHandover && (
-              <div className="mb-2 rounded-md bg-red-50 p-3 text-sm text-red-600">
-                <AlertTriangle className="mr-1 inline h-4 w-4" />
-                Chưa có Biên bản trả phòng (CHECKOUT) đã xác nhận. Vui lòng sang tab <b>Bàn giao</b> để tạo.
-              </div>
-            )}
-
-            {outstandingDebt > 0 && (
-              <div className="mb-2 rounded-md bg-amber-50 p-3 text-sm text-amber-600">
-                <AlertTriangle className="mr-1 inline h-4 w-4" />
-                Hợp đồng này đang còn nợ <b>{new Intl.NumberFormat('vi-VN').format(outstandingDebt)} ₫</b>.
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label>Ngày dọn đi thực tế</Label>
-              <input
-                type="date"
-                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                value={actualMoveOutDate}
-                onChange={(e) => setActualMoveOutDate(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Ghi chú quyết toán (Tùy chọn)</Label>
-              <Textarea
-                placeholder="Nhập ghi chú hoặc biên bản..."
-                value={completionNote}
-                onChange={(e) => setCompletionNote(e.target.value)}
-              />
-            </div>
-            {outstandingDebt > 0 && (
-              <div className="mt-2 flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="ack-debt"
-                  className="rounded border-slate-300"
-                  checked={acknowledgeDebt}
-                  onChange={(e) => setAcknowledgeDebt(e.target.checked)}
-                />
-                <Label htmlFor="ack-debt" className="text-sm font-medium text-amber-700">
-                  Tôi xác nhận bỏ qua công nợ này để hoàn tất
-                </Label>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCompleteModalOpen(false)}>
-              Hủy
-            </Button>
-            <Button
-              onClick={handleComplete}
-              disabled={completeMutation.isPending || !checkoutHandover || (outstandingDebt > 0 && !acknowledgeDebt)}
-              className="bg-blue-600 text-white hover:bg-blue-700"
-            >
-              {completeMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-              )}
-              Xác nhận hoàn tất
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <LiquidationModal 
+        isOpen={isCompleteModalOpen}
+        onClose={() => setIsCompleteModalOpen(false)}
+        onComplete={async (data) => {
+          if (checkoutHandover?.id) {
+            try {
+              await completeMutation.mutateAsync({
+                checkoutHandoverId: checkoutHandover.id,
+                actualMoveOutDate: data.actualMoveOutDate,
+                completionNote: 'Đã thanh lý qua chức năng Quyết toán',
+                acknowledgeOutstandingDebt: data.acknowledgeDebt,
+                electricityFee: data.electricityFee,
+                waterFee: data.waterFee,
+                damageFee: data.damageFee,
+                penaltyFee: data.penaltyFee,
+              })
+              setIsCompleteModalOpen(false)
+              queryClient.invalidateQueries({ queryKey: ['/terminations/active', contractId] })
+              queryClient.invalidateQueries({ queryKey: ['/contracts'] })
+            } catch (error: unknown) {
+              const err = error as Error & { response?: { data?: { message?: string } } }
+              toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi hoàn tất thanh lý')
+              throw error // Ném lỗi để LiquidationModal biết
+            }
+          } else {
+            setIsCompleteModalOpen(false)
+          }
+        }}
+        depositAmount={depositAmount || 0}
+        contractId={String(contractId)}
+        roomName={`Phòng thuê`}
+      />
     </div>
   )
 }

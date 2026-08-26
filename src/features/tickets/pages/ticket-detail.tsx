@@ -103,6 +103,16 @@ export function TicketDetailPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Kiểm tra kích thước file (tối đa 5MB)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Kích thước ảnh tối đa là 5MB')
+      if (e.target) {
+        e.target.value = ''
+      }
+      return
+    }
+
     setIsUploading(true)
     try {
       await ticketApi.uploadAttachment(ticket.id, file)

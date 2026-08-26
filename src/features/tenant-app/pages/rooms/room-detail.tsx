@@ -162,7 +162,7 @@ export function Component() {
             <Button variant="outline" onClick={() => navigate(`/quan-ly-phong/${room.id}/chinh-sua`)}>
               <Edit className="mr-2 h-4 w-4" /> Chỉnh sửa
             </Button>
-            {room.marketplaceStatus === 'DRAFT' && (
+            {['DRAFT', 'HIDDEN', 'REJECTED'].includes(room.marketplaceStatus as string) && (
               <Button
                 onClick={async () => {
                   try {
@@ -176,6 +176,22 @@ export function Component() {
                 className="bg-indigo-600 text-white hover:bg-indigo-700"
               >
                 <Send className="mr-2 h-4 w-4" /> Gửi kiểm duyệt
+              </Button>
+            )}
+            {room.marketplaceStatus === 'PUBLISHED' && (
+              <Button
+                onClick={async () => {
+                  try {
+                    await updateMarketplace.mutateAsync('HIDDEN')
+                    toast.success('Đã ẩn phòng khỏi sàn thành công!')
+                  } catch {
+                    toast.error('Có lỗi xảy ra khi ẩn phòng')
+                  }
+                }}
+                disabled={updateMarketplace.isPending}
+                variant="destructive"
+              >
+                Ẩn khỏi sàn
               </Button>
             )}
           </div>

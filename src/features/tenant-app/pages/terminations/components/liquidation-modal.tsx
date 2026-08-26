@@ -10,14 +10,15 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Check, Receipt, Zap, Hammer, Calculator } from 'lucide-react'
+import { Check, Receipt, Zap, Hammer, Calculator, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Checkbox } from '@/components/ui/checkbox'
+import { useContract } from '@/shared/api/contracts'
+import { useRoom } from '@/shared/api/properties'
 
 interface LiquidationModalProps {
   isOpen: boolean
   onClose: () => void
-  onComplete: () => void
+  onComplete: (data: { actualMoveOutDate: string, electricityFee: number, waterFee: number, damageFee: number, penaltyFee: number, acknowledgeDebt: boolean }) => Promise<void>
   depositAmount: number
   contractId: string
   roomName: string
@@ -31,9 +32,23 @@ export function LiquidationModal({ isOpen, onClose, onComplete, depositAmount, c
   const [acknowledgeDebt, setAcknowledgeDebt] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Giả định đơn giá để demo UI
-  const ELECTRICITY_PRICE = 3500 // 3.5k/chữ
-  const WATER_PRICE = 20000 // 20k/khối
+  const { data: contract, isLoading: isLoadingContract } = useContract(Number(contractId))
+  const { data: room, isLoading: isLoadingRoom } = useRoom(Number(contract?.roomId))
+
+  const [actualMoveOutDate, setActualMoveOutDate] = useState(() => {
+    return new Date().toISOString().split('T')[0]
+  })
+
+  // Lấy đơn giá từ phòng, nếu chưa có dữ liệu thì mặc định là 0
+  const ELECTRICITY_PRICE = room?.electricityPrice || 0
+  const WATER_PRICE = room?.waterPrice || 0
+
+  const maxDateStr = contract?.endDate ? (() => {
+    const today = new Date()
+    const d = new Date(contract.endDate)
+    d.setDate(d.getDate() - 1)
+    return today < d ? today.toISOString().split('T')[0] : d.toISOString().split('T')[0]
+  })() : new Date().toISOString().split('T')[0]
 
   const calculateTotal = () => {
     const eFee = (Number(electricityIndex) || 0) * ELECTRICITY_PRICE
@@ -57,15 +72,28 @@ export function LiquidationModal({ isOpen, onClose, onComplete, depositAmount, c
       toast.error('Vui lòng tích chọn xác nhận công nợ do khách còn nợ tiền!')
       return
     }
+    if (!actualMoveOutDate) {
+      toast.error('Vui lòng chọn ngày trả phòng!')
+      return
+    }
 
     setIsSubmitting(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      await onComplete({ 
+        actualMoveOutDate,
+        electricityFee: electricity,
+        waterFee: water,
+        damageFee: damage,
+        penaltyFee: penalty,
+        acknowledgeDebt,
+      })
       toast.success('Đã hoàn tất quyết toán và thanh lý hợp đồng!')
-      onComplete()
       onClose()
-    }, 1500)
+    } catch (error) {
+      // Error is handled in onComplete or we can show generic
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -84,10 +112,26 @@ export function LiquidationModal({ isOpen, onClose, onComplete, depositAmount, c
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
           {/* Left Column: Form Inputs */}
           <div className="space-y-6">
+            {(isLoadingContract || isLoadingRoom) && (
+              <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <Loader2 className="h-4 w-4 animate-spin" /> Đang tải thông tin đơn giá điện nước...
+              </div>
+            )}
             <div className="space-y-4">
               <h4 className="font-semibold text-sm flex items-center gap-2 text-slate-700">
                 <Zap className="h-4 w-4 text-amber-500" /> Điện & Nước cuối kỳ
               </h4>
+              <div className="grid gap-2">
+                <Label htmlFor="moveOutDate">Ngày trả phòng</Label>
+                <Input
+                  id="moveOutDate"
+                  type="date"
+                  value={actualMoveOutDate}
+                  onChange={(e) => setActualMoveOutDate(e.target.value)}
+                  min={contract?.startDate ? new Date(contract.startDate).toISOString().split('T')[0] : undefined}
+                  max={maxDateStr}
+                />
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="electricity">Chỉ số điện chốt (Chữ)</Label>
                 <Input
@@ -197,10 +241,12 @@ export function LiquidationModal({ isOpen, onClose, onComplete, depositAmount, c
 
             {finalAmount < 0 && (
               <div className="flex items-start gap-2 pt-2">
-                <Checkbox 
-                  id="acknowledge" 
+                <input
+                  type="checkbox"
+                  id="acknowledge"
+                  className="rounded border-slate-300 mr-2 mt-0.5"
                   checked={acknowledgeDebt}
-                  onCheckedChange={(checked) => setAcknowledgeDebt(checked as boolean)}
+                  onChange={(e) => setAcknowledgeDebt(e.target.checked)}
                 />
                 <Label htmlFor="acknowledge" className="text-xs text-slate-600 leading-snug cursor-pointer">
                   Tôi xác nhận khách thuê vẫn còn công nợ <strong className="text-red-600">{Math.abs(finalAmount).toLocaleString('vi-VN')} ₫</strong> sau khi trừ cọc, và cho phép đóng hợp đồng.

@@ -65,33 +65,39 @@ export const useTermination = (id: number) => {
   })
 }
 
-export const useActiveTerminationByContract = (contractId: number) => {
+export const useActiveTerminationByContract = (contractId: number, isLandlord: boolean = true) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
+  
+  // Renter endpoint doesn't need tenantId in query/headers usually, but apiClient handles it.
+  const endpoint = isLandlord ? '/contract-terminations' : '/contract-terminations/me'
 
   return useQuery({
-    queryKey: [...TERMINATION_KEYS.lists(tenantId), { contractId, type: 'active' }],
+    queryKey: [...TERMINATION_KEYS.lists(tenantId), { contractId, type: 'active', isLandlord }],
     queryFn: async () => {
-      const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>('/contract-terminations', {
+      const { data } = await apiClient.get<PaginatedResponse<ContractTerminationRequest>>(endpoint, {
         params: { contractId },
-        tenantId,
+        tenantId: isLandlord ? tenantId : undefined,
       })
       const activeRequests = data.data.filter((t) => !['CANCELED', 'REJECTED'].includes(t.status))
       // Trả về cái đầu tiên không bị hủy hoặc từ chối
       return activeRequests.length > 0 ? activeRequests[0] : null
     },
-    enabled: !!tenantId && !!contractId,
+    enabled: isLandlord ? (!!tenantId && !!contractId) : !!contractId,
   })
 }
 
-export const useCreateTermination = () => {
+export const useCreateTermination = (isLandlord: boolean = true) => {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (payload: CreateTerminationBody) => {
-      const { data } = await apiClient.post<ContractTerminationRequest>('/contract-terminations', payload, { tenantId })
+      const endpoint = isLandlord ? '/contract-terminations' : '/contract-terminations/me'
+      const { data } = await apiClient.post<ContractTerminationRequest>(endpoint, payload, { 
+        tenantId: isLandlord ? tenantId : undefined 
+      })
       return data
     },
     onSuccess: () => {

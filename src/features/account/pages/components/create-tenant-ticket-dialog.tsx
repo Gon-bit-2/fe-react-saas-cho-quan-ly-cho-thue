@@ -64,6 +64,7 @@ export function CreateTenantTicketDialog({ open, onOpenChange }: CreateTenantTic
         contractId: contract.id,
       })
 
+      let uploadError = false
       if (selectedFiles.length > 0) {
         setIsUploading(true)
         try {
@@ -72,15 +73,19 @@ export function CreateTenantTicketDialog({ open, onOpenChange }: CreateTenantTic
         } catch (error) {
           console.error('Lỗi khi tải ảnh đính kèm', error)
           toast.error('Gửi yêu cầu thành công, nhưng tải ảnh lên bị lỗi.')
+          uploadError = true
         } finally {
           setIsUploading(false)
         }
       }
 
+      if (!uploadError) {
+        toast.success('Gửi yêu cầu hỗ trợ thành công')
+      }
+
       return newTicket
     },
     onSuccess: () => {
-      if (!isUploading) toast.success('Gửi yêu cầu hỗ trợ thành công')
       queryClient.invalidateQueries({ queryKey: ['account-self-service', '/tickets/me'] })
       onOpenChange(false)
       // Reset form
@@ -112,7 +117,15 @@ export function CreateTenantTicketDialog({ open, onOpenChange }: CreateTenantTic
       if (imageFiles.length !== files.length) {
         toast.error('Vui lòng chỉ tải lên file hình ảnh')
       }
-      setSelectedFiles(prev => [...prev, ...imageFiles].slice(0, 5)) // Giới hạn 5 ảnh
+
+      // Kiểm tra kích thước file (tối đa 5MB)
+      const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+      const validSizeFiles = imageFiles.filter(f => f.size <= MAX_FILE_SIZE)
+      if (validSizeFiles.length !== imageFiles.length) {
+        toast.error('Kích thước ảnh tối đa là 5MB')
+      }
+
+      setSelectedFiles(prev => [...prev, ...validSizeFiles].slice(0, 5)) // Giới hạn 5 ảnh
     }
   }
 

@@ -286,7 +286,7 @@ export default function Component() {
       <LiquidationModal 
         isOpen={isLiquidationOpen}
         onClose={() => setIsLiquidationOpen(false)}
-        onComplete={() => {
+        onComplete={async (data) => {
           toast.success('Hợp đồng đã được đóng thành công!')
           navigate('/yeu-cau-ket-thuc-hop-dong')
         }}

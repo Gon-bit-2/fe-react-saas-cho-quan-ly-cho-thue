@@ -9,6 +9,7 @@ export interface GetTicketsParams {
   category?: TicketCategory
   roomId?: number
   contractId?: number
+  search?: string
 }
 
 export interface PaginatedResponse<T> {

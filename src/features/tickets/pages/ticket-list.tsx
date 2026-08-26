@@ -18,11 +18,20 @@ export function TicketListPage() {
     limit: number
     status?: TicketStatus | 'all'
     priority?: TicketPriority | 'all'
+    search?: string
   }>({
     page: 1,
     limit: 10,
   })
   const [total, setTotal] = useState(0)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchTerm || undefined, page: 1 }))
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   useEffect(() => {
     const loadTickets = async () => {
@@ -31,6 +40,7 @@ export function TicketListPage() {
         const queryParams = { ...filters }
         if (queryParams.status === 'all') delete queryParams.status
         if (queryParams.priority === 'all') delete queryParams.priority
+        if (!queryParams.search) delete queryParams.search
 
         const response = await ticketApi.getTickets(queryParams as GetTicketsParams)
         setTickets(response.data)
@@ -111,7 +121,12 @@ export function TicketListPage() {
           <span className="material-symbols-outlined pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400">
             search
           </span>
-          <Input className="pl-10" placeholder="Tìm kiếm mã ticket, tiêu đề..." />
+          <Input 
+            className="pl-10" 
+            placeholder="Tìm kiếm mã ticket, tiêu đề..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
 
@@ -179,7 +194,9 @@ export function TicketListPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-right text-slate-500">
-                      {new Date(ticket.updatedAt).toLocaleDateString('vi-VN')}
+                      {ticket.updatedAt 
+                        ? new Date(ticket.updatedAt).toLocaleDateString('vi-VN') 
+                        : (ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('vi-VN') : 'Chưa cập nhật')}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

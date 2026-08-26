@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import { useCreateRentalRequest, useMarketplaceRoom } from '@/shared/api/marketplace'
 import { toast } from 'sonner'
 
@@ -11,6 +12,7 @@ interface RentalRequestDrawerProps {
 export function RentalRequestDrawer({ isOpen, onClose, roomId }: RentalRequestDrawerProps) {
   const { data: room } = useMarketplaceRoom(roomId)
   const { mutate, isPending } = useCreateRentalRequest()
+  const navigate = useNavigate()
   
   const [expectedStartDate, setExpectedStartDate] = useState('')
   const [occupants, setOccupants] = useState<number>(1)
@@ -47,6 +49,7 @@ export function RentalRequestDrawer({ isOpen, onClose, roomId }: RentalRequestDr
         onSuccess: () => {
           toast.success('Gửi yêu cầu thuê phòng thành công')
           onClose()
+          navigate('/tai-khoan/yeu-cau-thue')
         },
         onError: (err: unknown) => {
           const error = err as import('axios').AxiosError<{ message: string }>
