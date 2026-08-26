@@ -10,15 +10,6 @@ import { useActiveTerminationByContract, useCreateTermination, useCompleteTermin
 import { useHandoversControllerList } from '@/shared/api/generated/handovers/handovers'
 import { useInvoicesControllerListDebts } from '@/shared/api/generated/invoices/invoices'
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
 import { LiquidationModal } from '@/features/tenant-app/pages/terminations/components/liquidation-modal'
 
 interface TerminationRequestProps {
@@ -47,9 +38,6 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
   const completeMutation = useCompleteTermination(request?.id || 0)
 
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false)
-  const [actualMoveOutDate, setActualMoveOutDate] = useState(new Date().toISOString().split('T')[0])
-  const [completionNote, setCompletionNote] = useState('')
-  const [acknowledgeDebt, setAcknowledgeDebt] = useState(false)
 
   // Lấy danh sách handover để check Biên bản trả phòng (CHECKOUT)
   const { data: handoversResponse } = useHandoversControllerList(
@@ -105,37 +93,6 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
       toast.error('Có lỗi xảy ra')
     } finally {
       setIsSubmitting(false)
-    }
-  }
-
-  const handleComplete = async () => {
-    if (!request) return
-    try {
-      if (!checkoutHandover?.id) {
-        toast.error('Vui lòng hoàn thành Biên bản trả phòng (CHECKOUT) trước khi thanh lý.')
-        return
-      }
-      if (outstandingDebt > 0 && !acknowledgeDebt) {
-        toast.error('Vui lòng xác nhận bỏ qua công nợ hoặc thanh toán hết hóa đơn.')
-        return
-      }
-      if (outstandingDebt > 0 && !completionNote.trim()) {
-        toast.error('Vui lòng nhập ghi chú quyết toán khi bỏ qua công nợ.')
-        return
-      }
-      await completeMutation.mutateAsync({
-        checkoutHandoverId: checkoutHandover.id,
-        actualMoveOutDate,
-        completionNote,
-        acknowledgeOutstandingDebt: acknowledgeDebt,
-      })
-      toast.success('Đã hoàn tất thanh lý hợp đồng')
-      setIsCompleteModalOpen(false)
-      queryClient.invalidateQueries({ queryKey: ['/terminations/active', contractId] })
-    } catch (error: unknown) {
-      const err = error as Error & { response?: { data?: { message?: string } } }
-      console.error(err)
-      toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi hoàn tất thanh lý')
     }
   }
 

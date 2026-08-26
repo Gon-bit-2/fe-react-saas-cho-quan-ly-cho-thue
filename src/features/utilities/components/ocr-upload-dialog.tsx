@@ -146,7 +146,7 @@ export function OcrUploadDialog({
 
         <div className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label>Quét ảnh (AI OCR)</Label>
+            <Label>Quét ảnh (AI OCR) <span className="font-normal text-slate-400">(Tùy chọn)</span></Label>
             <div className="flex items-center gap-2">
               <Input
                 type="file"

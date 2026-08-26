@@ -14,7 +14,7 @@ import {
   Calculator,
   ClipboardCheck,
   Receipt,
-  FileCheck2
+  FileCheck2,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
@@ -257,8 +257,8 @@ export default function Component() {
                     <p className="mt-1 mb-3 text-xs text-indigo-600/80">
                       Chốt các khoản phí phát sinh, tiền điện nước và hoàn cọc để đóng hợp đồng.
                     </p>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="w-full bg-indigo-600 shadow-sm hover:bg-indigo-700"
                       onClick={() => setIsLiquidationOpen(true)}
                     >
@@ -282,8 +282,8 @@ export default function Component() {
           </Card>
         </div>
       </div>
-      
-      <LiquidationModal 
+
+      <LiquidationModal
         isOpen={isLiquidationOpen}
         onClose={() => setIsLiquidationOpen(false)}
         onComplete={async (data) => {

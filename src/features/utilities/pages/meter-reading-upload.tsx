@@ -279,7 +279,7 @@ export function MeterReadingUploadPage() {
             <CardHeader className="shrink-0 border-b border-slate-200/60 bg-slate-50/80 pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl text-slate-800">Ảnh minh chứng</CardTitle>
+                  <CardTitle className="text-xl text-slate-800">Ảnh minh chứng <span className="text-sm font-normal text-slate-500">(Tùy chọn)</span></CardTitle>
                   <CardDescription>Tải lên ảnh chụp công tơ thực tế</CardDescription>
                 </div>
                 <Button

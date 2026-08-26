@@ -75,7 +75,7 @@ export function InvoiceCreatePage() {
   const extraItems = watch('extraItems') || []
   
   const selectedContractId = watch('contractId')
-  const selectedContract = contracts.find((c: { id: number; roomId: number }) => c.id === selectedContractId)
+  const selectedContract = contracts.find((c: { id: number; roomId: number; startDate?: string; endDate?: string }) => c.id === selectedContractId)
   const currentBillingMonth = watch('billingMonth')
 
   const { data: metersResponse } = useUtilityMetersControllerList(
@@ -187,7 +187,12 @@ export function InvoiceCreatePage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label>Kỳ Hóa Đơn (Tháng)</Label>
-                <Input type="month" {...register('billingMonth', { required: true })} />
+                <Input 
+                  type="month" 
+                  min={selectedContract?.startDate?.slice(0, 7)}
+                  max={selectedContract?.endDate?.slice(0, 7)}
+                  {...register('billingMonth', { required: true })} 
+                />
               </div>
             </div>
             <div className="mt-4 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
@@ -203,10 +208,13 @@ export function InvoiceCreatePage() {
           {/* Section: Chỉ số công tơ */}
           {selectedContract && roomMeters.length > 0 && (
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-slate-900">
+              <h2 className="mb-2 flex items-center gap-2 text-xl font-semibold text-slate-900">
                 <span className="material-symbols-outlined text-primary">speed</span>
                 Chỉ Số Điện/Nước Tháng Này
               </h2>
+              <p className="mb-4 text-sm text-slate-500">
+                Hệ thống sẽ tự động sử dụng chỉ số bạn đã chốt ở trang "Ghi chỉ số". Bạn chỉ cần cập nhật tại đây nếu quên chưa ghi hoặc muốn sửa đổi nhanh.
+              </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 {roomMeters.map((meter) => (
                   <div key={meter.id} className="flex flex-col gap-3 rounded-lg border border-slate-100 bg-slate-50 p-4">

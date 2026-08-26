@@ -33,20 +33,28 @@ export function InvoiceDetailPage() {
 
   const handleCancel = async () => {
     if (!invoice) return;
-    if (window.confirm('Bạn có chắc chắn muốn hủy hóa đơn này?')) {
-      setIsLoading(true);
-      try {
-        await cancelInvoice(invoice.id);
-        toast.success('Đã hủy hóa đơn thành công');
-        const data = await getInvoiceDetail(invoice.id);
-        setInvoice(data);
-      } catch (error) {
-        console.error(error);
-        toast.error('Có lỗi xảy ra khi hủy hóa đơn');
-      } finally {
-        setIsLoading(false);
-      }
-    }
+    toast('Bạn có chắc chắn muốn hủy hóa đơn này?', {
+      action: {
+        label: 'Xác nhận hủy',
+        onClick: async () => {
+          setIsLoading(true);
+          try {
+            await cancelInvoice(invoice.id);
+            toast.success('Đã hủy hóa đơn thành công');
+            const data = await getInvoiceDetail(invoice.id);
+            setInvoice(data);
+          } catch (error) {
+            console.error(error);
+            toast.error('Có lỗi xảy ra khi hủy hóa đơn');
+          } finally {
+            setIsLoading(false);
+          }
+        },
+      },
+      cancel: {
+        label: 'Đóng',
+      },
+    });
   };
 
   const handleRemind = () => {

@@ -20,7 +20,7 @@ export function PaymentListPage() {
   const stats = {
     pendingReview: payments.filter(p => p.status === PaymentStatus.PENDING).length,
     processedToday: payments.filter(p => p.status === PaymentStatus.SUCCESS && new Date(p.updatedAt).toDateString() === new Date().toDateString()).length,
-    totalReconciled: payments.filter(p => p.status === PaymentStatus.SUCCESS).reduce((sum, p) => sum + p.amount, 0)
+    totalReconciled: payments.filter(p => p.status === PaymentStatus.SUCCESS).reduce((sum, p) => sum + Number(p.amount), 0)
   };
 
   useEffect(() => {
