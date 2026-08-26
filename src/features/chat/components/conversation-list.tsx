@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { conversationsApi, type Conversation } from '@/shared/api/conversations'
 import { useAuth } from '@/shared/hooks/use-auth'
+import { useGlobalChatSocket } from '../hooks/use-socket'
 
 interface ConversationListProps {
   onSelectConversation: (id: number) => void
@@ -11,19 +12,28 @@ export const ConversationList = ({ onSelectConversation }: ConversationListProps
   const [isLoading, setIsLoading] = useState(true)
   const { profile } = useAuth()
 
+  const { lastMessage } = useGlobalChatSocket()
+
   useEffect(() => {
+    let isMounted = true
+
     const fetchConversations = async () => {
       try {
         const data = await conversationsApi.getConversations()
-        setConversations(data)
+        if (isMounted) setConversations(data)
       } catch (error) {
         console.error('Failed to fetch conversations', error)
       } finally {
-        setIsLoading(false)
+        if (isMounted) setIsLoading(false)
       }
     }
-    fetchConversations()
-  }, [])
+
+    void fetchConversations()
+
+    return () => {
+      isMounted = false
+    }
+  }, [lastMessage])
 
   if (isLoading) {
     return (

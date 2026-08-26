@@ -4,55 +4,108 @@ import { env } from '@/app/config/env.config'
 import { getAccessToken } from '@/app/config/session.store'
 import type { Message, SendMessageRequest } from '@/shared/api/conversations'
 
-export const useConversationSocket = (conversationId?: number) => {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [isConnected, setIsConnected] = useState(false)
-  const socketRef = useRef<Socket | null>(null)
+// Global Socket Instance để tránh tạo nhiều connection khi mount ở nhiều component
+let globalSocket: Socket | null = null
+let subscriberCount = 0
 
-  useEffect(() => {
-    // Determine socket URL from env.apiUrl (e.g. http://localhost:3000/api/v1 -> http://localhost:3000/conversations)
+const initSocket = () => {
+  if (!globalSocket) {
     let socketUrl: string
     try {
       const url = new URL(env.apiUrl)
       socketUrl = `${url.origin}/conversations`
     } catch {
-      socketUrl = `${env.apiUrl}/conversations` // fallback
+      socketUrl = `${env.apiUrl}/conversations`
     }
 
     const token = getAccessToken()
-
-    // Connect to namespace /conversations
-    socketRef.current = io(socketUrl, {
+    globalSocket = io(socketUrl, {
       auth: token ? { token } : {},
       withCredentials: true,
       transports: ['websocket'],
     })
+  }
+  return globalSocket
+}
 
-    const socket = socketRef.current
+const releaseSocket = () => {
+  if (subscriberCount <= 0 && globalSocket) {
+    globalSocket.disconnect()
+    globalSocket = null
+  }
+}
 
-    socket.on('connect', () => {
-      setIsConnected(true)
-    })
+/** Hook lắng nghe sự kiện chat global không phụ thuộc phòng */
+export const useGlobalChatSocket = () => {
+  const [isConnected, setIsConnected] = useState(() => {
+    const s = initSocket()
+    return s.connected
+  })
+  const [lastMessage, setLastMessage] = useState<Message | null>(null)
 
-    socket.on('disconnect', () => {
-      setIsConnected(false)
-    })
+  useEffect(() => {
+    const socket = initSocket()
+    subscriberCount++
 
-    socket.on('newMessage', (message: Message) => {
-      // Only append if it's the current conversation
-      if (conversationId && message.conversationId === conversationId) {
-        setMessages((prev) => [...prev, message])
-      }
-    })
+    const onConnect = () => setIsConnected(true)
+    const onDisconnect = () => setIsConnected(false)
+    const onNewMessage = (msg: Message) => setLastMessage(msg)
 
-    socket.on('messageRead', () => {
-      // can be used to update UI later
-    })
-
-    socket.connect()
+    socket.on('connect', onConnect)
+    socket.on('disconnect', onDisconnect)
+    // Sửa lại: Backend sẽ trả qua 'newMessage' (kể cả broadcast vô user_id room)
+    socket.on('newMessage', onNewMessage)
 
     return () => {
-      socket.disconnect()
+      socket.off('connect', onConnect)
+      socket.off('disconnect', onDisconnect)
+      socket.off('newMessage', onNewMessage)
+
+      subscriberCount--
+      releaseSocket()
+    }
+  }, [])
+
+  return { isConnected, lastMessage }
+}
+
+export const useConversationSocket = (conversationId?: number) => {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isConnected, setIsConnected] = useState(() => {
+    const s = initSocket()
+    return s.connected
+  })
+  const socketRef = useRef<Socket | null>(null)
+
+  useEffect(() => {
+    const socket = initSocket()
+    socketRef.current = socket
+    subscriberCount++
+
+    const onConnect = () => setIsConnected(true)
+    const onDisconnect = () => setIsConnected(false)
+    const onNewMessage = (message: Message) => {
+      if (conversationId && message.conversationId === conversationId) {
+        setMessages((prev) => {
+          // Tránh duplicate tin nhắn (vì react strict mode hoặc socket bắn nhiều lần)
+          if (prev.some((m) => m.id === message.id)) return prev
+          return [...prev, message]
+        })
+      }
+    }
+
+    socket.on('connect', onConnect)
+    socket.on('disconnect', onDisconnect)
+    socket.on('newMessage', onNewMessage)
+    socket.on('messageRead', () => {})
+
+    return () => {
+      socket.off('connect', onConnect)
+      socket.off('disconnect', onDisconnect)
+      socket.off('newMessage', onNewMessage)
+
+      subscriberCount--
+      releaseSocket()
     }
   }, [conversationId])
 
