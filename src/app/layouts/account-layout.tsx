@@ -1,5 +1,20 @@
-import { Outlet, Link, useLocation } from 'react-router'
+import { useState } from 'react'
+import { Outlet, Link, useNavigate, useLocation } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
+import {
+  User,
+  Heart,
+  Calendar,
+  Send,
+  FileText,
+  Boxes,
+  Receipt,
+  CreditCard,
+  LifeBuoy,
+  Building2,
+  LogOut,
+  Menu,
+} from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,22 +25,29 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { profileApi } from '@/features/auth/api/profile.api'
 import { useAuth } from '@/shared/hooks/use-auth'
-
 import { FloatingChatWidget } from '@/features/chat/components/floating-chat-widget'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Separator } from '@/components/ui/separator'
 
 /**
- * Layout cho trang account (profile, chọn tenant).
+ * Layout cho trang tài khoản cá nhân (/tai-khoan/*).
+ * Áp dụng Shadcn UI và hỗ trợ responsive mobile navigation.
  */
 export function Component() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  // Lấy dữ liệu profile để hiển thị ở header
   useQuery({
     queryKey: ['auth', 'profile'],
     queryFn: () => profileApi.getProfile(),
   })
   const { profile: user, logout, selectedMembership } = useAuth()
 
+  /**
+   * Chuyển đổi mã vai trò sang nhãn hiển thị tiếng Việt
+   */
   const getRoleLabel = (roleId?: string | null) => {
     switch (roleId) {
       case 'ADMIN':
@@ -46,134 +68,167 @@ export function Component() {
   const displayRole = getRoleLabel(selectedMembership?.roleId || user?.systemRole)
 
   const navItems = [
-    { name: 'Hồ sơ', path: '/tai-khoan', icon: 'person', exact: true },
-    { name: 'Phòng yêu thích', path: '/tai-khoan/phong-yeu-thich', icon: 'favorite' },
-    { name: 'Lịch xem phòng', path: '/tai-khoan/lich-xem-phong', icon: 'event' },
-    { name: 'Yêu cầu thuê', path: '/tai-khoan/yeu-cau-thue', icon: 'send' },
-    { name: 'Hợp đồng', path: '/tai-khoan/hop-dong', icon: 'description' },
-    { name: 'Bàn giao', path: '/tai-khoan/ban-giao', icon: 'inventory_2' },
-    { name: 'Hóa đơn', path: '/tai-khoan/hoa-don', icon: 'receipt_long' },
-    { name: 'Thanh toán', path: '/tai-khoan/thanh-toan', icon: 'payments' },
-    { name: 'Hỗ trợ', path: '/tai-khoan/ho-tro', icon: 'confirmation_number' },
-    { name: 'Chọn khu trọ quản lý', path: '/tai-khoan/chon-nha-tro', icon: 'corporate_fare' },
+    { name: 'Hồ sơ cá nhân', path: '/tai-khoan', icon: User, exact: true },
+    { name: 'Phòng yêu thích', path: '/tai-khoan/phong-yeu-thich', icon: Heart },
+    { name: 'Lịch xem phòng', path: '/tai-khoan/lich-xem-phong', icon: Calendar },
+    { name: 'Yêu cầu thuê', path: '/tai-khoan/yeu-cau-thue', icon: Send },
+    { name: 'Hợp đồng của tôi', path: '/tai-khoan/hop-dong', icon: FileText },
+    { name: 'Biên bản bàn giao', path: '/tai-khoan/ban-giao', icon: Boxes },
+    { name: 'Hóa đơn tiền phòng', path: '/tai-khoan/hoa-don', icon: Receipt },
+    { name: 'Lịch sử thanh toán', path: '/tai-khoan/thanh-toan', icon: CreditCard },
+    { name: 'Yêu cầu hỗ trợ', path: '/tai-khoan/ho-tro', icon: LifeBuoy },
+    { name: 'Chọn khu trọ quản lý', path: '/tai-khoan/chon-nha-tro', icon: Building2 },
   ]
 
+  /**
+   * Xử lý đăng xuất tài khoản
+   */
+  const handleLogout = async () => {
+    await logout()
+    navigate('/dang-nhap')
+  }
+
+  /**
+   * Render danh sách các liên kết điều hướng tài khoản
+   */
+  const renderNavLinks = () => (
+    <div className="flex flex-col gap-1 px-3 py-4">
+      {navItems.map((item) => {
+        const Icon = item.icon
+        const isActive = item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path)
+
+        return (
+          <Link
+            key={item.name}
+            to={item.path}
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
+              isActive
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+            }`}
+          >
+            <Icon className={`size-4.5 shrink-0 ${isActive ? 'text-primary-foreground' : 'text-slate-500'}`} />
+            <span className="truncate">{item.name}</span>
+          </Link>
+        )
+      })}
+
+      <Separator className="my-3" />
+
+      <Button
+        variant="ghost"
+        onClick={handleLogout}
+        className="w-full justify-start gap-3 rounded-xl px-3.5 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
+      >
+        <LogOut className="size-4.5 shrink-0" />
+        <span>Đăng xuất</span>
+      </Button>
+    </div>
+  )
+
   return (
-    <div className="bg-background font-body-md text-body-md text-on-surface">
-      {/* Sidebar */}
-      <aside className="w-sidebar-width bg-surface-container-lowest fixed top-0 left-0 z-50 flex h-full flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all">
-        <div className="h-topbar-height border-surface-border flex items-center gap-3 border-b px-6">
-          <Link to="/" className="flex items-center gap-3">
+    <div className="min-h-screen bg-slate-50/50 text-slate-900 flex">
+      {/* Desktop Account Sidebar (272px) */}
+      <aside className="hidden lg:flex w-[272px] flex-col fixed inset-y-0 left-0 z-40 bg-white border-r border-slate-200 shadow-xs">
+        <div className="h-16 flex items-center gap-2.5 border-b border-slate-200 px-6 shrink-0">
+          <Link to="/" className="flex items-center gap-2.5">
             <img alt="Nhà Trọ Việt Logo" className="h-8 w-auto object-contain" src="/logo.png" />
-            <span className="font-headline-sm text-headline-sm text-primary tracking-tight">Nhà Trọ Việt</span>
+            <span className="font-display font-bold text-lg text-primary tracking-tight">Nhà Trọ Việt</span>
           </Link>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-6">
-          {navItems.map((item) => {
-            const isActive = item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path)
-            return (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={`flex items-center gap-3 rounded-lg px-4 py-2.5 transition-all ${
-                  isActive
-                    ? 'bg-primary-fixed text-on-primary-fixed-variant font-bold shadow-sm'
-                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                {item.name}
-              </Link>
-            )
-          })}
 
-          <button
-            onClick={async () => {
-              await logout()
-              window.location.href = '/dang-nhap'
-            }}
-            className="text-on-surface-variant hover:bg-error-container hover:text-on-error-container mt-4 flex w-full items-center gap-3 rounded-lg px-4 py-2.5 transition-all"
-          >
-            <span className="material-symbols-outlined text-[20px]">logout</span>
-            Đăng xuất
-          </button>
-        </nav>
+        <div className="flex-1 overflow-y-auto">{renderNavLinks()}</div>
       </aside>
 
       {/* Main Container */}
-      <div className="pl-sidebar-width flex min-h-screen flex-col">
-        {/* Header */}
-        <header className="left-sidebar-width h-topbar-height bg-surface/90 border-surface-border px-page-padding-desktop fixed top-0 right-0 z-40 flex items-center justify-between border-b backdrop-blur-md">
-          <div className="flex items-center gap-4">
-            <button className="border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container flex items-center gap-2 rounded-lg border px-3 py-1.5 transition-colors">
-              <span className="material-symbols-outlined text-[20px]">corporate_fare</span>
-              <span className="font-label-md text-label-md">Sunrise Towers</span>
-              <span className="material-symbols-outlined text-[18px]">expand_more</span>
-            </button>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="hover:bg-surface-container relative flex cursor-pointer items-center justify-center rounded-full p-2 transition-colors">
-              <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
-              <div className="bg-error text-on-error border-surface absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 text-[10px] font-bold">
-                3
-              </div>
-            </div>
-            <div className="border-surface-border flex items-center gap-3 border-l pl-2">
-              <div className="hidden text-right sm:block">
-                <div className="font-label-md text-label-md text-on-surface leading-none">
-                  {user?.fullName || 'Người dùng'}
-                </div>
-                <div className="text-on-surface-variant text-[11px]">{displayRole}</div>
-              </div>
+      <div className="flex-1 flex flex-col lg:pl-[272px] min-w-0">
+        {/* Topbar (64px) */}
+        <header className="h-16 sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 sm:px-6 backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            {/* Mobile Sheet Trigger */}
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden text-slate-700">
+                  <Menu className="size-5" />
+                  <span className="sr-only">Mở menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] p-0 flex flex-col bg-white">
+                <SheetHeader className="h-16 border-b border-slate-200 px-6 flex items-center justify-start">
+                  <SheetTitle className="flex items-center gap-2.5 text-left">
+                    <User className="size-5 text-primary" />
+                    <span className="font-display font-bold text-base text-primary">Tài khoản</span>
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="flex-1 overflow-y-auto">{renderNavLinks()}</div>
+              </SheetContent>
+            </Sheet>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="focus:ring-primary rounded-full outline-none focus:ring-2">
-                    <img
-                      alt="Profile"
-                      className="ring-surface-border bg-surface-container h-9 w-9 cursor-pointer rounded-full object-cover ring-2"
-                      src={
-                        user?.avatarUrl ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Người dùng')}&background=random`
-                      }
-                      onError={(e) => {
-                        ;(e.target as HTMLImageElement).src =
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Người dùng')}&background=random`
-                      }}
-                    />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/tai-khoan" className="cursor-pointer">
-                      <span className="material-symbols-outlined mr-2 text-[18px]">person</span>
-                      Hồ sơ
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-error focus:text-error cursor-pointer"
-                    onClick={async () => {
-                      await logout()
-                      window.location.href = '/dang-nhap'
-                    }}
-                  >
-                    <span className="material-symbols-outlined mr-2 text-[18px]">logout</span>
-                    Đăng xuất
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <span className="font-heading font-semibold text-sm text-slate-700">Tài khoản & Hoạt động thuê</span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:block text-right">
+              <p className="text-sm font-semibold text-slate-900 leading-tight">
+                {user?.fullName || user?.email || 'Người dùng'}
+              </p>
+              <p className="text-xs text-slate-500 font-medium">{displayRole}</p>
             </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="size-9 rounded-full p-0 ring-2 ring-slate-200 hover:ring-primary/40">
+                  <img
+                    alt="Profile"
+                    className="size-full rounded-full object-cover"
+                    src={
+                      user?.avatarUrl ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Người dùng')}&background=random`
+                    }
+                    onError={(e) => {
+                      ;(e.target as HTMLImageElement).src =
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Người dùng')}&background=random`
+                    }}
+                  />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-semibold leading-none">{user?.fullName || 'Người dùng'}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/tai-khoan" className="cursor-pointer gap-2">
+                    <User className="size-4" />
+                    <span>Hồ sơ cá nhân</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/tong-quan" className="cursor-pointer gap-2 text-primary">
+                    <Building2 className="size-4" />
+                    <span>Quản trị khu trọ</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive gap-2">
+                  <LogOut className="size-4" />
+                  <span>Đăng xuất</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main className="pt-topbar-height bg-background p-page-padding-desktop flex-1">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1440px] w-full mx-auto">
           <Outlet />
         </main>
       </div>
+
       <FloatingChatWidget />
     </div>
   )
