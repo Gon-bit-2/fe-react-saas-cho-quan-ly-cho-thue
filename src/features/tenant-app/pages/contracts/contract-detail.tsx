@@ -14,6 +14,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { CONTRACT_STATUS_MAP as CONTRACT_VISUAL_MAP } from '@/shared/constants/status-config'
 import { CONTRACT_STATUS_MAP } from '@/types/contract'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -45,6 +47,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { customInstance } from '@/shared/api/orval-mutator'
 import { toast } from 'sonner'
 
+/**
+ * Trang chi tiết hợp đồng thuê dành cho chủ trọ
+ * Quản lý thông tin hợp đồng, thành viên thuê, ký hợp đồng điện tử, biên bản bàn giao và yêu cầu thanh lý
+ */
 export default function ContractDetailPage() {
   const { id } = useParams()
   const [confirmAction, setConfirmAction] = useState<{
@@ -66,6 +72,7 @@ export default function ContractDetailPage() {
       queryClient.invalidateQueries({ queryKey: getContractsControllerListForLandlordQueryKey() })
       queryClient.invalidateQueries({ queryKey: ['/invoices'] })
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Lỗi khi tạo hóa đơn')
     },
@@ -137,16 +144,11 @@ export default function ContractDetailPage() {
                 Hợp đồng {contract.contractCode || `HD-${contract.id}`}
               </h1>
               <div className="mt-2 flex items-center gap-3">
-                <Badge
-                  className={
-                    contract.status === 'ACTIVE'
-                      ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-100'
-                  }
-                >
-                  <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-current"></span>
-                  {CONTRACT_STATUS_MAP[contract.status] || contract.status}
-                </Badge>
+                <StatusBadge
+                  status={contract.status}
+                  statusMap={CONTRACT_VISUAL_MAP}
+                  fallbackLabel={contract.status}
+                />
                 <span className="flex items-center gap-1.5 text-sm text-slate-500">
                   <CalendarDays className="h-4 w-4" /> Tạo ngày{' '}
                   {new Date(contract.createdAt).toLocaleDateString('vi-VN')}

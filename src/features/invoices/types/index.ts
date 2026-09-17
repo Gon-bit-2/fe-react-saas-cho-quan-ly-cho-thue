@@ -44,6 +44,29 @@ export interface InvoiceItem {
   meterReadingId?: number | null
 }
 
+export interface DebtRenter {
+  id: number
+  fullName: string
+  email?: string
+  phone?: string
+}
+
+export interface DebtRoom {
+  id: number
+  roomCode: string
+  title: string
+  property?: {
+    id: number
+    name: string
+  }
+}
+
+export interface DebtContract {
+  id: number
+  contractCode: string
+  status: string
+}
+
 export interface Debt {
   id: number
   tenantId: number
@@ -57,9 +80,9 @@ export interface Debt {
   createdAt: string
   updatedAt: string
   invoice?: Invoice
-  contract?: unknown
-  room?: unknown
-  renter?: unknown
+  contract?: DebtContract
+  room?: DebtRoom
+  renter?: DebtRenter
 }
 
 export interface Invoice {

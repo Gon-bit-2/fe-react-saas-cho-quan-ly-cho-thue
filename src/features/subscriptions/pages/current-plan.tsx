@@ -1,11 +1,33 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { SUBSCRIPTION_STATUS_MAP } from '@/shared/constants/status-config'
+import { formatCurrency, formatDate } from '@/shared/lib/utils'
 import { planApi } from '../api/plan.api'
 import type { Plan, Subscription } from '../api/plan.api'
 import { useAuth } from '@/shared/hooks/use-auth'
 import { useNavigate } from 'react-router'
+import {
+  Crown,
+  ArrowLeftRight,
+  CreditCard,
+  Building2,
+  DoorOpen,
+  Users,
+  ScanLine,
+  RefreshCw,
+  PieChart,
+  ArrowRight,
+  Sparkles,
+} from 'lucide-react'
 
+/**
+ * Trang xem thông tin gói cước hiện tại của chủ nhà trọ
+ * Hiển thị hạn mức sử dụng (Khu trọ, Phòng, Nhân viên), tính năng kích hoạt và các tùy chọn gia hạn/nâng cấp
+ */
 export const CurrentPlanPage = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [plan, setPlan] = useState<Plan | null>(null)
@@ -20,6 +42,9 @@ export const CurrentPlanPage = () => {
   const { selectedMembership } = useAuth()
   const tenantId = Number(selectedMembership?.tenantId || 0)
 
+  /**
+   * Tải thông tin gói đăng ký và hạn mức sử dụng hiện tại
+   */
   useEffect(() => {
     if (!tenantId) return
 
@@ -41,14 +66,27 @@ export const CurrentPlanPage = () => {
   }, [tenantId])
 
   if (isLoading) {
-    return <div className="flex items-center justify-center p-8">Đang tải thông tin gói...</div>
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Skeleton className="h-80 rounded-2xl lg:col-span-2" />
+          <Skeleton className="h-80 rounded-2xl" />
+        </div>
+      </div>
+    )
   }
 
   if (!subscription || !plan) {
-    return <div className="text-destructive p-8">Không tìm thấy thông tin gói.</div>
+    return (
+      <div className="space-y-4 p-8 text-center">
+        <p className="text-slate-500">Không tìm thấy thông tin gói dịch vụ của bạn.</p>
+        <Button onClick={() => navigate('/goi-dich-vu/so-sanh')}>Xem các gói cước</Button>
+      </div>
+    )
   }
 
-  // Use real data from API or fallback to 0
   const currentProperties = usageLimits?.currentProperties ?? 0
   const currentRooms = usageLimits?.currentRooms ?? 0
   const currentStaff = usageLimits?.currentStaff ?? 0
@@ -59,244 +97,237 @@ export const CurrentPlanPage = () => {
 
   const propertyUsage =
     maxProperties > 0 && maxProperties < 999999
-      ? Math.min((currentProperties / maxProperties) * 100, 100)
-      : currentProperties > 0
-        ? 100
-        : 0
-  const roomUsage =
-    maxRooms > 0 && maxRooms < 999999 ? Math.min((currentRooms / maxRooms) * 100, 100) : currentRooms > 0 ? 100 : 0
-  const staffUsage =
-    maxStaff > 0 && maxStaff < 999999 ? Math.min((currentStaff / maxStaff) * 100, 100) : currentStaff > 0 ? 100 : 0
+      ? Math.min(Math.round((currentProperties / maxProperties) * 100), 100)
+      : 0
+  const roomUsage = maxRooms > 0 && maxRooms < 999999 ? Math.min(Math.round((currentRooms / maxRooms) * 100), 100) : 0
+  const staffUsage = maxStaff > 0 && maxStaff < 999999 ? Math.min(Math.round((currentStaff / maxStaff) * 100), 100) : 0
 
   const formatMax = (val: number) => (val === 0 || val >= 999999 ? 'Không giới hạn' : val)
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="text-foreground mb-2 flex items-center gap-4">
-        <span className="material-symbols-outlined text-primary text-[32px]">workspace_premium</span>
-        <h1 className="text-3xl font-bold tracking-tight">Gói dịch vụ</h1>
+    <div className="space-y-6">
+      {/* Tiêu đề trang */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+            <Crown className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Gói Dịch Vụ Của Bạn</h1>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Theo dõi chu kỳ gia hạn, tiến độ sử dụng tài nguyên và nâng cấp hạn mức.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/goi-dich-vu/lich-su-thanh-toan')}
+            className="gap-1.5"
+          >
+            <CreditCard className="h-4 w-4 text-slate-500" />
+            Lịch sử hóa đơn
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => navigate('/goi-dich-vu/so-sanh')}
+            className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700"
+          >
+            <ArrowLeftRight className="h-4 w-4" />
+            Nâng cấp gói
+          </Button>
+        </div>
       </div>
 
-      {/* Top Banner - Current Plan */}
-      <div className="bg-card border-border relative overflow-hidden rounded-2xl border shadow-xl">
-        <div className="from-primary/5 pointer-events-none absolute inset-0 bg-gradient-to-br via-transparent to-transparent"></div>
-        <div className="relative p-8">
-          <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-            <div className="flex flex-col gap-2">
-              <span className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
-                Gói hiện tại
+      {/* Hero Banner: Gói cước hiện tại */}
+      <Card className="relative overflow-hidden border-slate-200 bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 shadow-sm">
+        <div className="pointer-events-none absolute top-0 right-0 p-8 opacity-5">
+          <Crown className="h-48 w-48 text-blue-600" />
+        </div>
+
+        <CardContent className="space-y-6 p-6 sm:p-8">
+          <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-start">
+            <div className="space-y-2">
+              <span className="rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-semibold tracking-wider text-blue-600 uppercase">
+                Gói đang sử dụng
               </span>
-              <div className="flex items-end gap-4">
-                <span className="text-foreground text-5xl font-bold">{plan.name}</span>
-                {subscription.status === 'ACTIVE' && (
-                  <Badge
-                    variant="default"
-                    className="mb-1 flex items-center gap-1.5 bg-green-100 px-3 py-1 text-green-800 hover:bg-green-100"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                    Đang hoạt động
-                  </Badge>
-                )}
+              <div className="flex items-center gap-3">
+                <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{plan.name}</h2>
+                <StatusBadge status={subscription.status} configMap={SUBSCRIPTION_STATUS_MAP} size="default" />
               </div>
+              <p className="max-w-lg text-xs text-slate-500">{plan.description}</p>
             </div>
-            <div className="flex flex-col gap-1 sm:items-end">
-              <span className="text-primary text-3xl font-bold">
-                {new Intl.NumberFormat('vi-VN').format(
-                  subscription.billingCycle === 'YEARLY' ? plan.priceYearly : plan.priceMonthly,
-                )}
-                <span className="text-muted-foreground text-lg font-normal"> VNĐ</span>
-              </span>
-              <span className="text-muted-foreground text-sm">
-                Thanh toán theo {subscription.billingCycle === 'YEARLY' ? 'năm' : 'tháng'}
+
+            <div className="space-y-1 sm:text-right">
+              <div className="font-mono text-3xl font-bold text-blue-600 tabular-nums sm:text-4xl">
+                {formatCurrency(subscription.billingCycle === 'YEARLY' ? plan.priceYearly : plan.priceMonthly)}
+              </div>
+              <span className="text-xs text-slate-500">
+                Thanh toán theo {subscription.billingCycle === 'YEARLY' ? 'hàng năm (Tiết kiệm 20%)' : 'hàng tháng'}
               </span>
             </div>
           </div>
 
-          <div className="bg-muted/50 border-l-primary mb-8 grid grid-cols-1 gap-8 rounded-xl border-l-4 p-6 pb-8 sm:grid-cols-2 md:grid-cols-4">
-            <div className="flex flex-col gap-1">
-              <span className="text-muted-foreground text-xs font-medium">Chu kỳ thanh toán</span>
-              <span className="text-base font-medium">
+          {/* Dải thông tin chu kỳ thanh toán */}
+          <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200/80 bg-white/80 p-4 text-xs backdrop-blur-sm sm:grid-cols-2 md:grid-cols-4">
+            <div className="space-y-1">
+              <span className="font-medium text-slate-400">Chu kỳ tính cước</span>
+              <p className="font-semibold text-slate-800">
                 {subscription.billingCycle === 'YEARLY' ? 'Hàng năm' : 'Hàng tháng'}
-              </span>
+              </p>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-muted-foreground text-xs font-medium">Hóa đơn tiếp theo</span>
-              <span className="font-mono text-base font-medium">
-                {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(new Date(subscription.expiredAt))}
-              </span>
+            <div className="space-y-1">
+              <span className="font-medium text-slate-400">Ngày bắt đầu</span>
+              <p className="font-mono font-semibold text-slate-800">
+                {subscription.startedAt ? formatDate(subscription.startedAt) : '-'}
+              </p>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-muted-foreground text-xs font-medium">Bắt đầu chu kỳ</span>
-              <span className="font-mono text-base font-medium">
-                {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(new Date(subscription.startedAt))}
-              </span>
+            <div className="space-y-1">
+              <span className="font-medium text-slate-400">Ngày hết hạn / Gia hạn</span>
+              <p className="font-mono font-semibold text-slate-800">
+                {subscription.expiredAt ? formatDate(subscription.expiredAt) : '-'}
+              </p>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-muted-foreground text-xs font-medium">Kết thúc chu kỳ</span>
-              <span className="font-mono text-base font-medium">
-                {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(new Date(subscription.expiredAt))}
-              </span>
+            <div className="space-y-1">
+              <span className="font-medium text-slate-400">Phương thức</span>
+              <p className="font-semibold text-slate-800">Tự động đối soát VietQR</p>
             </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="flex flex-wrap items-center gap-4">
-            <Button className="flex items-center gap-2" onClick={() => navigate('/goi-dich-vu/so-sanh')}>
-              <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
-              Đổi gói
-            </Button>
-            <Button
-              variant="outline"
-              className="bg-background flex items-center gap-2"
-              onClick={() => navigate('/goi-dich-vu/lich-su-thanh-toan')}
-            >
-              <span className="material-symbols-outlined text-[18px]">credit_card</span>
-              Quản lý thanh toán
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* Grid: Tính năng & Hạn mức sử dụng */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* Cột trái: Tính năng đi kèm của gói */}
+        <div className="space-y-6 lg:col-span-7">
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-blue-600" />
+                <CardTitle className="text-base font-semibold text-slate-900">Tính Năng Kích Hoạt</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2">
+              <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                  <DoorOpen className="h-5 w-5" />
+                </div>
+                <div className="space-y-0.5 text-xs">
+                  <span className="block font-semibold text-slate-900">Quy mô {formatMax(plan.maxRooms)} phòng</span>
+                  <p className="text-slate-500">Giới hạn số phòng tạo trên hệ thống</p>
+                </div>
+              </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
-        {/* Included Features */}
-        <div className="bg-card border-border relative overflow-hidden rounded-2xl border p-8 shadow-md">
-          <div className="bg-primary/5 pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full blur-3xl"></div>
-          <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold">
-            <span className="material-symbols-outlined text-primary text-[24px]">verified</span>
-            Tính năng đi kèm
-          </h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
-              <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                <span className="material-symbols-outlined text-[20px]">domain</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">
-                  Tối đa {plan.maxRooms >= 999999 ? 'Không giới hạn' : plan.maxRooms} phòng
-                </span>
-                <span className="text-muted-foreground text-sm">Quản lý số phòng trọ theo gói</span>
-              </div>
-            </div>
-            <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
-              <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                <span className="material-symbols-outlined text-[20px]">monitoring</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">
-                  Tối đa {plan.maxStaff >= 999999 ? 'Không giới hạn' : plan.maxStaff} nhân viên
-                </span>
-                <span className="text-muted-foreground text-sm">Phân quyền quản lý nhà trọ</span>
-              </div>
-            </div>
-            {plan.allowAiOcr && (
-              <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
-                <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                  <span className="material-symbols-outlined text-[20px]">document_scanner</span>
+              <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                  <Users className="h-5 w-5" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold">AI & OCR</span>
-                  <span className="text-muted-foreground text-sm">Quét OCR chỉ số công tơ</span>
-                </div>
-              </div>
-            )}
-            {plan.allowWebhookPayment && (
-              <div className="bg-muted flex items-center gap-3 rounded-xl p-4">
-                <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                  <span className="material-symbols-outlined text-[20px]">autorenew</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold">Thanh toán tự động</span>
-                  <span className="text-muted-foreground text-sm">Tự động nhận diện thanh toán</span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Usage Limits */}
-        <div className="flex flex-col gap-6">
-          <div className="bg-card group border-border relative overflow-hidden rounded-2xl border p-8 shadow-md">
-            <h3 className="mb-6 flex items-center justify-between text-xl font-semibold">
-              Mức sử dụng
-              <span className="material-symbols-outlined text-muted-foreground text-[20px]">pie_chart</span>
-            </h3>
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm font-medium">
-                    <span className="material-symbols-outlined text-muted-foreground text-[16px]">
-                      real_estate_agent
-                    </span>
-                    Tòa nhà / Khu trọ
+                <div className="space-y-0.5 text-xs">
+                  <span className="block font-semibold text-slate-900">
+                    {formatMax(plan.maxStaff)} tài khoản nhân viên
                   </span>
-                  <span className="text-muted-foreground text-sm tabular-nums">
+                  <p className="text-slate-500">Phân quyền quản lý và bảo trì</p>
+                </div>
+              </div>
+
+              {plan.allowAiOcr && (
+                <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                    <ScanLine className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-0.5 text-xs">
+                    <span className="block font-semibold text-slate-900">AI Quét OCR Đồng Hồ</span>
+                    <p className="text-slate-500">Nhận diện chỉ số điện nước tự động</p>
+                  </div>
+                </div>
+              )}
+
+              {plan.allowWebhookPayment && (
+                <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                    <RefreshCw className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-0.5 text-xs">
+                    <span className="block font-semibold text-slate-900">Webhook Ngân Hàng</span>
+                    <p className="text-slate-500">Tự động gạch nợ hóa đơn khi có tiền về</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Cột phải: Tiến độ tài nguyên sử dụng */}
+        <div className="space-y-6 lg:col-span-5">
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="border-b border-slate-100 pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <PieChart className="h-4 w-4 text-blue-600" />
+                  <CardTitle className="text-base font-semibold text-slate-900">Mức Độ Sử Dụng</CardTitle>
+                </div>
+                <span className="text-xs text-slate-400">Hạn mức hiện tại</span>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-5 p-6">
+              {/* 1. Tòa nhà */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="flex items-center gap-1.5 font-medium text-slate-700">
+                    <Building2 className="h-3.5 w-3.5 text-slate-400" />
+                    Khu nhà trọ / Tòa nhà
+                  </span>
+                  <span className="font-mono text-slate-600">
                     {currentProperties} / {formatMax(maxProperties)}
                   </span>
                 </div>
-                <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
-                  <div
-                    className="bg-primary h-full rounded-full transition-all"
-                    style={{ width: `${propertyUsage}%` }}
-                  ></div>
-                </div>
+                <Progress value={propertyUsage} className="h-2" />
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm font-medium">
-                    <span className="material-symbols-outlined text-muted-foreground text-[16px]">meeting_room</span>
+
+              {/* 2. Phòng */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="flex items-center gap-1.5 font-medium text-slate-700">
+                    <DoorOpen className="h-3.5 w-3.5 text-blue-500" />
                     Phòng trọ
                   </span>
-                  <span className="text-muted-foreground text-sm tabular-nums">
+                  <span className="font-mono text-slate-600">
                     {currentRooms} / {formatMax(maxRooms)}
                   </span>
                 </div>
-                <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
-                  <div
-                    className="h-full rounded-full bg-blue-500 transition-all"
-                    style={{ width: `${roomUsage}%` }}
-                  ></div>
-                </div>
+                <Progress value={roomUsage} className="h-2" />
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm font-medium">
-                    <span className="material-symbols-outlined text-muted-foreground text-[16px]">group</span>
-                    Nhân viên
+
+              {/* 3. Nhân viên */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="flex items-center gap-1.5 font-medium text-slate-700">
+                    <Users className="h-3.5 w-3.5 text-amber-500" />
+                    Nhân sự quản lý
                   </span>
-                  <span className="text-muted-foreground text-sm tabular-nums">
+                  <span className="font-mono text-slate-600">
                     {currentStaff} / {formatMax(maxStaff)}
                   </span>
                 </div>
-                <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
-                  <div
-                    className="h-full rounded-full bg-amber-500 transition-all"
-                    style={{ width: `${staffUsage}%` }}
-                  ></div>
-                </div>
+                <Progress value={staffUsage} className="h-2" />
               </div>
-              <div className="bg-secondary/30 mt-4 rounded-xl p-4 text-center">
-                <span className="text-muted-foreground mb-2 block text-sm">Cần thêm tài nguyên?</span>
-                <button
-                  className="text-primary text-sm font-medium hover:underline"
-                  onClick={() => navigate('/goi-dich-vu/so-sanh')}
-                >
-                  Xem các gói nâng cấp
-                </button>
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-card border-border flex items-start gap-4 rounded-2xl border p-6 shadow-sm">
-            <div className="bg-secondary/30 flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
-              <span className="material-symbols-outlined text-muted-foreground text-[24px]">help_center</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-semibold">Cần hỗ trợ về thanh toán?</span>
-              <span className="text-muted-foreground mb-2 text-sm">Đội ngũ hỗ trợ 24/7 luôn sẵn sàng.</span>
-              <button className="text-primary flex items-center gap-1 text-sm font-medium hover:underline">
-                Liên hệ hỗ trợ <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </button>
-            </div>
-          </div>
+              {/* Box gợi ý nâng cấp */}
+              <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                <span className="text-xs text-slate-500">Cần thêm phòng hoặc tính năng?</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/goi-dich-vu/so-sanh')}
+                  className="h-7 gap-1 p-0 text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Xem bảng giá <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

@@ -40,9 +40,14 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/status-badge'
-import { MARKETPLACE_STATUS_MAP } from '@/shared/constants/status-config'
+import { MARKETPLACE_STATUS_MAP, ROOM_STATUS_MAP } from '@/shared/constants/status-config'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatCurrency } from '@/shared/lib/utils'
 
+/**
+ * Trang chi tiết phòng dành cho chủ trọ
+ * Hiển thị thông số diện tích, giá cả, ảnh thực tế, tiện ích, dịch vụ và tài sản đi kèm
+ */
 export function Component() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -61,6 +66,9 @@ export function Component() {
   const allAmenities = allAmenitiesData?.data || []
   const replaceAmenities = useReplaceRoomAmenities(Number(id))
 
+  /**
+   * Mở modal chỉnh sửa tiện ích và nạp danh sách tiện ích đang có của phòng
+   */
   const handleOpenAmenities = () => {
     if (room?.amenities) {
       setSelectedAmenities(room.amenities.map((a) => a.amenity.id))
@@ -68,6 +76,9 @@ export function Component() {
     setIsAmenitiesOpen(true)
   }
 
+  /**
+   * Lưu danh sách tiện ích đã chọn cho phòng
+   */
   const handleSaveAmenities = async () => {
     try {
       await replaceAmenities.mutateAsync(selectedAmenities)
@@ -78,6 +89,9 @@ export function Component() {
     }
   }
 
+  /**
+   * Xử lý tải lên các tệp hình ảnh mới cho phòng
+   */
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return
     const files = Array.from(e.target.files)
@@ -94,7 +108,7 @@ export function Component() {
   if (isLoading) {
     return (
       <div className="flex h-[50vh] flex-col items-center justify-center space-y-4">
-        <div className="border-t-primary h-8 w-8 animate-spin rounded-full border-4 border-slate-200" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
         <p className="font-medium text-slate-500">Đang tải thông tin phòng...</p>
       </div>
     )
@@ -116,144 +130,162 @@ export function Component() {
 
   return (
     <div className="space-y-6 p-6">
+      {/* Top Header & Breadcrumb */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Chi tiết phòng {room.title}</h1>
-          <p className="text-slate-500">Thông tin chi tiết về phòng và các cấu hình liên quan</p>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Chi tiết phòng {room.title}</h1>
+            {room.status && (
+              <StatusBadge status={room.status} statusMap={ROOM_STATUS_MAP} fallbackLabel={room.status} />
+            )}
+          </div>
+          <p className="text-sm text-slate-500">Mã phòng: <span className="font-semibold text-slate-700">{room.roomCode}</span></p>
         </div>
       </div>
 
+      {/* Main Banner Card */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div className="flex items-start gap-4">
-            <div className="bg-primary/10 rounded-lg p-3">
-              <Building2 className="text-primary h-8 w-8" />
+            <div className="rounded-xl bg-blue-50 p-3 text-blue-600 border border-blue-100">
+              <Building2 className="h-8 w-8" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">{room.title}</h2>
-              <p className="mt-1 flex items-center gap-1 text-slate-500">
-                <MapPin className="h-4 w-4" /> {room.property?.name || 'Chưa gắn với tòa nhà'}
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-900">{room.title}</h2>
+                <StatusBadge
+                  status={room.marketplaceStatus as string}
+                  statusMap={MARKETPLACE_STATUS_MAP}
+                  fallbackLabel={room.marketplaceStatus}
+                />
+              </div>
+              <p className="mt-1 flex items-center gap-1 text-sm text-slate-500">
+                <MapPin className="h-4 w-4 text-slate-400" /> {room.property?.name || 'Chưa gắn với tòa nhà'}
+                {room.property?.addressDetail && ` • ${room.property.addressDetail}`}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-6">
             <div>
-              <p className="text-sm font-medium text-slate-500">Giá phòng</p>
-              <p className="text-primary text-xl font-bold">
-                {new Intl.NumberFormat('vi-VN').format(room.basePrice)}
-                <span className="ml-1 text-base font-medium">đ/tháng</span>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Giá thuê phòng</p>
+              <p className="text-xl font-bold text-emerald-600 tabular-nums">
+                {formatCurrency(room.basePrice)}
+                <span className="ml-1 text-sm font-normal text-slate-500">/tháng</span>
               </p>
             </div>
-            <div className="h-10 w-px bg-slate-200" />
+            <div className="h-10 w-px bg-slate-200 hidden sm:block" />
             <div>
-              <p className="text-sm font-medium text-slate-500">Tiền cọc</p>
-              <p className="text-xl font-bold text-slate-700">
-                {new Intl.NumberFormat('vi-VN').format(room.depositAmount ?? 0)}
-                <span className="ml-1 text-base font-medium text-slate-500">đ</span>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Tiền cọc</p>
+              <p className="text-xl font-semibold text-slate-800 tabular-nums">
+                {formatCurrency(room.depositAmount ?? 0)}
               </p>
             </div>
-          </div>
 
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => navigate(`/quan-ly-phong/${room.id}/chinh-sua`)}>
-              <Edit className="mr-2 h-4 w-4" /> Chỉnh sửa
-            </Button>
-            {['DRAFT', 'HIDDEN', 'REJECTED'].includes(room.marketplaceStatus as string) && (
-              <Button
-                onClick={async () => {
-                  try {
-                    await updateMarketplace.mutateAsync('PENDING_REVIEW')
-                    toast.success('Đã gửi yêu cầu xét duyệt thành công!')
-                  } catch {
-                    toast.error('Có lỗi xảy ra khi gửi yêu cầu')
-                  }
-                }}
-                disabled={updateMarketplace.isPending}
-                className="bg-indigo-600 text-white hover:bg-indigo-700"
-              >
-                <Send className="mr-2 h-4 w-4" /> Gửi kiểm duyệt
+            <div className="flex items-center gap-2 pt-2 sm:pt-0">
+              <Button variant="outline" onClick={() => navigate(`/quan-ly-phong/${room.id}/chinh-sua`)}>
+                <Edit className="mr-2 h-4 w-4" /> Chỉnh sửa
               </Button>
-            )}
-            {room.marketplaceStatus === 'PUBLISHED' && (
-              <Button
-                onClick={async () => {
-                  try {
-                    await updateMarketplace.mutateAsync('HIDDEN')
-                    toast.success('Đã ẩn phòng khỏi sàn thành công!')
-                  } catch {
-                    toast.error('Có lỗi xảy ra khi ẩn phòng')
-                  }
-                }}
-                disabled={updateMarketplace.isPending}
-                variant="destructive"
-              >
-                Ẩn khỏi sàn
-              </Button>
-            )}
+              {['DRAFT', 'HIDDEN', 'REJECTED'].includes(room.marketplaceStatus as string) && (
+                <Button
+                  onClick={async () => {
+                    try {
+                      await updateMarketplace.mutateAsync('PENDING_REVIEW')
+                      toast.success('Đã gửi yêu cầu xét duyệt thành công!')
+                    } catch {
+                      toast.error('Có lỗi xảy ra khi gửi yêu cầu')
+                    }
+                  }}
+                  disabled={updateMarketplace.isPending}
+                  className="bg-indigo-600 text-white hover:bg-indigo-700"
+                >
+                  <Send className="mr-2 h-4 w-4" /> Gửi kiểm duyệt
+                </Button>
+              )}
+              {room.marketplaceStatus === 'PUBLISHED' && (
+                <Button
+                  onClick={async () => {
+                    try {
+                      await updateMarketplace.mutateAsync('HIDDEN')
+                      toast.success('Đã ẩn phòng khỏi sàn thành công!')
+                    } catch {
+                      toast.error('Có lỗi xảy ra khi ẩn phòng')
+                    }
+                  }}
+                  disabled={updateMarketplace.isPending}
+                  variant="destructive"
+                >
+                  Ẩn khỏi sàn
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="h-14 w-full justify-start gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white px-2 shadow-sm">
+        <TabsList className="h-12 w-full justify-start gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-100/60 p-1">
           <TabsTrigger
             value="overview"
-            className="rounded-lg px-4 data-[state=active]:bg-slate-100 data-[state=active]:shadow-none"
+            className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
           >
             <FileText className="mr-2 h-4 w-4" /> Tổng quan
           </TabsTrigger>
           <TabsTrigger
             value="gallery"
-            className="rounded-lg px-4 data-[state=active]:bg-slate-100 data-[state=active]:shadow-none"
+            className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
           >
-            <ImageIcon className="mr-2 h-4 w-4" /> Hình ảnh
+            <ImageIcon className="mr-2 h-4 w-4" /> Hình ảnh ({room.images?.length || 0})
           </TabsTrigger>
           <TabsTrigger
             value="amenities"
-            className="rounded-lg px-4 data-[state=active]:bg-slate-100 data-[state=active]:shadow-none"
+            className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
           >
-            <Zap className="mr-2 h-4 w-4" /> Tiện ích
+            <Zap className="mr-2 h-4 w-4" /> Tiện ích ({amenities.length})
           </TabsTrigger>
           <TabsTrigger
             value="services"
-            className="rounded-lg px-4 data-[state=active]:bg-slate-100 data-[state=active]:shadow-none"
+            className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
           >
             <Settings className="mr-2 h-4 w-4" /> Dịch vụ
           </TabsTrigger>
           <TabsTrigger
             value="assets"
-            className="rounded-lg px-4 data-[state=active]:bg-slate-100 data-[state=active]:shadow-none"
+            className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
           >
             <Settings className="mr-2 h-4 w-4" /> Tài sản
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card className="rounded-xl border-slate-200 shadow-sm">
               <CardHeader className="border-b border-slate-100 pb-4">
-                <CardTitle className="text-lg text-slate-800">Thông tin chi tiết</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-800">Thông số phòng</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 p-6">
                 <div className="flex items-center justify-between border-b border-slate-50 py-2">
                   <span className="text-slate-500">Diện tích</span>
-                  <span className="font-semibold text-slate-900">{room.area ?? '—'} m²</span>
+                  <span className="font-semibold text-slate-900 tabular-nums">{room.area ?? '—'} m²</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-50 py-2">
                   <span className="text-slate-500">Sức chứa tối đa</span>
-                  <span className="font-semibold text-slate-900">{room.maxOccupants} người</span>
+                  <span className="font-semibold text-slate-900 tabular-nums">{room.maxOccupants} người</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-50 py-2">
                   <span className="text-slate-500">Tầng số</span>
                   <span className="font-semibold text-slate-900">
-                    {room.floor?.name || room.floorId || 'Tầng trệt'}
+                    {room.floor?.name || (room.floorId ? `Tầng ${room.floorId}` : 'Tầng trệt')}
                   </span>
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-50 py-2">
+                  <span className="text-slate-500">Trạng thái thuê</span>
+                  <StatusBadge status={room.status} statusMap={ROOM_STATUS_MAP} fallbackLabel={room.status} />
+                </div>
+                <div className="flex items-center justify-between py-2">
                   <span className="text-slate-500">Marketplace</span>
                   <StatusBadge status={room.marketplaceStatus as string} statusMap={MARKETPLACE_STATUS_MAP} />
                 </div>
@@ -262,24 +294,47 @@ export function Component() {
 
             <Card className="rounded-xl border-slate-200 shadow-sm">
               <CardHeader className="border-b border-slate-100 pb-4">
-                <CardTitle className="text-lg text-slate-800">Chi phí cố định</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-800">Chi phí cố định định kỳ</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 p-6">
                 <div className="flex items-center justify-between border-b border-slate-50 py-2">
-                  <span className="text-slate-500">Giá điện (VND/kWh)</span>
-                  <span className="font-semibold text-slate-900">
-                    {new Intl.NumberFormat('vi-VN').format(room.electricityPrice ?? 0)}đ
+                  <span className="text-slate-500">Giá thuê gốc</span>
+                  <span className="font-bold text-emerald-600 tabular-nums">
+                    {formatCurrency(room.basePrice)}/tháng
                   </span>
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-50 py-2">
-                  <span className="text-slate-500">Giá nước (VND/khối)</span>
-                  <span className="font-semibold text-slate-900">
-                    {new Intl.NumberFormat('vi-VN').format(room.waterPrice ?? 0)}đ
+                  <span className="text-slate-500">Tiền đặt cọc</span>
+                  <span className="font-semibold text-slate-900 tabular-nums">
+                    {formatCurrency(room.depositAmount ?? 0)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between border-b border-slate-50 py-2">
+                  <span className="text-slate-500">Giá điện</span>
+                  <span className="font-semibold text-slate-900 tabular-nums">
+                    {formatCurrency(room.electricityPrice ?? 0)}/kWh
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-slate-500">Giá nước</span>
+                  <span className="font-semibold text-slate-900 tabular-nums">
+                    {formatCurrency(room.waterPrice ?? 0)}/khối
                   </span>
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          {room.description && (
+            <Card className="mt-6 rounded-xl border-slate-200 shadow-sm">
+              <CardHeader className="border-b border-slate-100 pb-4">
+                <CardTitle className="text-base font-bold text-slate-800">Mô tả chi tiết</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-sm leading-relaxed text-slate-600 whitespace-pre-line">
+                {room.description}
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="gallery" className="animate-in fade-in slide-in-from-bottom-4 duration-500">

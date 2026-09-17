@@ -161,3 +161,28 @@ export const INVOICE_STATUS_MAP: Record<string, StatusVisual> = {
   OVERDUE: { label: 'Quá hạn', tone: 'danger' },
   CANCELLED: { label: 'Đã hủy', tone: 'neutral' },
 }
+
+export const PAYMENT_STATUS_MAP: Record<string, StatusVisual> = {
+  PENDING: { label: 'Chờ duyệt', tone: 'warning' },
+  SUCCESS: { label: 'Đã duyệt', tone: 'success' },
+  FAILED: { label: 'Thất bại', tone: 'danger' },
+  REJECTED: { label: 'Bị từ chối', tone: 'danger' },
+  CANCELLED: { label: 'Đã hủy', tone: 'neutral' },
+}
+
+export const PAYMENT_METHOD_MAP: Record<string, { label: string; shortCode: string }> = {
+  BANK_TRANSFER: { label: 'Chuyển khoản / VietQR', shortCode: 'QR' },
+  CASH: { label: 'Tiền mặt', shortCode: 'TM' },
+  QR: { label: 'Quét mã QR', shortCode: 'QR' },
+  WALLET: { label: 'Ví điện tử', shortCode: 'VÍ' },
+  CARD: { label: 'Thẻ ngân hàng', shortCode: 'THẺ' },
+}
+
+export const SUBSCRIPTION_STATUS_MAP: Record<string, StatusVisual> = {
+  ACTIVE: { label: 'Đang hoạt động', tone: 'success' },
+  EXPIRED: { label: 'Đã hết hạn', tone: 'danger' },
+  PAST_DUE: { label: 'Quá hạn thanh toán', tone: 'warning' },
+  CANCELLED: { label: 'Đã hủy', tone: 'neutral' },
+  TRIAL: { label: 'Dùng thử', tone: 'info' },
+}
+

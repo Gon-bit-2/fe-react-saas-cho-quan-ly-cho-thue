@@ -1,40 +1,55 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { METER_READING_STATUS_MAP } from '@/shared/constants/status-config'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
+import { MetricCard } from '@/components/ui/metric-card'
 import { useMeterReadingsControllerList, meterReadingsControllerUpdateStatus } from '../api'
 import { CreateMeterDialog } from '../components/create-meter-dialog'
 import { useRoomsControllerList } from '@/shared/api/generated/rooms/rooms'
+import { useProperties } from '@/shared/api/properties'
+import { formatCurrency } from '@/shared/lib/utils'
+import {
+  Zap,
+  Droplet,
+  Plus,
+  Camera,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Building2,
+  DoorOpen,
+  Eye,
+  MoreVertical,
+  Check,
+  Layers,
+} from 'lucide-react'
+import type { Property } from '@/features/tenant-app/types'
 
+/**
+ * Trang quản lý và theo dõi chỉ số điện nước định kỳ cho từng phòng.
+ * Hỗ trợ bộ lọc kỳ tính tiền, duyệt chỉ số hàng loạt, theo dõi KPI tiêu thụ.
+ */
 export function MeterReadingsListPage() {
   const queryClient = useQueryClient()
-  
-  const { mutate: updateReadingStatus, isPending: isUpdatingStatus } = useMutation({
-    mutationFn: ({ id, data }: { id: number, data: { status: 'CONFIRMED' | 'ABNORMAL' | 'REJECTED' } }) => 
-      meterReadingsControllerUpdateStatus(id, data),
-    onSuccess: () => {
-      toast.success('Cập nhật trạng thái thành công')
-      queryClient.invalidateQueries({ queryKey: ['meter-readings'] })
-    },
-    onError: () => {
-      toast.error('Có lỗi xảy ra khi cập nhật trạng thái')
-    }
-  })
 
-  const { data: roomsResponse, isLoading: isLoadingRooms } = useRoomsControllerList({ limit: 100 })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rooms = (roomsResponse as unknown as { data?: Array<any> })?.data || []
+  // Kỳ tính tiền mặc định là tháng hiện tại dạng YYYY-MM-01
+  const currentDate = new Date()
+  const currentMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-01`
 
   const [filters, setFilters] = useState<{
     page: number
     limit: number
+    propertyId?: string
     roomId?: number
     billingMonth?: string
     type?: 'ELECTRICITY' | 'WATER'
@@ -42,265 +57,465 @@ export function MeterReadingsListPage() {
   }>({
     page: 1,
     limit: 10,
+    propertyId: 'ALL',
+    billingMonth: currentMonthStr,
   })
 
-  const { data: response, isLoading } = useMeterReadingsControllerList(filters)
+  // Lấy danh sách khu trọ
+  const { data: propertiesData } = useProperties()
+  const properties = propertiesData?.data || []
+
+  // Lấy danh sách phòng
+  const { data: roomsResponse, isLoading: isLoadingRooms } = useRoomsControllerList({ limit: 100 })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allRooms = useMemo(() => (roomsResponse as unknown as { data?: Array<any> })?.data || [], [roomsResponse])
+
+  const filteredRooms = useMemo(() => {
+    if (filters.propertyId === 'ALL' || !filters.propertyId) return allRooms
+    return allRooms.filter((r) => r.propertyId?.toString() === filters.propertyId)
+  }, [allRooms, filters.propertyId])
+
+  // Lấy danh sách chỉ số theo filters
+  const { data: response, isLoading } = useMeterReadingsControllerList({
+    page: filters.page,
+    limit: filters.limit,
+    roomId: filters.roomId,
+    billingMonth: filters.billingMonth,
+    type: filters.type,
+    status: filters.status,
+  })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const readings = (response as unknown as { data?: Array<any> })?.data || []
+  const readings = useMemo(() => (response as unknown as { data?: Array<any> })?.data || [], [response])
   const total = (response as unknown as { meta?: { total?: number } })?.meta?.total || 0
 
-  const getStatusBadge = (status: string) => {
-    return <StatusBadge status={status} statusMap={METER_READING_STATUS_MAP} fallbackLabel={status} />
+  // Mutation duyệt trạng thái chỉ số
+  const { mutate: updateReadingStatus, isPending: isUpdatingStatus } = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { status: 'CONFIRMED' | 'ABNORMAL' | 'REJECTED' } }) =>
+      meterReadingsControllerUpdateStatus(id, data),
+    onSuccess: () => {
+      toast.success('Cập nhật trạng thái chỉ số thành công')
+      queryClient.invalidateQueries({ queryKey: ['meter-readings'] })
+    },
+    onError: () => {
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái')
+    },
+  })
+
+  // Tính toán KPI tổng hợp tiêu thụ & thành tiền
+  const stats = useMemo(() => {
+    let electricityUsage = 0
+    let waterUsage = 0
+    let totalEstimatedAmount = 0
+    let confirmedCount = 0
+
+    readings.forEach((r) => {
+      const consumption = Number(r.consumption) || 0
+      const amount = Number(r.amount) || 0
+      if (r.meter?.type === 'ELECTRICITY') {
+        electricityUsage += consumption
+      } else if (r.meter?.type === 'WATER') {
+        waterUsage += consumption
+      }
+      totalEstimatedAmount += amount
+      if (r.status === 'CONFIRMED') {
+        confirmedCount++
+      }
+    })
+
+    return {
+      electricityUsage,
+      waterUsage,
+      totalEstimatedAmount,
+      confirmedCount,
+      totalCount: readings.length,
+    }
+  }, [readings])
+
+  const handleFilterChange = (key: string, value: string | number | undefined) => {
+    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }))
   }
 
-  const getTypeBadge = (type: string) => {
-    if (type === 'ELECTRICITY') return <span className="font-medium text-amber-600">Điện</span>
-    return <span className="font-medium text-blue-600">Nước</span>
+  // Điều hướng tháng lùi / tiến
+  const handleShiftMonth = (direction: 'prev' | 'next') => {
+    const currentBillingMonth = filters.billingMonth ? new Date(filters.billingMonth) : new Date()
+    const newMonth = new Date(currentBillingMonth)
+    newMonth.setMonth(currentBillingMonth.getMonth() + (direction === 'prev' ? -1 : 1))
+    const formatted = `${newMonth.getFullYear()}-${String(newMonth.getMonth() + 1).padStart(2, '0')}-01`
+    handleFilterChange('billingMonth', formatted)
   }
+
+  const selectedMonthDisplay = filters.billingMonth
+    ? new Date(filters.billingMonth).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })
+    : 'Tất cả các tháng'
 
   return (
-    <div className="bg-background flex h-full min-h-[calc(100vh-64px)] w-full flex-col p-8">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="space-y-6 pb-12">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="mb-1 text-3xl font-bold text-slate-900">Chỉ Số Điện Nước</h1>
-          <p className="text-sm text-slate-500">Quản lý và ghi nhận chỉ số tiêu thụ tiện ích định kỳ.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Chỉ số Điện Nước</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Quản lý, ghi nhận và đối soát số liệu điện nước định kỳ trước khi phát hành hóa đơn
+          </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <CreateMeterDialog>
-            <Button variant="outline" className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">add_circle</span>
-              Thêm Công Tơ
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs">
+              <Plus className="h-4 w-4" /> Thêm công tơ
             </Button>
           </CreateMeterDialog>
-          <Link to="/dien-nuoc/cong-to/ghi-chi-so">
-            <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm px-4">
-              <span className="material-symbols-outlined text-[18px]">add_a_photo</span>
-              Ghi Chỉ Số
+
+          <Button variant="outline" size="sm" asChild className="h-9 gap-1.5 text-xs">
+            <Link to="/dien-nuoc/ocr-review">
+              <Camera className="h-4 w-4 text-slate-600" /> Duyệt OCR ảnh
+            </Link>
+          </Button>
+
+          <Button size="sm" asChild className="h-9 gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs shadow-xs">
+            <Link to="/dien-nuoc/cong-to/ghi-chi-so">
+              <Layers className="h-4 w-4" /> Ghi chỉ số hàng loạt
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Metric Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard
+          title="Điện tiêu thụ kỳ này"
+          value={
+            <span>
+              {stats.electricityUsage.toLocaleString('vi-VN')}{' '}
+              <span className="text-sm font-normal text-slate-400">kWh</span>
+            </span>
+          }
+          description="Sản lượng toàn khu trọ"
+          icon={<Zap className="h-5 w-5" />}
+          tone="amber"
+        />
+        <MetricCard
+          title="Nước tiêu thụ kỳ này"
+          value={
+            <span>
+              {stats.waterUsage.toLocaleString('vi-VN')}{' '}
+              <span className="text-sm font-normal text-slate-400">m³</span>
+            </span>
+          }
+          description="Tổng khối nước ghi nhận"
+          icon={<Droplet className="h-5 w-5" />}
+          tone="blue"
+        />
+        <MetricCard
+          title="Tiền điện nước tạm tính"
+          value={formatCurrency(stats.totalEstimatedAmount)}
+          description="Chờ chuyển vào hóa đơn"
+          icon={<CheckCircle2 className="h-5 w-5" />}
+          tone="emerald"
+        />
+        <MetricCard
+          title="Tiến độ chốt số"
+          value={`${stats.confirmedCount} / ${stats.totalCount || 0}`}
+          description={
+            stats.totalCount > 0 && stats.confirmedCount === stats.totalCount
+              ? 'Đã duyệt toàn bộ'
+              : 'Còn bản ghi chờ duyệt'
+          }
+          icon={<Check className="h-5 w-5" />}
+          tone="slate"
+        />
+      </div>
+
+      {/* Month Navigator & Filters Bar */}
+      <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          {/* Bộ chuyển tháng */}
+          <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50/80 p-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-slate-600 hover:bg-white"
+              onClick={() => handleShiftMonth('prev')}
+            >
+              <ChevronLeft className="h-4 w-4" />
             </Button>
-          </Link>
+            <div className="flex min-w-[130px] items-center justify-center gap-1.5 font-semibold text-xs text-slate-900">
+              <Calendar className="h-3.5 w-3.5 text-slate-500" />
+              <span>Tháng {selectedMonthDisplay}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-slate-600 hover:bg-white"
+              onClick={() => handleShiftMonth('next')}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Filters Fields */}
+          <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-4 lg:max-w-3xl">
+            {/* Lọc Khu trọ */}
+            <Select
+              value={filters.propertyId || 'ALL'}
+              onValueChange={(val) => handleFilterChange('propertyId', val)}
+            >
+              <SelectTrigger className="h-8 bg-slate-50 text-xs">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Building2 className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  <SelectValue placeholder="Tất cả khu trọ" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL" className="text-xs">Tất cả khu trọ</SelectItem>
+                {properties.map((p: Property) => (
+                  <SelectItem key={p.id} value={p.id.toString()} className="text-xs">
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Lọc Phòng */}
+            <Select
+              value={filters.roomId ? filters.roomId.toString() : 'ALL'}
+              onValueChange={(val) => handleFilterChange('roomId', val === 'ALL' ? undefined : Number(val))}
+            >
+              <SelectTrigger className="h-8 bg-slate-50 text-xs">
+                <div className="flex items-center gap-1.5 truncate">
+                  <DoorOpen className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  <SelectValue placeholder={isLoadingRooms ? 'Đang tải...' : 'Tất cả phòng'} />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL" className="text-xs">Tất cả phòng</SelectItem>
+                {filteredRooms.map((room) => (
+                  <SelectItem key={room.id} value={room.id.toString()} className="text-xs">
+                    Phòng {room.roomCode}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Lọc Loại tiện ích */}
+            <Select
+              value={filters.type || 'ALL'}
+              onValueChange={(val) => handleFilterChange('type', val === 'ALL' ? undefined : val)}
+            >
+              <SelectTrigger className="h-8 bg-slate-50 text-xs">
+                <SelectValue placeholder="Tất cả loại" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL" className="text-xs">Tất cả loại</SelectItem>
+                <SelectItem value="ELECTRICITY" className="text-xs">Điện (kWh)</SelectItem>
+                <SelectItem value="WATER" className="text-xs">Nước (m³)</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Lọc Trạng thái */}
+            <Select
+              value={filters.status || 'ALL'}
+              onValueChange={(val) => handleFilterChange('status', val === 'ALL' ? undefined : val)}
+            >
+              <SelectTrigger className="h-8 bg-slate-50 text-xs">
+                <SelectValue placeholder="Tất cả trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL" className="text-xs">Tất cả trạng thái</SelectItem>
+                <SelectItem value="DRAFT" className="text-xs">Chờ duyệt</SelectItem>
+                <SelectItem value="CONFIRMED" className="text-xs">Đã duyệt</SelectItem>
+                <SelectItem value="ABNORMAL" className="text-xs">Bất thường</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
-      <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
-          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Phòng</label>
-          <Select
-            onValueChange={(val) =>
-              setFilters((prev) => ({
-                ...prev,
-                roomId: val === 'all' ? undefined : Number(val),
-                page: 1,
-              }))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={isLoadingRooms ? 'Đang tải...' : 'Tất cả các phòng'} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả các phòng</SelectItem>
-              {rooms.map((room) => (
-                <SelectItem key={room.id} value={room.id.toString()}>
-                  Phòng {room.roomCode}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
-          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Tháng tính tiền</label>
-          <Input
-            type="month"
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                billingMonth: e.target.value ? `${e.target.value}-01` : undefined,
-                page: 1,
-              }))
-            }
-          />
-        </div>
-
-        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
-          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Loại Tiện Ích</label>
-          <Select
-            onValueChange={(val) =>
-              setFilters((prev) => ({
-                ...prev,
-                type: val === 'all' ? undefined : (val as 'ELECTRICITY' | 'WATER'),
-                page: 1,
-              }))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Tất cả" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
-              <SelectItem value="ELECTRICITY">Điện</SelectItem>
-              <SelectItem value="WATER">Nước</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
-          <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Trạng thái</label>
-          <Select
-            onValueChange={(val) =>
-              setFilters((prev) => ({
-                ...prev,
-                status: val === 'all' ? undefined : (val as 'DRAFT' | 'CONFIRMED' | 'ABNORMAL'),
-                page: 1,
-              }))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Tất cả trạng thái" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả trạng thái</SelectItem>
-              <SelectItem value="DRAFT">Chờ duyệt</SelectItem>
-              <SelectItem value="CONFIRMED">Đã duyệt</SelectItem>
-              <SelectItem value="ABNORMAL">Bất thường</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      {/* Table Data */}
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-50">
+            <TableHeader className="bg-slate-50/80">
               <TableRow>
-                <TableHead className="font-semibold text-slate-500 uppercase">Tháng</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase">Phòng / Công Tơ</TableHead>
-                <TableHead className="text-right font-semibold text-slate-500 uppercase">Chỉ Số Cũ</TableHead>
-                <TableHead className="text-right font-semibold text-slate-500 uppercase">Chỉ Số Mới</TableHead>
-                <TableHead className="text-right font-semibold text-slate-500 uppercase">Tiêu Thụ</TableHead>
-                <TableHead className="text-right font-semibold text-slate-500 uppercase">Thành Tiền</TableHead>
-                <TableHead className="text-center font-semibold text-slate-500 uppercase">Trạng Thái</TableHead>
-                <TableHead className="text-right font-semibold text-slate-500 uppercase">Thao Tác</TableHead>
+                <TableHead>Kỳ chốt</TableHead>
+                <TableHead>Phòng & Công tơ</TableHead>
+                <TableHead>Loại</TableHead>
+                <TableHead className="text-right">Chỉ số cũ</TableHead>
+                <TableHead className="text-right">Chỉ số mới</TableHead>
+                <TableHead className="text-right">Tiêu thụ</TableHead>
+                <TableHead className="text-right">Tạm tính</TableHead>
+                <TableHead className="text-center">Trạng thái</TableHead>
+                <TableHead className="w-[80px] text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-slate-500">
-                    Đang tải dữ liệu...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="ml-auto h-5 w-16" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="ml-auto h-5 w-16" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="ml-auto h-5 w-16" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="ml-auto h-5 w-20" /></TableCell>
+                    <TableCell className="text-center"><Skeleton className="mx-auto h-6 w-20 rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="ml-auto h-8 w-8 rounded-md" /></TableCell>
+                  </TableRow>
+                ))
               ) : readings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-slate-500">
-                    Không có bản ghi nào
+                  <TableCell colSpan={9} className="p-0">
+                    <EmptyState
+                      icon={<Calendar className="h-7 w-7 text-slate-400" />}
+                      title="Chưa có dữ liệu chỉ số kỳ này"
+                      description="Chưa có bản ghi chỉ số điện nước nào trong tháng đã chọn. Bấm 'Ghi chỉ số hàng loạt' để bắt đầu nhập."
+                      action={
+                        <Button size="sm" asChild className="text-xs">
+                          <Link to="/dien-nuoc/cong-to/ghi-chi-so">Ghi chỉ số ngay</Link>
+                        </Button>
+                      }
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
-                readings.map((reading) => (
-                  <TableRow key={reading.id} className="group hover:bg-slate-50">
-                    <TableCell className="text-slate-500">
-                      {new Date(reading.billingMonth).toLocaleDateString('vi-VN', {
-                        month: '2-digit',
-                        year: 'numeric',
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 font-medium text-slate-900">
-                        {getTypeBadge(reading.meter?.type)}
-                        <span className="text-slate-400">|</span>
-                        Phòng {reading.room?.roomCode}
-                      </div>
-                      <div className="mt-0.5 text-xs text-slate-500">
-                        Mã CT:{' '}
-                        <Link to={`/dien-nuoc/cong-to/${reading.meterId}`} className="text-primary hover:underline">
-                          {reading.meter?.meterCode}
-                        </Link>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right text-slate-500">
-                      {reading.previousValue?.toLocaleString() || '-'}
-                    </TableCell>
-                    <TableCell className="text-right font-medium text-slate-900">
-                      {reading.currentValue?.toLocaleString() || '-'}
-                    </TableCell>
-                    <TableCell className="text-right font-medium text-blue-600">
-                      {reading.consumption?.toLocaleString()} {reading.meter?.unit}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">{reading.amount?.toLocaleString()} ₫</TableCell>
-                    <TableCell className="text-center">{getStatusBadge(reading.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                readings.map((reading) => {
+                  const isElectricity = reading.meter?.type === 'ELECTRICITY'
+                  const unit = reading.meter?.unit || (isElectricity ? 'kWh' : 'm³')
+                  return (
+                    <TableRow key={reading.id} className="transition-colors hover:bg-slate-50/80">
+                      <TableCell className="font-medium text-slate-900">
+                        {new Date(reading.billingMonth).toLocaleDateString('vi-VN', {
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 font-semibold text-slate-900">
+                          <DoorOpen className="h-4 w-4 text-slate-400" />
+                          <span>Phòng {reading.room?.roomCode}</span>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          CT:{' '}
+                          <Link
+                            to={`/dien-nuoc/cong-to/${reading.meterId}`}
+                            className="font-mono text-blue-600 hover:underline"
                           >
-                            <span className="material-symbols-outlined">more_vert</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <Link to={`/dien-nuoc/cong-to/${reading.meterId}`}>
-                            <DropdownMenuItem>
-                              <span className="material-symbols-outlined mr-2 text-[18px]">visibility</span>
-                              Xem chi tiết công tơ
-                            </DropdownMenuItem>
+                            {reading.meter?.meterCode}
                           </Link>
-                          {reading.status === 'DRAFT' && (
-                            <DropdownMenuItem 
-                              onClick={() => {
-                                updateReadingStatus({
-                                  id: reading.id,
-                                  data: { status: 'CONFIRMED' }
-                                })
-                              }}
-                              disabled={isUpdatingStatus}
-                            >
-                              <span className="material-symbols-outlined mr-2 text-[18px]">check_circle</span>
-                              Duyệt chỉ số
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        {isElectricity ? (
+                          <Badge variant="outline" className="border-amber-200 bg-amber-50 font-normal text-amber-700">
+                            <Zap className="mr-1 h-3 w-3 fill-amber-500 text-amber-500" /> Điện
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-blue-200 bg-blue-50 font-normal text-blue-700">
+                            <Droplet className="mr-1 h-3 w-3 fill-blue-500 text-blue-500" /> Nước
+                          </Badge>
+                        )}
+                      </TableCell>
+
+                      <TableCell className="font-mono text-right tabular-nums text-slate-500">
+                        {reading.previousValue?.toLocaleString('vi-VN') ?? 0}
+                      </TableCell>
+
+                      <TableCell className="font-mono text-right font-semibold tabular-nums text-slate-900">
+                        {reading.currentValue?.toLocaleString('vi-VN')}
+                      </TableCell>
+
+                      <TableCell className="font-mono text-right font-bold tabular-nums text-blue-600">
+                        {reading.consumption?.toLocaleString('vi-VN')} {unit}
+                      </TableCell>
+
+                      <TableCell className="font-mono text-right font-semibold tabular-nums text-slate-900">
+                        {formatCurrency(reading.amount)}
+                      </TableCell>
+
+                      <TableCell className="text-center">
+                        <StatusBadge
+                          status={reading.status}
+                          statusMap={METER_READING_STATUS_MAP}
+                          fallbackLabel={reading.status}
+                        />
+                      </TableCell>
+
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-900">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-[180px]">
+                            <DropdownMenuItem asChild>
+                              <Link to={`/dien-nuoc/cong-to/${reading.meterId}`}>
+                                <Eye className="mr-2 h-4 w-4 text-slate-500" />
+                                Xem công tơ
+                              </Link>
                             </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
+                            {reading.status === 'DRAFT' && (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  updateReadingStatus({
+                                    id: reading.id,
+                                    data: { status: 'CONFIRMED' },
+                                  })
+                                }}
+                                disabled={isUpdatingStatus}
+                                className="text-emerald-600 font-medium"
+                              >
+                                <CheckCircle2 className="mr-2 h-4 w-4" />
+                                Duyệt chỉ số
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               )}
             </TableBody>
           </Table>
         </div>
 
-        {/* Pagination */}
-        <div className="mt-auto flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
-          <div className="text-sm text-slate-500">
-            Hiển thị {readings.length > 0 ? (filters.page - 1) * filters.limit + 1 : 0} đến{' '}
-            {Math.min(filters.page * filters.limit, total)} trong số {total} mục
-          </div>
-          <div className="flex gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              disabled={filters.page === 1}
-              onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))}
-            >
-              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-            </Button>
-            <Button variant="default" size="sm" className="h-8 w-8 p-0">
-              {filters.page}
-            </Button>
-            {total > filters.page * filters.limit && (
+        {/* Pagination Section */}
+        {total > 0 && (
+          <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 p-4 text-sm text-slate-500">
+            <div>
+              Hiển thị <span className="font-medium text-slate-700">{(filters.page - 1) * filters.limit + 1}</span> -{' '}
+              <span className="font-medium text-slate-700">{Math.min(filters.page * filters.limit, total)}</span> trên tổng số{' '}
+              <span className="font-medium text-slate-700">{total}</span> chỉ số
+            </div>
+            <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 }))}
+                size="sm"
+                className="h-8 px-2.5 gap-1 text-xs"
+                disabled={filters.page === 1}
+                onClick={() => handleFilterChange('page', filters.page - 1)}
               >
-                <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                <ChevronLeft className="h-3.5 w-3.5" /> Trước
               </Button>
-            )}
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 text-xs font-semibold text-white">
+                {filters.page}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2.5 gap-1 text-xs"
+                disabled={filters.page * filters.limit >= total}
+                onClick={() => handleFilterChange('page', filters.page + 1)}
+              >
+                Sau <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

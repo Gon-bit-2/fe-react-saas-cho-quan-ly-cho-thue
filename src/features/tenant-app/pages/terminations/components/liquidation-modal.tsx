@@ -24,6 +24,10 @@ interface LiquidationModalProps {
   roomName: string
 }
 
+/**
+ * Modal tính toán và thực hiện quyết toán, thanh lý hợp đồng thuê phòng
+ * Cho phép chốt chỉ số điện/nước cuối kỳ, chi phí khấu trừ hư hỏng, tiền phạt và cấn trừ tiền cọc
+ */
 export function LiquidationModal({ isOpen, onClose, onComplete, depositAmount, contractId, roomName }: LiquidationModalProps) {
   const [electricityIndex, setElectricityIndex] = useState('')
   const [waterIndex, setWaterIndex] = useState('')
@@ -89,7 +93,7 @@ export function LiquidationModal({ isOpen, onClose, onComplete, depositAmount, c
       })
       toast.success('Đã hoàn tất quyết toán và thanh lý hợp đồng!')
       onClose()
-    } catch (error) {
+    } catch {
       // Error is handled in onComplete or we can show generic
     } finally {
       setIsSubmitting(false)

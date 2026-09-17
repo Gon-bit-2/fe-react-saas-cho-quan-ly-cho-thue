@@ -15,6 +15,7 @@ import { ocrControllerGetById, ocrControllerAccept } from '@/shared/api/generate
 import { meterReadingsControllerCreate } from '@/shared/api/generated/meter-readings/meter-readings'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
+import { Sparkles, Loader2, Check } from 'lucide-react'
 
 interface OcrJobData {
   id: number
@@ -22,6 +23,19 @@ interface OcrJobData {
   recognizedValue?: number | null
 }
 
+interface OcrUploadDialogProps {
+  open: boolean
+  onOpenChange: (val: boolean) => void
+  meterId: number
+  billingMonth: string
+  meterName: string
+  onSuccess?: () => void
+}
+
+/**
+ * Hộp thoại quét ảnh công tơ nhanh bằng AI OCR từ danh sách bảng chỉ số.
+ * Cho phép người dùng tải ảnh hoặc sửa tay chỉ số đọc được.
+ */
 export function OcrUploadDialog({
   open,
   onOpenChange,
@@ -29,14 +43,7 @@ export function OcrUploadDialog({
   billingMonth,
   meterName,
   onSuccess,
-}: {
-  open: boolean
-  onOpenChange: (val: boolean) => void
-  meterId: number
-  billingMonth: string
-  meterName: string
-  onSuccess?: () => void
-}) {
+}: OcrUploadDialogProps) {
   const queryClient = useQueryClient()
   const { mutateAsync: uploadOcr, isPending: isUploading } = useUploadOcr()
 
@@ -113,10 +120,8 @@ export function OcrUploadDialog({
     setIsSaving(true)
     try {
       if (ocrJobId) {
-        // Cập nhật giá trị vào OCR Job và xác nhận luôn
         await ocrControllerAccept(ocrJobId, { billingMonth, currentValue: Number(currentValue) })
       } else {
-        // Nếu nhập tay hoàn toàn, không có OCR job
         await meterReadingsControllerCreate({
           meterId,
           billingMonth,
@@ -140,31 +145,43 @@ export function OcrUploadDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Cập nhật chỉ số</DialogTitle>
-          <DialogDescription>{meterName}</DialogDescription>
+          <DialogTitle className="text-xl font-bold text-slate-900">
+            Quét & Cập Nhật Chỉ Số
+          </DialogTitle>
+          <DialogDescription className="text-xs text-slate-500 font-medium">
+            {meterName} • Kỳ chốt {billingMonth}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <div className="space-y-2">
-            <Label>Quét ảnh (AI OCR) <span className="font-normal text-slate-400">(Tùy chọn)</span></Label>
+        <div className="space-y-4 py-2">
+          {/* Khu vực Upload ảnh OCR */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-purple-600" />
+              Tải ảnh công tơ (AI OCR)
+            </Label>
             <div className="flex items-center gap-2">
               <Input
                 type="file"
                 accept="image/*"
                 onChange={handleUpload}
                 disabled={isUploading || isPolling || isSaving}
+                className="h-9 text-xs file:mr-3 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               />
             </div>
             {(isUploading || isPolling) && (
-              <p className="mt-2 flex items-center gap-2 text-sm text-blue-600">
-                <span className="material-symbols-outlined animate-spin text-[16px]">refresh</span>
-                {isUploading ? 'Đang tải ảnh...' : 'Hệ thống AI đang đọc ảnh...'}
+              <p className="flex items-center gap-1.5 text-xs text-purple-600 font-medium pt-1">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                {isUploading ? 'Đang tải ảnh lên máy chủ...' : 'AI đang bóc tách số từ ảnh...'}
               </p>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="currentValue">Chỉ số trên đồng hồ</Label>
+          {/* Ô nhập chỉ số */}
+          <div className="space-y-1.5">
+            <Label htmlFor="currentValue" className="text-xs font-semibold text-slate-700">
+              Chỉ số ghi nhận *
+            </Label>
             <Input
               id="currentValue"
               type="number"
@@ -172,18 +189,32 @@ export function OcrUploadDialog({
               step="any"
               value={currentValue}
               onChange={(e) => setCurrentValue(e.target.value === '' ? '' : Number(e.target.value))}
-              placeholder="Ví dụ: 1250"
+              placeholder="VD: 1450"
+              className="h-10 font-mono text-base font-bold tabular-nums"
               disabled={isUploading || isPolling || isSaving}
             />
-            <p className="text-xs text-slate-500">Bạn có thể tải ảnh lên để máy điền tự động, hoặc tự gõ vào ô này.</p>
+            <p className="text-xs text-slate-400">
+              AI sẽ tự động điền nếu nhận diện thành công, bạn có thể chỉnh sửa nếu cần.
+            </p>
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+        <DialogFooter className="mt-4 gap-2 sm:gap-0">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSaving}
+            className="h-9 text-xs"
+          >
             Hủy
           </Button>
-          <Button onClick={handleSave} disabled={isSaving || isUploading || isPolling}>
+          <Button
+            onClick={handleSave}
+            disabled={isSaving || isUploading || isPolling}
+            className="h-9 bg-blue-600 hover:bg-blue-700 text-white text-xs gap-1.5"
+          >
+            {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
             {isSaving ? 'Đang lưu...' : 'Lưu chỉ số'}
           </Button>
         </DialogFooter>

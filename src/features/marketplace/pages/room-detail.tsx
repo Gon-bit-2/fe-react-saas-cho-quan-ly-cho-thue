@@ -13,9 +13,6 @@ import {
   Image as ImageIcon,
   Building,
   Shield,
-  Clock,
-  Sparkles,
-  ExternalLink,
 } from 'lucide-react'
 import { useMarketplaceRoom, useRecordView } from '@/shared/api/marketplace'
 import { useAuth } from '@/shared/hooks/use-auth'

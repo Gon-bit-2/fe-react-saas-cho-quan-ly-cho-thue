@@ -7,6 +7,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateRenterInvite } from '@/shared/api/renters'
 
+/**
+ * Trang tạo và gửi lời mời thuê phòng tới khách hàng mới
+ * Hệ thống tự động gửi email kèm token xác nhận để khách tạo tài khoản
+ */
 export default function RenterInviteFormPage() {
   const navigate = useNavigate()
   const createInvitation = useCreateRenterInvite()

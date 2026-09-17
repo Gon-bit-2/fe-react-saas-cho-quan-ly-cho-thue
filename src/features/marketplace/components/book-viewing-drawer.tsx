@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Calendar, Clock, User, Phone, FileText, AlertCircle, Building } from 'lucide-react'
+import { Calendar, Clock, User, Phone, FileText, AlertCircle } from 'lucide-react'
 import { useCreateViewing, useMarketplaceRoom } from '@/shared/api/marketplace'
 import { toast } from 'sonner'
 import { useAuth } from '@/shared/hooks/use-auth'

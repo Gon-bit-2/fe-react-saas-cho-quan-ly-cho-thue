@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,6 +17,8 @@ import {
 import { toast } from 'sonner'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { paymentsControllerRecordManualPayment } from '@/shared/api/generated/payments/payments'
+import { formatCurrency } from '@/shared/lib/utils'
+import { CreditCard, Loader2, Banknote, QrCode, Wallet, Check } from 'lucide-react'
 
 type ManualPaymentFormValues = {
   amount: number
@@ -30,6 +32,10 @@ type Props = {
   trigger?: React.ReactNode
 }
 
+/**
+ * Hộp thoại ghi nhận thanh toán thủ công (tiền mặt hoặc chuyển khoản ngoài hệ thống).
+ * Hỗ trợ nút điền nhanh toàn bộ số nợ và cập nhật trạng thái hóa đơn ngay lập tức.
+ */
 export function ManualPaymentDialog({ invoiceId, remainingAmount, trigger }: Props) {
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
@@ -40,7 +46,7 @@ export function ManualPaymentDialog({ invoiceId, remainingAmount, trigger }: Pro
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] })
       queryClient.invalidateQueries({ queryKey: ['payments'] })
-      toast.success('Ghi nhận thanh toán thành công')
+      toast.success('Ghi nhận khoản thanh toán thành công')
       setOpen(false)
       reset()
     },
@@ -55,7 +61,7 @@ export function ManualPaymentDialog({ invoiceId, remainingAmount, trigger }: Pro
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
+    control,
     reset,
   } = useForm<ManualPaymentFormValues>({
     defaultValues: {
@@ -65,12 +71,11 @@ export function ManualPaymentDialog({ invoiceId, remainingAmount, trigger }: Pro
     },
   })
 
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const method = watch('method')
+  const method = useWatch({ control, name: 'method' })
 
   const onSubmit = (data: ManualPaymentFormValues) => {
     if (data.amount > remainingAmount) {
-      toast.error('Số tiền thanh toán không được lớn hơn công nợ còn lại')
+      toast.error('Số tiền thanh toán không được vượt quá số nợ còn lại')
       return
     }
 
@@ -86,68 +91,105 @@ export function ManualPaymentDialog({ invoiceId, remainingAmount, trigger }: Pro
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="outline" className="w-full justify-start text-slate-700">
-            <span className="material-symbols-outlined mr-2 text-[18px]">payments</span>
-            Thanh toán thủ công
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+            <CreditCard className="h-3.5 w-3.5" /> Thu tiền phòng
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Ghi nhận Thanh toán Thủ công</DialogTitle>
-          <DialogDescription>
-            Nhập thông tin giao dịch bằng tiền mặt hoặc chuyển khoản trực tiếp bên ngoài hệ thống.
+          <DialogTitle className="text-xl font-bold text-slate-900">Ghi Nhận Thu Tiền Phòng</DialogTitle>
+          <DialogDescription className="text-xs text-slate-500">
+            Nhập số tiền đã nhận từ khách thuê qua tiền mặt hoặc tài khoản cá nhân.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="amount">
-              Số tiền thanh toán (VNĐ) <span className="text-red-500">*</span>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
+          {/* Thông tin số nợ & Nút chọn nhanh */}
+          <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs">
+            <span className="text-slate-600">Số tiền còn nợ:</span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono font-bold text-rose-600 tabular-nums">{formatCurrency(remainingAmount)}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setValue('amount', remainingAmount)}
+                className="h-6 px-2 text-[11px] font-medium text-blue-600 hover:bg-blue-50"
+              >
+                Trả hết
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="amount" className="text-xs font-semibold text-slate-700">
+              Số tiền thu thực tế (VNĐ) *
             </Label>
             <Input
               id="amount"
-              type="number" min="0"
+              type="number"
+              min="1000"
+              step="1000"
+              className="h-10 font-mono text-base font-bold tabular-nums"
               {...register('amount', { required: 'Vui lòng nhập số tiền', min: 1 })}
-              placeholder="VD: 500000"
+              placeholder="VD: 2500000"
             />
-            {errors.amount && <p className="text-sm text-red-500">{errors.amount.message}</p>}
-            <p className="text-xs text-slate-500">Công nợ hiện tại: {remainingAmount.toLocaleString('vi-VN')} đ</p>
+            {errors.amount && <p className="text-xs text-rose-500">{errors.amount.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label>
-              Phương thức thanh toán <span className="text-red-500">*</span>
-            </Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-slate-700">Phương thức thanh toán *</Label>
             <Select
               value={method}
               onValueChange={(val: 'CASH' | 'BANK_TRANSFER' | 'WALLET') => setValue('method', val)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-9 bg-slate-50 text-xs">
                 <SelectValue placeholder="Chọn phương thức" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="CASH">Tiền mặt</SelectItem>
-                <SelectItem value="BANK_TRANSFER">Chuyển khoản ngoài</SelectItem>
-                <SelectItem value="WALLET">Ví điện tử</SelectItem>
+                <SelectItem value="CASH" className="text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <Banknote className="h-3.5 w-3.5 text-emerald-600" /> Tiền mặt trực tiếp
+                  </span>
+                </SelectItem>
+                <SelectItem value="BANK_TRANSFER" className="text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <QrCode className="h-3.5 w-3.5 text-blue-600" /> Chuyển khoản ngân hàng ngoài
+                  </span>
+                </SelectItem>
+                <SelectItem value="WALLET" className="text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <Wallet className="h-3.5 w-3.5 text-purple-600" /> Ví điện tử (Momo/ZaloPay)
+                  </span>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="note">Ghi chú (Tùy chọn)</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="note" className="text-xs font-semibold text-slate-700">
+              Ghi chú phiếu thu
+            </Label>
             <Textarea
               id="note"
-              placeholder="Ghi chú về khoản thanh toán này (vd: Khách trả tiền mặt 500k, còn nợ 200k)"
+              placeholder="Ví dụ: Khách trả trước một phần, phần còn lại hẹn cuối tuần..."
+              className="h-20 resize-none text-xs"
               {...register('note')}
             />
           </div>
 
-          <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <DialogFooter className="mt-4 gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-9 text-xs">
               Hủy
             </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? 'Đang xử lý...' : 'Xác nhận'}
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="h-9 gap-1.5 bg-blue-600 text-xs text-white hover:bg-blue-700"
+            >
+              {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+              {isPending ? 'Đang lưu...' : 'Xác nhận thu tiền'}
             </Button>
           </DialogFooter>
         </form>

@@ -13,6 +13,10 @@ import { useRenters, useUploadRenterImages } from '@/shared/api/renters'
 import { useCreateContract, useUpdateContract, useContract } from '@/shared/api/contracts'
 import type { ContractBillingCycle, CreateContractBody, RenterInfo, UpdateContractBody } from '@/types/contract'
 
+/**
+ * Trang tạo mới hoặc chỉnh sửa thông tin hợp đồng thuê (dạng bản nháp)
+ * Quản lý thông tin phòng, giá thuê, tiền cọc, thông tin pháp lý CCCD của khách thuê
+ */
 export default function ContractFormPage() {
   const navigate = useNavigate()
   const { id } = useParams()

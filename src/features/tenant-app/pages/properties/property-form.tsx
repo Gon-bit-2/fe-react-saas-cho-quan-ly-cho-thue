@@ -28,6 +28,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
+/**
+ * Trang Thêm mới / Chỉnh sửa thông tin Khu trọ / Tòa nhà.
+ * Hỗ trợ các bước (Wizard): Thông tin cơ bản & địa chỉ -> Giấy tờ xác minh (nếu chưa verify) -> Thông tin chi tiết số tầng & mô tả.
+ */
 export function Component() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -65,6 +69,9 @@ export function Component() {
   const propertyType = (propertyTypeState ?? initialData?.type ?? 'MINI_APARTMENT') as CreatePropertyDto['type']
   const status = (statusState ?? initialData?.status ?? 'ACTIVE') as NonNullable<CreatePropertyDto['status']>
 
+  /**
+   * Chuyển sang bước tiếp theo với validation dữ liệu cơ bản.
+   */
   const handleNext = () => {
     if (step === 1) {
       const nameInput = document.getElementById('name') as HTMLInputElement
@@ -80,14 +87,23 @@ export function Component() {
     setStep((s) => Math.min(s + 1, totalSteps))
   }
 
+  /**
+   * Quay lại bước trước đó.
+   */
   const handlePrev = () => {
     setStep((s) => Math.max(s - 1, 1))
   }
 
+  /**
+   * Mở hộp thoại xác nhận xóa khu trọ.
+   */
   const handleDelete = () => {
     setIsDeleteDialogOpen(true)
   }
 
+  /**
+   * Xác nhận và gửi API xóa khu trọ.
+   */
   const confirmDelete = async () => {
     try {
       await deleteProperty.mutateAsync()
@@ -101,6 +117,9 @@ export function Component() {
     }
   }
 
+  /**
+   * Xử lý submit toàn bộ form tạo mới hoặc cập nhật khu trọ.
+   */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -109,30 +128,31 @@ export function Component() {
       return
     }
 
-    if (!addressSelection && (!isEditing || !initialData?.provinceCode)) {
-      toast.error('Vui lòng chọn một địa chỉ chuẩn từ danh sách gợi ý.')
-      return
-    }
-
-    if (needsVerification && (!idCardFront || !idCardBack || verificationDocs.length === 0)) {
-      toast.error('Vui lòng tải lên đầy đủ giấy tờ xác minh (CCCD 2 mặt và giấy tờ sở hữu)')
-      return
-    }
-
-    const formData = new FormData(e.currentTarget)
-    let idCardFrontUrl = ''
-    let idCardBackUrl = ''
-    let verificationDocuments: string[] = []
+    const form = e.currentTarget
+    const formData = new FormData(form)
 
     try {
-      if (needsVerification) {
-        const idFiles = [idCardFront!, idCardBack!]
-        const idUrls = await uploadVerification.mutateAsync(idFiles)
-        idCardFrontUrl = idUrls[0]
-        idCardBackUrl = idUrls[1]
+      let idCardFrontUrl = ''
+      let idCardBackUrl = ''
+      const verificationDocuments: string[] = []
 
-        const docUrls = await uploadVerification.mutateAsync(verificationDocs)
-        verificationDocuments = docUrls
+      if (needsVerification) {
+        if (!idCardFront || !idCardBack || verificationDocs.length === 0) {
+          toast.error('Vui lòng tải lên đầy đủ giấy tờ xác minh (CCCD 2 mặt và giấy tờ sở hữu)')
+          return
+        }
+
+        toast.info('Đang tải lên tài liệu xác minh...')
+
+        const [frontRes, backRes] = await Promise.all([
+          uploadVerification.mutateAsync(idCardFront),
+          uploadVerification.mutateAsync(idCardBack),
+        ])
+        idCardFrontUrl = frontRes.url
+        idCardBackUrl = backRes.url
+
+        const docsRes = await Promise.all(verificationDocs.map((doc) => uploadVerification.mutateAsync(doc)))
+        docsRes.forEach((res) => verificationDocuments.push(res.url))
       }
 
       const payload: CreatePropertyDto = {
@@ -188,6 +208,9 @@ export function Component() {
   const isSubmitting =
     createProperty.isPending || updateProperty.isPending || deleteProperty.isPending || uploadCoverImage.isPending || uploadVerification.isPending
 
+  /**
+   * Tải ảnh bìa trực tiếp cho khu trọ khi đang chỉnh sửa.
+   */
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -206,20 +229,21 @@ export function Component() {
 
   if (isEditing && isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="border-primary/30 border-t-primary h-8 w-8 animate-spin rounded-full border-4" />
+      <div className="flex min-h-[350px] items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <span className="text-sm text-slate-500 font-medium">Đang tải dữ liệu khu trọ...</span>
+        </div>
       </div>
     )
   }
 
   const handleStepClick = (targetStep: number) => {
-    // Quay lại luôn được phép
     if (targetStep < step) {
       setStep(targetStep)
       return
     }
 
-    // Nếu tiến lên bước 2 hoặc 3, phải kiểm tra dữ liệu bước 1
     if (targetStep >= 2 && step < 2) {
       const nameInput = document.getElementById('name') as HTMLInputElement
       if (!nameInput?.value) {
@@ -232,7 +256,6 @@ export function Component() {
       }
     }
 
-    // Nếu tiến lên bước 3, phải kiểm tra dữ liệu bước 2 (nếu bắt buộc xác minh)
     if (targetStep >= 3 && step < 3 && needsVerification) {
       if (!idCardFront || !idCardBack || verificationDocs.length === 0) {
         toast.error('Vui lòng tải lên đầy đủ giấy tờ xác minh (CCCD 2 mặt và giấy tờ sở hữu)')
@@ -243,46 +266,66 @@ export function Component() {
     setStep(targetStep)
   }
 
+  const stepLabels = needsVerification
+    ? ['Thông tin cơ bản & Vị trí', 'Xác minh danh tính', 'Chi tiết & Quy mô']
+    : ['Thông tin cơ bản & Vị trí', 'Chi tiết & Quy mô']
+
   const renderStepIndicator = () => (
-    <div className="mb-8 flex items-center justify-center gap-2">
-      {Array.from({ length: totalSteps }).map((_, idx) => {
-        const s = idx + 1
-        return (
-          <div key={s} className="flex items-center">
-            <div
-              onClick={() => handleStepClick(s)}
-              className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-sm font-bold transition-colors hover:opacity-80 ${step >= s ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}
-            >
-              {s}
+    <div className="mb-6 flex flex-col items-center">
+      <div className="flex items-center gap-3">
+        {Array.from({ length: totalSteps }).map((_, idx) => {
+          const s = idx + 1
+          const isActive = step === s
+          const isDone = step > s
+          return (
+            <div key={s} className="flex items-center">
+              <button
+                type="button"
+                onClick={() => handleStepClick(s)}
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-all ${
+                  isDone
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : isActive
+                      ? 'bg-blue-600 text-white ring-4 ring-blue-100'
+                      : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                {isDone ? <CheckCircle2 className="h-4 w-4" /> : s}
+              </button>
+              {s < totalSteps && (
+                <div
+                  className={`mx-2 h-0.5 w-12 sm:w-20 transition-colors ${
+                    step > s ? 'bg-emerald-500' : 'bg-slate-200'
+                  }`}
+                />
+              )}
             </div>
-            {s < totalSteps && (
-              <div
-                className={`mx-1 h-1 w-12 rounded-full transition-colors ${step > s ? 'bg-primary' : 'bg-surface-container-high'}`}
-              />
-            )}
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
+      <span className="text-xs font-medium text-slate-500 mt-2">
+        Bước {step}: {stepLabels[step - 1]}
+      </span>
     </div>
   )
 
   const stepBasicInfo = (
-    <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
-      <Card className="bg-surface-container-lowest border-surface-border rounded-2xl shadow-sm">
-        <CardHeader className="border-surface-variant/30 border-b pb-4">
-          <CardTitle className="font-headline-sm text-on-surface">Thông tin cơ bản</CardTitle>
-          <CardDescription className="font-body-sm text-on-surface-variant">
-            Các thông tin chính để định danh nhà trọ
+    <div className="space-y-6">
+      <Card className="border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100 pb-4">
+          <CardTitle className="text-base font-semibold text-slate-900">Thông tin cơ bản</CardTitle>
+          <CardDescription className="text-xs text-slate-500 mt-0.5">
+            Tên và loại hình bất động sản cho thuê
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 pt-6">
-          <div className="border-surface-border/50 flex flex-col items-center gap-4 border-b pb-2 sm:flex-row sm:items-start sm:gap-6">
-            <div className="group relative">
-              <div className="bg-surface-container-high border-surface-border flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border shadow-sm">
+        <CardContent className="space-y-5 pt-5">
+          <div className="flex flex-col sm:flex-row items-center gap-4 pb-4 border-b border-slate-100">
+            <div className="relative group">
+              <div className="h-20 w-20 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center text-slate-400">
                 {initialData?.coverImageUrl ? (
                   <img src={initialData.coverImageUrl} alt="Cover" className="h-full w-full object-cover" />
                 ) : (
-                  <Building2 className="text-on-surface-variant/50 h-10 w-10" />
+                  <Building2 className="h-8 w-8 text-slate-300" />
                 )}
               </div>
               {isEditing && (
@@ -290,65 +333,67 @@ export function Component() {
                   className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-xl bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <ImageIcon className="h-6 w-6 text-white" />
+                  <ImageIcon className="h-5 w-5 text-white" />
                 </div>
               )}
             </div>
-            <div className="flex flex-1 flex-col justify-center gap-2 pt-2">
-              <Label className="font-label-md text-on-surface">Ảnh đại diện khu trọ</Label>
-              <p className="font-body-sm text-on-surface-variant">
+            <div className="flex-1 text-center sm:text-left">
+              <Label className="text-sm font-semibold text-slate-800">Ảnh đại diện khu trọ</Label>
+              <p className="text-xs text-slate-500 mt-0.5">
                 {isEditing
-                  ? 'Nhấn vào ảnh bên cạnh để tải lên ảnh đại diện mới.'
-                  : 'Bạn có thể tải ảnh đại diện sau khi hoàn tất tạo khu trọ.'}
+                  ? 'Nhấn vào ảnh để tải lên ảnh bìa mới cho cơ sở.'
+                  : 'Bạn có thể cập nhật ảnh bìa sau khi lưu khu trọ.'}
               </p>
               <input type="file" className="hidden" ref={fileInputRef} accept="image/*" onChange={handleImageUpload} />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="name" className="font-label-md text-on-surface">
-              Tên tòa nhà / Nhà trọ <span className="text-error">*</span>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="name" className="text-xs font-semibold text-slate-700">
+              Tên tòa nhà / Khu trọ <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
-              <Building2 className="text-on-surface-variant absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 id="name"
                 name="name"
-                placeholder="VD: Chung cư mini Tôn Thất Thuyết"
+                placeholder="VD: Chung cư mini Sunrise Tower"
                 defaultValue={initialData?.name}
-                className="bg-surface border-surface-border focus-visible:ring-primary/20 focus-visible:border-primary h-11 rounded-xl pl-10"
+                className="pl-9 h-9 text-sm border-slate-200 focus-visible:ring-blue-500"
                 required
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="type" className="font-label-md text-on-surface">
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="type" className="text-xs font-semibold text-slate-700">
                 Loại hình
               </Label>
               <Select value={propertyType} onValueChange={setPropertyType}>
-                <SelectTrigger id="type" className="bg-surface border-surface-border h-11 rounded-xl">
+                <SelectTrigger id="type" className="h-9 text-sm border-slate-200">
                   <SelectValue placeholder="Chọn loại hình" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DORM">Phòng trọ / Ký túc xá</SelectItem>
-                  <SelectItem value="MINI_APARTMENT">Chung cư mini</SelectItem>
-                  <SelectItem value="HOUSE">Nhà nguyên căn</SelectItem>
-                  <SelectItem value="APARTMENT">Chung cư</SelectItem>
+                  <SelectItem value="DORM" className="text-xs">Phòng trọ / Ký túc xá</SelectItem>
+                  <SelectItem value="MINI_APARTMENT" className="text-xs">Chung cư mini</SelectItem>
+                  <SelectItem value="HOUSE" className="text-xs">Nhà nguyên căn</SelectItem>
+                  <SelectItem value="APARTMENT" className="text-xs">Căn hộ chung cư</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="status" className="font-label-md text-on-surface">
-                Trạng thái
+            <div className="space-y-1.5">
+              <Label htmlFor="status" className="text-xs font-semibold text-slate-700">
+                Trạng thái vận hành
               </Label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger id="status" className="bg-surface border-surface-border h-11 rounded-xl">
+                <SelectTrigger id="status" className="h-9 text-sm border-slate-200">
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ACTIVE">Hoạt động</SelectItem>
-                  <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
-                  <SelectItem value="INACTIVE">Ngừng hoạt động</SelectItem>
+                  <SelectItem value="ACTIVE" className="text-xs">Đang hoạt động</SelectItem>
+                  <SelectItem value="MAINTENANCE" className="text-xs">Bảo trì / Sửa chữa</SelectItem>
+                  <SelectItem value="INACTIVE" className="text-xs">Ngừng hoạt động</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -356,14 +401,14 @@ export function Component() {
         </CardContent>
       </Card>
 
-      <Card className="bg-surface-container-lowest border-surface-border overflow-visible rounded-2xl shadow-sm">
-        <CardHeader className="border-surface-variant/30 border-b pb-4">
-          <CardTitle className="font-headline-sm text-on-surface">Vị trí & Địa chỉ</CardTitle>
-          <CardDescription className="font-body-sm text-on-surface-variant">
-            Để dễ dàng quản lý và hiển thị trên bản đồ
+      <Card className="border border-slate-200 bg-white shadow-sm overflow-visible">
+        <CardHeader className="border-b border-slate-100 pb-4">
+          <CardTitle className="text-base font-semibold text-slate-900">Vị trí & Địa chỉ</CardTitle>
+          <CardDescription className="text-xs text-slate-500 mt-0.5">
+            Tìm kiếm địa chỉ chuẩn xác để định vị trên bản đồ số
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 pt-6">
+        <CardContent className="pt-5">
           <AddressPicker
             initial={{
               provinceCode: initialData?.provinceCode,
@@ -382,33 +427,33 @@ export function Component() {
   )
 
   const stepVerification = (
-    <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
-      <Card className="bg-surface-container-lowest border-surface-border rounded-2xl shadow-sm">
-        <CardHeader className="border-surface-variant/30 border-b pb-4">
-          <CardTitle className="font-headline-sm text-on-surface">Xác minh danh tính chủ trọ</CardTitle>
-          <CardDescription className="font-body-sm text-on-surface-variant text-error">
-            Tài khoản của bạn chưa được xác minh. Vui lòng tải lên giấy tờ để tăng độ tin cậy và hiển thị tích xanh.
+    <div className="space-y-6">
+      <Card className="border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100 pb-4">
+          <CardTitle className="text-base font-semibold text-slate-900">Xác minh danh tính chủ trọ</CardTitle>
+          <CardDescription className="text-xs text-amber-600 mt-0.5">
+            Tài khoản của bạn chưa được xác minh. Vui lòng tải lên giấy tờ để tăng độ tin cậy và hiển thị huy hiệu xác thực.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 pt-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label className="font-label-md text-on-surface">
-                Ảnh mặt trước CCCD <span className="text-error">*</span>
+        <CardContent className="space-y-5 pt-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-700">
+                Ảnh mặt trước CCCD <span className="text-red-500">*</span>
               </Label>
               <div
-                className="border-surface-border hover:bg-surface-container cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors"
+                className="border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-slate-50/50 cursor-pointer rounded-xl p-5 text-center transition-colors"
                 onClick={() => idFrontRef.current?.click()}
               >
                 {idCardFront ? (
                   <div className="flex flex-col items-center">
-                    <CheckCircle2 className="text-primary mb-2 h-8 w-8" />
-                    <span className="text-sm font-medium">{idCardFront.name}</span>
+                    <CheckCircle2 className="h-6 w-6 text-emerald-600 mb-1" />
+                    <span className="text-xs font-medium text-slate-800 truncate max-w-xs">{idCardFront.name}</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <ImageIcon className="text-on-surface-variant mb-2 h-8 w-8" />
-                    <span className="text-on-surface-variant text-sm">Nhấn để chọn ảnh mặt trước</span>
+                    <ImageIcon className="h-6 w-6 text-slate-400 mb-1" />
+                    <span className="text-xs text-slate-500">Chọn ảnh mặt trước</span>
                   </div>
                 )}
               </div>
@@ -421,23 +466,23 @@ export function Component() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label className="font-label-md text-on-surface">
-                Ảnh mặt sau CCCD <span className="text-error">*</span>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-700">
+                Ảnh mặt sau CCCD <span className="text-red-500">*</span>
               </Label>
               <div
-                className="border-surface-border hover:bg-surface-container cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors"
+                className="border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-slate-50/50 cursor-pointer rounded-xl p-5 text-center transition-colors"
                 onClick={() => idBackRef.current?.click()}
               >
                 {idCardBack ? (
                   <div className="flex flex-col items-center">
-                    <CheckCircle2 className="text-primary mb-2 h-8 w-8" />
-                    <span className="text-sm font-medium">{idCardBack.name}</span>
+                    <CheckCircle2 className="h-6 w-6 text-emerald-600 mb-1" />
+                    <span className="text-xs font-medium text-slate-800 truncate max-w-xs">{idCardBack.name}</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <ImageIcon className="text-on-surface-variant mb-2 h-8 w-8" />
-                    <span className="text-on-surface-variant text-sm">Nhấn để chọn ảnh mặt sau</span>
+                    <ImageIcon className="h-6 w-6 text-slate-400 mb-1" />
+                    <span className="text-xs text-slate-500">Chọn ảnh mặt sau</span>
                   </div>
                 )}
               </div>
@@ -451,20 +496,20 @@ export function Component() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="font-label-md text-on-surface">
-              Giấy tờ sở hữu/Quản lý nhà trọ <span className="text-error">*</span>
+          <div className="space-y-1.5 pt-2">
+            <Label className="text-xs font-semibold text-slate-700">
+              Giấy tờ chứng minh quyền sở hữu / Quản lý <span className="text-red-500">*</span>
             </Label>
             <div
-              className="border-surface-border hover:bg-surface-container cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors"
+              className="border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-slate-50/50 cursor-pointer rounded-xl p-5 text-center transition-colors"
               onClick={() => docsRef.current?.click()}
             >
               <div className="flex flex-col items-center">
-                <FileText className="text-on-surface-variant mb-2 h-8 w-8" />
-                <span className="text-on-surface-variant text-sm">
+                <FileText className="h-6 w-6 text-slate-400 mb-1" />
+                <span className="text-xs text-slate-500">
                   {verificationDocs.length > 0
-                    ? `Đã chọn ${verificationDocs.length} tệp`
-                    : 'Chọn sổ đỏ, hợp đồng thuê nhà hoặc giấy phép kinh doanh'}
+                    ? `Đã chọn ${verificationDocs.length} tệp tài liệu`
+                    : 'Tải lên sổ đỏ, hợp đồng ủy quyền hoặc giấy phép kinh doanh'}
                 </span>
               </div>
             </div>
@@ -473,14 +518,15 @@ export function Component() {
               multiple
               className="hidden"
               ref={docsRef}
-              accept="image/*"
+              accept="image/*,.pdf"
               onChange={(e) => e.target.files && setVerificationDocs(Array.from(e.target.files))}
             />
             {verificationDocs.length > 0 && (
               <div className="mt-2 space-y-1">
                 {verificationDocs.map((file, i) => (
-                  <div key={i} className="text-on-surface-variant flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="text-primary h-4 w-4" /> {file.name}
+                  <div key={i} className="flex items-center gap-2 text-xs text-slate-600">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>{file.name}</span>
                   </div>
                 ))}
               </div>
@@ -492,17 +538,17 @@ export function Component() {
   )
 
   const stepDetails = (
-    <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
-      <Card className="bg-surface-container-lowest border-surface-border rounded-2xl shadow-sm">
-        <CardHeader className="border-surface-variant/30 border-b pb-4">
-          <CardTitle className="font-headline-sm text-on-surface">Chi tiết & Hình ảnh</CardTitle>
-          <CardDescription className="font-body-sm text-on-surface-variant">
-            Mô tả thêm thông tin cho khu trọ của bạn
+    <div className="space-y-6">
+      <Card className="border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100 pb-4">
+          <CardTitle className="text-base font-semibold text-slate-900">Chi tiết quy mô & Mô tả</CardTitle>
+          <CardDescription className="text-xs text-slate-500 mt-0.5">
+            Cung cấp thêm thông tin về cơ sở vật chất và quy định chung
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 pt-6">
-          <div className="space-y-2">
-            <Label htmlFor="floorsCount" className="font-label-md text-on-surface">
+        <CardContent className="space-y-4 pt-5">
+          <div className="space-y-1.5">
+            <Label htmlFor="floorsCount" className="text-xs font-semibold text-slate-700">
               Số lượng tầng (Tùy chọn)
             </Label>
             <Input
@@ -510,23 +556,23 @@ export function Component() {
               name="floorsCount"
               type="number"
               defaultValue={initialData?._count?.floors}
-              placeholder="VD: 3"
+              placeholder="VD: 5"
               min={1}
               max={50}
-              className="bg-surface border-surface-border focus-visible:ring-primary/20 focus-visible:border-primary h-11 rounded-xl"
+              className="h-9 text-sm border-slate-200 max-w-xs"
             />
           </div>
 
-          <div className="space-y-2 pt-2">
-            <Label htmlFor="description" className="font-label-md text-on-surface">
-              Mô tả chi tiết (Tùy chọn)
+          <div className="space-y-1.5 pt-2">
+            <Label htmlFor="description" className="text-xs font-semibold text-slate-700">
+              Mô tả chi tiết khu trọ
             </Label>
             <Textarea
               id="description"
               name="description"
-              placeholder="Mô tả về khu trọ, tiện ích chung, quy định chung..."
+              placeholder="Giới thiệu về tiện ích chung: khóa vân tay, camera an ninh, giờ giấc tự do, khu để xe..."
               defaultValue={initialData?.description}
-              className="bg-surface border-surface-border focus-visible:ring-primary/20 focus-visible:border-primary min-h-[120px] rounded-xl"
+              className="min-h-[120px] text-sm border-slate-200"
             />
           </div>
         </CardContent>
@@ -535,25 +581,25 @@ export function Component() {
   )
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 pb-24">
-      {/* Header */}
-      <div className="bg-surface-container-lowest border-surface-border flex items-center gap-4 rounded-2xl border p-6 shadow-sm">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-          className="bg-surface-container-low hover:bg-surface-container rounded-full"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex-1">
-          <h2 className="font-headline-lg text-headline-lg text-on-surface">
-            {isEditing ? 'Chỉnh sửa nhà trọ' : 'Thêm nhà trọ mới'}
-          </h2>
-          <div className="mt-1 flex items-center gap-2">
-            <p className="font-body-md text-on-surface-variant">
-              {isEditing ? 'Cập nhật thông tin cơ sở kinh doanh của bạn' : 'Thiết lập thông tin cho tòa nhà/cơ sở mới'}
+    <div className="mx-auto max-w-3xl space-y-6 pb-28">
+      {/* Header bar */}
+      <div className="flex items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="h-8 w-8 rounded-lg border-slate-200"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+              {isEditing ? 'Chỉnh sửa khu trọ' : 'Thêm khu trọ mới'}
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {isEditing ? 'Cập nhật thông tin cơ sở kinh doanh' : 'Thiết lập thông tin cho tòa nhà/khu trọ mới'}
             </p>
           </div>
         </div>
@@ -562,41 +608,44 @@ export function Component() {
             type="button"
             onClick={handleDelete}
             variant="outline"
-            className="text-error border-error/50 hover:bg-error/10 hover:text-error bg-error/5 hidden sm:flex"
+            size="sm"
+            className="text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 gap-1.5"
           >
-            <Trash2 className="mr-2 h-4 w-4" /> Xóa nhà trọ
+            <Trash2 className="h-3.5 w-3.5" /> Xóa khu trọ
           </Button>
         )}
       </div>
 
       {renderStepIndicator()}
 
-      <form id="property-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <form id="property-form" onSubmit={handleSubmit} className="space-y-6">
         <div className={step === 1 ? 'block' : 'hidden'}>{stepBasicInfo}</div>
         <div className={needsVerification && step === 2 ? 'block' : 'hidden'}>{stepVerification}</div>
         <div className={step === 3 || (!needsVerification && step === 2) ? 'block' : 'hidden'}>{stepDetails}</div>
 
-        {/* Sticky Action Bar */}
-        <div className="bg-surface/90 border-surface-border fixed right-0 bottom-0 left-[272px] z-20 flex justify-between gap-4 border-t p-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] backdrop-blur-md">
+        {/* Bottom Action Bar */}
+        <div className="fixed bottom-0 left-0 right-0 lg:left-[272px] z-20 bg-white/95 border-t border-slate-200 p-4 shadow-md backdrop-blur-sm flex items-center justify-between">
           {step > 1 ? (
             <Button
               type="button"
               variant="outline"
-              className="font-label-md border-surface-border bg-surface hover:bg-surface-container h-11 rounded-full px-6"
+              size="sm"
+              className="text-xs h-9 px-4 gap-1.5 border-slate-200"
               onClick={handlePrev}
               disabled={isSubmitting}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại
+              <ArrowLeft className="h-3.5 w-3.5" /> Quay lại
             </Button>
           ) : (
-            <div /> // placeholder to align right buttons
+            <div />
           )}
 
-          <div className="flex gap-4">
+          <div className="flex items-center gap-3">
             <Button
               type="button"
               variant="ghost"
-              className="font-label-md h-11 rounded-full px-6"
+              size="sm"
+              className="text-xs h-9 px-4 text-slate-600"
               onClick={() => navigate(-1)}
               disabled={isSubmitting}
             >
@@ -605,17 +654,18 @@ export function Component() {
 
             <Button
               type="submit"
-              className="font-label-md bg-primary text-on-primary hover:bg-primary/90 h-11 rounded-full px-8 shadow-md"
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-9 px-5 gap-1.5 shadow-xs"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
-                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent mr-1" />
               ) : step < totalSteps ? (
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="h-3.5 w-3.5 ml-1" />
               ) : (
-                <Save className="mr-2 h-4 w-4" />
+                <Save className="h-3.5 w-3.5 mr-1" />
               )}
-              {step < totalSteps ? 'Tiếp tục' : 'Hoàn tất'}
+              {step < totalSteps ? 'Tiếp tục' : 'Hoàn tất & Lưu'}
             </Button>
           </div>
         </div>
@@ -623,19 +673,33 @@ export function Component() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Xóa nhà trọ</DialogTitle>
-            <DialogDescription>
-              Bạn có chắc chắn muốn xóa khu trọ này không? Tất cả dữ liệu liên quan sẽ bị vô hiệu hóa.
+            <DialogTitle className="text-base font-semibold text-slate-900">Xác nhận xóa khu trọ</DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Bạn có chắc chắn muốn xóa khu trọ này không? Dữ liệu phòng và các thông tin liên quan sẽ không còn khả dụng trên hệ thống.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={deleteProperty.isPending}>
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={deleteProperty.isPending}
+              className="text-xs"
+            >
               Hủy bỏ
             </Button>
-            <Button type="button" variant="destructive" onClick={confirmDelete} disabled={deleteProperty.isPending}>
-              {deleteProperty.isPending ? 'Đang xóa...' : 'Xóa'}
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={confirmDelete}
+              disabled={deleteProperty.isPending}
+              className="text-xs"
+            >
+              {deleteProperty.isPending ? 'Đang xóa...' : 'Đồng ý xóa'}
             </Button>
           </DialogFooter>
         </DialogContent>
