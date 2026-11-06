@@ -28,6 +28,7 @@ export interface Renter {
     identityBackUrl?: string | null
     permanentAddress?: string | null
     occupation?: string | null
+    bio?: string | null
     emergencyContactName?: string | null
     emergencyContactPhone?: string | null
   }

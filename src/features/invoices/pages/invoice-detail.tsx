@@ -84,6 +84,7 @@ export function InvoiceDetailPage() {
       },
       cancel: {
         label: 'Đóng',
+        onClick: () => {},
       },
     })
   }

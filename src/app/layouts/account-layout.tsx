@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
 import {
   User,
   Heart,
@@ -23,7 +22,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { profileApi } from '@/features/auth/api/profile.api'
 import { useAuth } from '@/shared/hooks/use-auth'
 import { FloatingChatWidget } from '@/features/chat/components/floating-chat-widget'
 import { Button } from '@/components/ui/button'
@@ -39,10 +37,6 @@ export function Component() {
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  useQuery({
-    queryKey: ['auth', 'profile'],
-    queryFn: () => profileApi.getProfile(),
-  })
   const { profile: user, logout, selectedMembership } = useAuth()
 
   /**

@@ -88,8 +88,14 @@ export default function InvoiceDetailPage() {
     }
   }
 
-  const rentItemTypes = [InvoiceItemType.RENT, InvoiceItemType.ELECTRICITY, InvoiceItemType.WATER, InvoiceItemType.SERVICE, InvoiceItemType.OTHER]
-  const adjustmentItemTypes = [InvoiceItemType.PENALTY, InvoiceItemType.DISCOUNT]
+  const rentItemTypes: InvoiceItemType[] = [
+    InvoiceItemType.RENT,
+    InvoiceItemType.ELECTRICITY,
+    InvoiceItemType.WATER,
+    InvoiceItemType.SERVICE,
+    InvoiceItemType.OTHER,
+  ]
+  const adjustmentItemTypes: InvoiceItemType[] = [InvoiceItemType.PENALTY, InvoiceItemType.DISCOUNT]
   const rentItems = invoice.items?.filter((item: InvoiceItem) => rentItemTypes.includes(item.itemType)) || []
   const adjustmentItems = invoice.items?.filter((item: InvoiceItem) => adjustmentItemTypes.includes(item.itemType)) || []
 
@@ -115,7 +121,9 @@ export default function InvoiceDetailPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {(invoice.status === InvoiceStatus.UNPAID || invoice.status === InvoiceStatus.OVERDUE || invoice.status === InvoiceStatus.PARTIAL) && (
+          {(invoice.status === InvoiceStatus.UNPAID ||
+            invoice.status === InvoiceStatus.OVERDUE ||
+            invoice.status === InvoiceStatus.PARTIALLY_PAID) && (
             <Button 
               className="bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20"
               onClick={() => generateQr()}

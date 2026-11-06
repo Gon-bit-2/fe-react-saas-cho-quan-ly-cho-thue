@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useUtilityMetersControllerGetById, useMeterReadingsControllerList } from '../api'
 import { RecordReadingDialog } from '../components/record-reading-dialog'
-import { EditMeterDialog } from '../components/edit-meter-dialog'
+import { EditMeterDialog, type MeterData } from '../components/edit-meter-dialog'
 import { formatCurrency } from '@/shared/lib/utils'
 import { 
   Zap, 
@@ -47,7 +47,7 @@ export function MeterDetailPage() {
 
   const { data: meterResponse, isLoading: isLoadingMeter } = useUtilityMetersControllerGetById(Number(id))
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const meter = meterResponse as Record<string, any>
+  const meter = meterResponse as (MeterData & Record<string, any>) | undefined
 
   const { data: readingsResponse, isLoading: isLoadingReadings } = useMeterReadingsControllerList({
     meterId: Number(id),
@@ -148,7 +148,7 @@ export function MeterDetailPage() {
                 <h2 className="text-2xl font-bold tracking-tight text-slate-900">
                   {meter.meterCode}
                 </h2>
-                <StatusBadge status={meter.status} statusMap={METER_STATUS_MAP} />
+                <StatusBadge status={meter.status || 'ACTIVE'} statusMap={METER_STATUS_MAP} />
                 <Badge variant="outline" className={isElectricity ? 'border-amber-200 bg-amber-50/60 text-amber-700' : 'border-blue-200 bg-blue-50/60 text-blue-700'}>
                   {isElectricity ? 'Điện năng' : 'Nước sinh hoạt'}
                 </Badge>

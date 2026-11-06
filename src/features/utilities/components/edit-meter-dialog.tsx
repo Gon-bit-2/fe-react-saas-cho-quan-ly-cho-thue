@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { utilityMetersControllerUpdate } from '../api'
+import { utilityMetersControllerUpdate, utilityMetersControllerUpdateStatus } from '../api'
 import { Edit3, Loader2, Zap, Droplet } from 'lucide-react'
 
 const formSchema = z.object({
@@ -64,8 +64,17 @@ export function EditMeterDialog({ children, meter }: { children?: React.ReactNod
   })
 
   const { mutate: updateMeter, isPending } = useMutation({
-    mutationFn: (data: Parameters<typeof utilityMetersControllerUpdate>[1]) =>
-      utilityMetersControllerUpdate(meter.id, data),
+    mutationFn: async (data: FormValues) => {
+      await utilityMetersControllerUpdate(meter.id, {
+        meterCode: data.meterCode,
+        unit: data.unit,
+      })
+      if (data.status && data.status !== meter.status) {
+        await utilityMetersControllerUpdateStatus(meter.id, {
+          status: data.status,
+        })
+      }
+    },
     onSuccess: () => {
       toast.success('Cập nhật công tơ thành công')
       queryClient.invalidateQueries({ queryKey: ['utility-meters'] })
@@ -80,12 +89,11 @@ export function EditMeterDialog({ children, meter }: { children?: React.ReactNod
     },
   })
 
+  /**
+   * Gửi dữ liệu cập nhật thông tin và trạng thái công tơ
+   */
   const onSubmit = (data: FormValues) => {
-    updateMeter({
-      meterCode: data.meterCode,
-      unit: data.unit,
-      status: data.status,
-    })
+    updateMeter(data)
   }
 
   const isElectricity = meter.type === 'ELECTRICITY'

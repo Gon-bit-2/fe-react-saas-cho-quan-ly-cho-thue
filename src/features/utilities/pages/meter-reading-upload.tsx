@@ -137,6 +137,20 @@ export function MeterReadingUploadPage() {
     })
   }
 
+  /**
+   * Giải phóng Object URL của ảnh công tơ tạm thời khi đổi ảnh khác hoặc khi rời trang
+   */
+  useEffect(() => {
+    return () => {
+      if (previewImage?.startsWith('blob:')) {
+        URL.revokeObjectURL(previewImage)
+      }
+    }
+  }, [previewImage])
+
+  /**
+   * Xử lý khi người dùng chọn ảnh chụp đồng hồ công tơ và đẩy lên dịch vụ nhận diện OCR
+   */
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return

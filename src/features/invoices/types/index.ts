@@ -118,7 +118,8 @@ export interface Invoice {
   }
   room?: {
     id: number
-    code: string
+    code?: string
+    roomCode?: string
     title: string
   }
   property?: {

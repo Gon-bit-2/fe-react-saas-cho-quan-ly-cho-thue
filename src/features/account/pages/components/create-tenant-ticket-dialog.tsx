@@ -16,6 +16,19 @@ interface CreateTenantTicketDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+interface MyContractOption {
+  id: number
+  status: string
+  roomId: number
+  roomCode?: string
+  contractCode?: string
+  code?: string
+  room?: {
+    name?: string
+    roomCode?: string
+  }
+}
+
 export function CreateTenantTicketDialog({ open, onOpenChange }: CreateTenantTicketDialogProps) {
   const queryClient = useQueryClient()
   
@@ -36,8 +49,12 @@ export function CreateTenantTicketDialog({ open, onOpenChange }: CreateTenantTic
   })
   
   // Lọc chỉ lấy các hợp đồng đang active
-  const contractsData = Array.isArray(queryData?.data) ? queryData.data : (Array.isArray(queryData) ? queryData : [])
-  const activeContracts = contractsData.filter((c: Record<string, unknown>) => c.status === 'ACTIVE' || c.status === 'EXPIRING_SOON')
+  const contractsData: MyContractOption[] = Array.isArray(queryData?.data)
+    ? queryData.data
+    : Array.isArray(queryData)
+      ? queryData
+      : []
+  const activeContracts = contractsData.filter((c) => c.status === 'ACTIVE' || c.status === 'EXPIRING_SOON')
 
   const mutation = useMutation({
     mutationFn: async () => {

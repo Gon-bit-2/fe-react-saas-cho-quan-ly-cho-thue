@@ -144,15 +144,14 @@ export function Component() {
 
         toast.info('Đang tải lên tài liệu xác minh...')
 
-        const [frontRes, backRes] = await Promise.all([
-          uploadVerification.mutateAsync(idCardFront),
-          uploadVerification.mutateAsync(idCardBack),
+        const [frontRes, backRes, docsRes] = await Promise.all([
+          uploadVerification.mutateAsync([idCardFront]),
+          uploadVerification.mutateAsync([idCardBack]),
+          uploadVerification.mutateAsync(verificationDocs),
         ])
-        idCardFrontUrl = frontRes.url
-        idCardBackUrl = backRes.url
-
-        const docsRes = await Promise.all(verificationDocs.map((doc) => uploadVerification.mutateAsync(doc)))
-        docsRes.forEach((res) => verificationDocuments.push(res.url))
+        idCardFrontUrl = frontRes[0] ?? ''
+        idCardBackUrl = backRes[0] ?? ''
+        verificationDocuments.push(...docsRes)
       }
 
       const payload: CreatePropertyDto = {
@@ -571,7 +570,7 @@ export function Component() {
               id="description"
               name="description"
               placeholder="Giới thiệu về tiện ích chung: khóa vân tay, camera an ninh, giờ giấc tự do, khu để xe..."
-              defaultValue={initialData?.description}
+              defaultValue={initialData?.description ?? ''}
               className="min-h-[120px] text-sm border-slate-200"
             />
           </div>

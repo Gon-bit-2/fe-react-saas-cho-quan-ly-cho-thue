@@ -196,21 +196,18 @@ export default function RequestDetailPage() {
                   <div>
                     <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Giá thuê</p>
                     <p className="font-semibold text-blue-600 text-lg">
-                      {/* @ts-expect-error basePrice exists on room but might not be in the partial type */}
                       {formatCurrency(request.room.basePrice)}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Tiền cọc</p>
                     <p className="font-semibold text-slate-900 text-lg">
-                      {/* @ts-expect-error depositAmount exists on room but might not be in the partial type */}
                       {formatCurrency(request.room.depositAmount)}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Diện tích</p>
                     <p className="font-medium text-slate-800">
-                      {/* @ts-expect-error area exists on room but might not be in the partial type */}
                       {request.room.area ? `${request.room.area} m²` : 'Không có thông tin'}
                     </p>
                   </div>

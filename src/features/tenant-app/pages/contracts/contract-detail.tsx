@@ -569,7 +569,9 @@ export default function ContractDetailPage() {
               onClick={() => {
                 if (confirmAction?.type === 'ACTIVATE') activateContract()
                 if (confirmAction?.type === 'CANCEL') cancelContract()
-                if (confirmAction?.type === 'REMOVE_MEMBER') removeMember(confirmAction.payload)
+                if (confirmAction?.type === 'REMOVE_MEMBER' && confirmAction.payload !== undefined) {
+                  removeMember(confirmAction.payload)
+                }
                 setConfirmAction(null)
               }}
             >

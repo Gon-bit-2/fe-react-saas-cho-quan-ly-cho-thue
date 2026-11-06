@@ -4,7 +4,7 @@ import { ArrowLeft, FileText, CheckCircle2, CalendarDays, Building, Phone } from
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CONTRACT_STATUS_MAP } from '@/types/contract'
+import { CONTRACT_STATUS_MAP, type ContractStatus } from '@/types/contract'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { SignContractDialog } from '@/features/tenant-app/pages/contracts/components/sign-contract-dialog'
 import { apiClient } from '@/shared/api/axios-client'
@@ -105,7 +105,7 @@ export default function ContractDetailPage() {
                 }
               >
                 <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-current"></span>
-                {CONTRACT_STATUS_MAP[contract.status] || contract.status}
+                {CONTRACT_STATUS_MAP[contract.status as ContractStatus] || contract.status}
               </Badge>
               <span className="flex items-center gap-1.5 text-sm text-slate-500">
                 <CalendarDays className="h-4 w-4" /> Bắt đầu {new Date(contract.startDate).toLocaleDateString('vi-VN')}

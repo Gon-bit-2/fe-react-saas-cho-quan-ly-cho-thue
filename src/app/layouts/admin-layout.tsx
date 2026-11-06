@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
+  type LucideIcon,
 } from 'lucide-react'
 import { useAuth } from '@/shared/hooks/use-auth'
 import {
@@ -27,10 +28,22 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
 
+interface AdminNavItem {
+  name: string
+  path: string
+  icon: LucideIcon
+  exact?: boolean
+}
+
+interface AdminNavGroup {
+  group: string
+  items: AdminNavItem[]
+}
+
 /**
  * Danh sách menu items cho admin sidebar theo mục 3.3 DESIGN.md
  */
-const adminNavGroups = [
+const adminNavGroups: AdminNavGroup[] = [
   {
     group: 'Tổng quan',
     items: [

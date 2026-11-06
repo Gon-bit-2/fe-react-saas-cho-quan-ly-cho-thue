@@ -16,7 +16,7 @@ export function Component() {
     queryFn: () => profileApi.getProfile()
   })
 
-  const { selectedMembership } = useAuth()
+  const { selectedMembership, refreshProfile } = useAuth()
   
   // Mutation cập nhật profile
   const updateMutation = useMutation({
@@ -45,9 +45,12 @@ export function Component() {
         }
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Cập nhật hồ sơ thành công')
-      queryClient.invalidateQueries({ queryKey: ['auth', 'profile'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['auth', 'profile'] }),
+        refreshProfile(),
+      ])
     },
     onError: () => {
       toast.error('Có lỗi xảy ra khi cập nhật hồ sơ')

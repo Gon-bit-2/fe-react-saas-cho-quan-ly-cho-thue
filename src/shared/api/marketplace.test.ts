@@ -5,6 +5,7 @@ describe('normalizeMarketplaceRoom', () => {
   it('normalizes the public room payload returned by the backend', () => {
     const room = normalizeMarketplaceRoom({
       id: 1,
+      tenantId: 1,
       title: 'Bright studio near university',
       roomCode: 'MVP-A101',
       basePrice: '5500000',

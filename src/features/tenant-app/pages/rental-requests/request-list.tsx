@@ -125,7 +125,6 @@ export function Component() {
                         </div>
                         <div>
                           <div className="font-semibold text-slate-900">
-                            {/* @ts-expect-error: backend field polymorphism */}
                             {req.renter?.fullName || `Khách thuê #${req.renterId}`}
                           </div>
                           <div className="text-xs text-slate-500 mt-0.5 tabular-nums">
@@ -137,7 +136,6 @@ export function Component() {
                     <TableCell>
                       <div className="inline-flex items-center gap-1.5 rounded-md border border-indigo-100 bg-indigo-50/70 px-2.5 py-1 text-xs font-semibold text-indigo-700">
                         <Home className="h-3.5 w-3.5" />
-                        {/* @ts-expect-error: optional room title */}
                         {req.room?.title ? req.room.title : `Phòng #${req.roomId}`}
                       </div>
                     </TableCell>
