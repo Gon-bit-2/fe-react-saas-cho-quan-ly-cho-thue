@@ -43,7 +43,19 @@ interface ServiceAssignmentDto {
   serviceItemId: number
   serviceItem?: ServiceCatalogItemDto
   roomId?: number | null
+  room?: {
+    id: number
+    roomCode: string
+    title: string
+    propertyId?: number
+  } | null
   contractId?: number | null
+  contract?: {
+    id: number
+    contractCode: string
+    status: string
+    roomId?: number
+  } | null
   quantity: number | string
   startsAt?: string | null
   createdAt: string
@@ -163,7 +175,9 @@ export const useServiceAssignments = (params: Record<string, unknown> = {}) => {
           serviceId: item.serviceItemId,
           service: item.serviceItem ? mapService(item.serviceItem) : undefined,
           roomId: item.roomId ?? undefined,
+          room: item.room ?? undefined,
           contractId: item.contractId ?? undefined,
+          contract: item.contract ?? undefined,
           quantity: Number(item.quantity),
           assignedDate: item.startsAt ?? item.createdAt,
           createdAt: item.createdAt,

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,6 +15,9 @@ interface AssetCategoryFormProps {
   initialData?: AssetCategory | null
 }
 
+/**
+ * Hộp thoại tạo mới hoặc chỉnh sửa nhóm danh mục tài sản
+ */
 export function AssetCategoryForm({ open, onOpenChange, initialData }: AssetCategoryFormProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -37,6 +40,9 @@ export function AssetCategoryForm({ open, onOpenChange, initialData }: AssetCate
   const isEditing = !!initialData
   const isPending = createCategory.isPending || updateCategory.isPending
 
+  /**
+   * Xử lý lưu thông tin danh mục tài sản
+   */
   const handleSubmit = () => {
     if (!name.trim()) {
       toast.error('Vui lòng nhập tên danh mục')
@@ -69,6 +75,11 @@ export function AssetCategoryForm({ open, onOpenChange, initialData }: AssetCate
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Sửa danh mục' : 'Thêm danh mục mới'}</DialogTitle>
+          <DialogDescription>
+            {isEditing
+              ? 'Chỉnh sửa tên và mô tả chi tiết của nhóm danh mục này.'
+              : 'Nhập thông tin để tạo mới một nhóm danh mục tài sản.'}
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">

@@ -72,12 +72,15 @@ export function ReviewModal({ open, onOpenChange, roomId, onSuccess }: ReviewMod
     }
 
     createReview({
-      roomId,
-      data: {
-        rating: values.rating,
-        content: values.content,
-      },
-    })
+      contractId: 0,
+      rating: values.rating,
+      content: values.content,
+      cleanlinessScore: values.rating,
+      locationScore: values.rating,
+      priceScore: values.rating,
+      serviceScore: values.rating,
+      ...(roomId ? { roomId } : {}),
+    } as unknown as Parameters<typeof reviewsControllerCreate>[0])
   }
 
   return (

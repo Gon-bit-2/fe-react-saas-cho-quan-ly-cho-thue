@@ -33,6 +33,10 @@ interface AssignAppointmentModalProps {
   onOpenChange: (open: boolean) => void
 }
 
+/**
+ * Modal phân công nhân viên phụ trách dẫn khách xem phòng
+ * Cho phép chọn nhân viên từ danh sách thành viên của tổ chức/khu trọ
+ */
 export const AssignAppointmentModal: React.FC<AssignAppointmentModalProps> = ({ appointment, open, onOpenChange }) => {
   const assignMutation = useAssignViewingAppointment(appointment?.id ?? 0)
 
@@ -56,6 +60,9 @@ export const AssignAppointmentModal: React.FC<AssignAppointmentModalProps> = ({ 
     }
   }, [open, appointment, form])
 
+  /**
+   * Gửi yêu cầu gán nhân viên phụ trách vào lịch xem phòng
+   */
   const onSubmit = (data: FormValues) => {
     if (!appointment) return
 

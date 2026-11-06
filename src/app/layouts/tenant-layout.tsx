@@ -1,4 +1,30 @@
+import { useState } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router'
+import {
+  LayoutDashboard,
+  Building2,
+  DoorOpen,
+  CalendarDays,
+  FileCheck2,
+  Users,
+  UserCheck,
+  FileText,
+  FileX2,
+  Boxes,
+  Gauge,
+  Droplets,
+  ScanLine,
+  Zap,
+  Receipt,
+  CreditCard,
+  Crown,
+  LifeBuoy,
+  Bell,
+  LogOut,
+  Menu,
+  User,
+  Shield,
+} from 'lucide-react'
 import { useAuth } from '@/shared/hooks/use-auth'
 import {
   DropdownMenu,
@@ -9,39 +35,88 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { TenantSwitcher } from '@/features/tenant-app/components/tenant-switcher'
-import { useNotificationsControllerCountUnread } from '@/shared/api/generated/notifications/notifications'
+import { useNotificationsControllerCountUnread } from '@/shared/api/notify'
 import { FloatingChatWidget } from '@/features/chat/components/floating-chat-widget'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 
-const navItems = [
-  { name: 'Tổng quan', path: '/tong-quan', icon: 'grid_view' },
-  { name: 'Khu trọ', path: '/khu-tro', icon: 'apartment' },
-  { name: 'Quản lý phòng', path: '/quan-ly-phong/danh-sach', icon: 'door_open' },
-  { name: 'Yêu cầu thuê', path: '/yeu-cau-thue', icon: 'assignment_turned_in' },
-  { name: 'Lịch xem phòng', path: '/lich-xem-phong', icon: 'calendar_month' },
-  { name: 'Người thuê', path: '/nguoi-thue', icon: 'group' },
-  { name: 'Nhân viên', path: '/quan-ly-nhan-vien', icon: 'badge' },
-  { name: 'Hợp đồng', path: '/hop-dong', icon: 'description' },
-  { name: 'Yêu cầu kết thúc', path: '/yeu-cau-ket-thuc-hop-dong', icon: 'assignment_late' },
-  { name: 'Tài sản', path: '/quan-ly-tai-san', icon: 'inventory_2' },
-  { name: 'Công tơ', path: '/dien-nuoc/cong-to', icon: 'speed' },
-  { name: 'Chỉ số', path: '/dien-nuoc/chi-so', icon: 'water_ec' },
-  { name: 'Nhận diện OCR', path: '/dien-nuoc/ocr-review', icon: 'document_scanner' },
-  { name: 'Dịch vụ', path: '/dich-vu', icon: 'electric_bolt' },
-  { name: 'Hóa đơn', path: '/hoa-don', icon: 'receipt_long' },
-  { name: 'Thanh toán', path: '/thanh-toan', icon: 'payments' },
-  { name: 'Gói dịch vụ', path: '/goi-dich-vu', icon: 'workspace_premium' },
-  { name: 'Hỗ trợ', path: '/ho-tro', icon: 'confirmation_number' },
-  { name: 'Thông báo', path: '/thong-bao', icon: 'notifications' },
-  { name: 'Đăng xuất', path: '#logout', icon: 'logout' },
+/**
+ * Cấu trúc các nhóm menu Sidebar Tenant theo chuẩn mục 3.2 của DESIGN.md
+ */
+const navGroups = [
+  {
+    group: 'Tổng quan',
+    items: [
+      { name: 'Tổng quan', path: '/tong-quan', icon: LayoutDashboard },
+    ],
+  },
+  {
+    group: 'Nguồn cung',
+    items: [
+      { name: 'Khu trọ', path: '/khu-tro', icon: Building2 },
+      { name: 'Quản lý phòng', path: '/quan-ly-phong/danh-sach', icon: DoorOpen },
+      { name: 'Tài sản phòng', path: '/quan-ly-tai-san', icon: Boxes },
+    ],
+  },
+  {
+    group: 'Khách thuê & Lịch hẹn',
+    items: [
+      { name: 'Lịch xem phòng', path: '/lich-xem-phong', icon: CalendarDays },
+      { name: 'Yêu cầu thuê', path: '/yeu-cau-thue', icon: FileCheck2 },
+      { name: 'Người thuê', path: '/nguoi-thue', icon: Users },
+      { name: 'Nhân viên quản lý', path: '/quan-ly-nhan-vien', icon: UserCheck },
+    ],
+  },
+  {
+    group: 'Hợp đồng',
+    items: [
+      { name: 'Hợp đồng thuê', path: '/hop-dong', icon: FileText },
+      { name: 'Yêu cầu kết thúc', path: '/yeu-cau-ket-thuc-hop-dong', icon: FileX2 },
+    ],
+  },
+  {
+    group: 'Điện nước & Dịch vụ',
+    items: [
+      { name: 'Công tơ', path: '/dien-nuoc/cong-to', icon: Gauge },
+      { name: 'Chỉ số', path: '/dien-nuoc/chi-so', icon: Droplets },
+      { name: 'Nhận diện OCR', path: '/dien-nuoc/ocr-review', icon: ScanLine },
+      { name: 'Dịch vụ thêm', path: '/dich-vu', icon: Zap },
+    ],
+  },
+  {
+    group: 'Tài chính',
+    items: [
+      { name: 'Hóa đơn', path: '/hoa-don', icon: Receipt },
+      { name: 'Thanh toán', path: '/thanh-toan', icon: CreditCard },
+    ],
+  },
+  {
+    group: 'Vận hành & Hỗ trợ',
+    items: [
+      { name: 'Sự cố & Hỗ trợ', path: '/ho-tro', icon: LifeBuoy },
+      { name: 'Thông báo', path: '/thong-bao', icon: Bell },
+      { name: 'Gói dịch vụ SaaS', path: '/goi-dich-vu', icon: Crown },
+    ],
+  },
 ]
 
+/**
+ * Layout chính cho hệ thống vận hành Tenant (Chủ trọ, Quản lý, Kế toán, Nhân viên).
+ * Tuân thủ DESIGN.md: Sidebar rộng 272px, nhóm menu có tổ chức, topbar 64px, tích hợp Drawer mobile.
+ */
 export function Component() {
   const { profile, logout, selectedMembership } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const { data: unreadCount = 0 } = useNotificationsControllerCountUnread()
 
+  /**
+   * Chuyển đổi mã vai trò sang nhãn hiển thị tiếng Việt thân thiện
+   */
   const getRoleLabel = (roleId?: string | null) => {
     switch (roleId) {
       case 'ADMIN':
@@ -50,100 +125,155 @@ export function Component() {
         return 'Chủ trọ'
       case 'MANAGER':
         return 'Quản lý vận hành'
+      case 'ACCOUNTANT':
+        return 'Kế toán'
+      case 'MAINTENANCE_STAFF':
+        return 'Nhân viên bảo trì'
       case 'TENANT':
         return 'Người thuê'
-      case 'USER':
-        return 'Người dùng'
       default:
-        return 'Người dùng'
+        return 'Thành viên'
     }
   }
 
   const displayRole = getRoleLabel(selectedMembership?.roleId || profile?.systemRole)
 
-  const handleLogout = (e: React.MouseEvent) => {
-    e.preventDefault()
-    logout()
+  /**
+   * Xử lý đăng xuất tài khoản và đưa người dùng về trang đăng nhập
+   */
+  const handleLogout = async () => {
+    await logout()
     navigate('/dang-nhap')
   }
 
+  /**
+   * Render danh sách các nhóm liên kết Sidebar
+   */
+  const renderNavLinks = () => (
+    <div className="flex flex-col gap-6 px-3 py-4">
+      {navGroups.map((group) => (
+        <div key={group.group} className="space-y-1">
+          <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            {group.group}
+          </p>
+          <div className="space-y-0.5">
+            {group.items.map((item) => {
+              const Icon = item.icon
+              const isActive = location.pathname === item.path || (item.path !== '/tong-quan' && location.pathname.startsWith(item.path))
+
+              return (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <Icon className={`size-4.5 shrink-0 ${isActive ? 'text-primary-foreground' : 'text-slate-500'}`} />
+                  <span className="truncate">{item.name}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+
+      <Separator />
+
+      <Button
+        variant="ghost"
+        onClick={handleLogout}
+        className="w-full justify-start gap-3 rounded-xl px-3 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
+      >
+        <LogOut className="size-4.5 shrink-0" />
+        <span>Đăng xuất</span>
+      </Button>
+    </div>
+  )
+
   return (
-    <div className="bg-background font-body-md text-body-md text-on-surface">
-      {/* Sidebar */}
-      <aside className="w-sidebar-width bg-surface-container-lowest fixed top-0 left-0 z-50 flex h-full flex-col shadow-[0_0_1px_rgba(0,0,0,0.1)] transition-all print:hidden">
-        <div className="h-topbar-height border-surface-border flex items-center gap-3 border-b px-6">
-          <Link to="/" className="flex items-center gap-3">
+    <div className="min-h-screen bg-slate-50/50 text-slate-900 flex">
+      {/* Desktop Sidebar (Rộng 272px theo mục 3.2 DESIGN.md) */}
+      <aside className="hidden lg:flex w-[272px] flex-col fixed inset-y-0 left-0 z-40 bg-white border-r border-slate-200 shadow-xs">
+        {/* Brand header (64px) */}
+        <div className="h-16 flex items-center gap-3 border-b border-slate-200 px-6 shrink-0">
+          <Link to="/" className="flex items-center gap-2.5">
             <img alt="Nhà Trọ Việt Logo" className="h-8 w-auto object-contain" src="/logo.png" />
-            <span className="font-headline-sm text-headline-sm text-primary tracking-tight">Nhà Trọ Việt</span>
+            <span className="font-display font-bold text-lg text-primary tracking-tight">Nhà Trọ Việt</span>
           </Link>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-6">
-          {navItems.map((item) => {
-            if (item.path === '#logout') {
-              return (
-                <button
-                  key={item.name}
-                  onClick={handleLogout}
-                  className="text-on-surface-variant hover:bg-error-container hover:text-on-error-container flex w-full items-center gap-3 rounded-lg px-4 py-2.5 transition-all"
-                >
-                  <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                  {item.name}
-                </button>
-              )
-            }
 
-            const isActive = location.pathname.startsWith(item.path)
-            return (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={`flex items-center gap-3 rounded-lg px-4 py-2.5 transition-all ${
-                  isActive
-                    ? 'bg-primary-fixed text-on-primary-fixed-variant font-bold shadow-sm'
-                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                {item.name}
-              </Link>
-            )
-          })}
-        </nav>
+        {/* Scrollable menu */}
+        <div className="flex-1 overflow-y-auto">{renderNavLinks()}</div>
       </aside>
 
       {/* Main Container */}
-      <div className="pl-sidebar-width flex min-h-screen flex-col print:pl-0">
-        {/* Header */}
-        <header className="left-sidebar-width h-topbar-height bg-surface/90 border-surface-border px-page-padding-desktop fixed top-0 right-0 z-40 flex items-center justify-between border-b backdrop-blur-md print:hidden">
-          <div className="flex items-center gap-4">
+      <div className="flex-1 flex flex-col lg:pl-[272px] min-w-0">
+        {/* Topbar (Cao 64px theo mục 3.2 DESIGN.md) */}
+        <header className="h-16 sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 sm:px-6 backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            {/* Mobile Hamburger Toggle */}
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden text-slate-700">
+                  <Menu className="size-5" />
+                  <span className="sr-only">Mở menu điều hướng</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] p-0 flex flex-col bg-white">
+                <SheetHeader className="h-16 border-b border-slate-200 px-6 flex items-center justify-start">
+                  <SheetTitle className="flex items-center gap-2.5 text-left">
+                    <img alt="Nhà Trọ Việt Logo" className="h-7 w-auto object-contain" src="/logo.png" />
+                    <span className="font-display font-bold text-base text-primary">Nhà Trọ Việt</span>
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="flex-1 overflow-y-auto">{renderNavLinks()}</div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Tenant Switcher */}
             <TenantSwitcher />
           </div>
-          <div className="flex items-center gap-6">
-            <div
-              className="hover:bg-surface-container relative flex cursor-pointer items-center justify-center rounded-full p-2 transition-colors"
+
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Notification Bell */}
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate('/thong-bao')}
+              className="relative text-slate-600 hover:text-slate-900 rounded-full"
             >
-              <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
+              <Bell className="size-5" />
               {unreadCount > 0 && (
-                <div className="bg-error text-on-error border-surface absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 text-[10px] font-bold">
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-0.5 -right-0.5 size-4.5 p-0 flex items-center justify-center text-[10px] font-bold rounded-full"
+                >
                   {unreadCount > 99 ? '99+' : unreadCount}
-                </div>
+                </Badge>
               )}
-            </div>
-            <div className="border-surface-border flex items-center gap-3 border-l pl-2">
-              <div className="hidden text-right sm:block">
-                <div className="font-label-md text-label-md text-on-surface leading-none">
+            </Button>
+
+            <Separator orientation="vertical" className="h-6" />
+
+            {/* User Profile dropdown */}
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-semibold text-slate-900 leading-tight">
                   {profile?.fullName || profile?.email || 'Người dùng'}
-                </div>
-                <div className="text-on-surface-variant text-[11px]">{displayRole}</div>
+                </p>
+                <p className="text-xs text-slate-500 font-medium">{displayRole}</p>
               </div>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="focus:ring-primary rounded-full outline-none focus:ring-2">
+                  <Button variant="ghost" className="size-9 rounded-full p-0 ring-2 ring-slate-200 hover:ring-primary/40">
                     <img
-                      alt="Profile"
-                      className="ring-surface-border bg-surface-container h-9 w-9 cursor-pointer rounded-full object-cover ring-2"
+                      alt="Avatar"
+                      className="size-full rounded-full object-cover"
                       src={
                         profile?.avatarUrl ||
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.fullName || profile?.email || 'User')}&background=random`
@@ -153,27 +283,34 @@ export function Component() {
                           `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.fullName || profile?.email || 'User')}&background=random`
                       }}
                     />
-                  </button>
+                  </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-semibold leading-none">{profile?.fullName || 'Người dùng'}</p>
+                      <p className="text-xs text-muted-foreground">{profile?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/tai-khoan" className="cursor-pointer">
-                      <span className="material-symbols-outlined mr-2 text-[18px]">person</span>
-                      Hồ sơ
+                    <Link to="/tai-khoan" className="cursor-pointer gap-2">
+                      <User className="size-4" />
+                      <span>Hồ sơ cá nhân</span>
                     </Link>
                   </DropdownMenuItem>
+                  {profile?.systemRole === 'ADMIN' && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="cursor-pointer gap-2 text-primary">
+                        <Shield className="size-4" />
+                        <span>Trang quản trị Platform</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-error focus:text-error cursor-pointer"
-                    onClick={async () => {
-                      await logout()
-                      navigate('/dang-nhap')
-                    }}
-                  >
-                    <span className="material-symbols-outlined mr-2 text-[18px]">logout</span>
-                    Đăng xuất
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive gap-2">
+                    <LogOut className="size-4" />
+                    <span>Đăng xuất</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -181,11 +318,12 @@ export function Component() {
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <main className="pt-topbar-height bg-background p-page-padding-desktop flex-1 print:p-0 print:pt-0">
+        {/* Main Content View */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1440px] w-full mx-auto">
           <Outlet />
         </main>
       </div>
+
       <div className="print:hidden">
         <FloatingChatWidget />
       </div>

@@ -72,7 +72,8 @@ export function AddMemberDialog({ contractId, children }: { contractId: number; 
       return
     }
 
-    const payload: any = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload: Record<string, any> = {
       fullName: ghostForm.fullName,
       phone: ghostForm.phone,
       identityCard: ghostForm.identityCard,
@@ -81,7 +82,7 @@ export function AddMemberDialog({ contractId, children }: { contractId: number; 
       payload.age = Number(ghostForm.age)
     }
 
-    addMember(payload as AddContractMemberBodyDTO, {
+    addMember(payload as unknown as AddContractMemberBodyDTO, {
       onSuccess: () => {
         toast.success('Thêm thành viên thành công!')
         setOpen(false)

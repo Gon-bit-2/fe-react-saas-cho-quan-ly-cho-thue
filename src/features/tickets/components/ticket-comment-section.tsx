@@ -11,10 +11,17 @@ interface TicketCommentSectionProps {
   onAddComment: (content: string, isInternal: boolean) => void
 }
 
+/**
+ * Phần hiển thị dòng thời gian trao đổi và bình luận cho Ticket
+ * Cho phép phân tách giữa phản hồi công khai gửi tới khách thuê và ghi chú nội bộ bảo mật
+ */
 export function TicketCommentSection({ comments, onAddComment }: TicketCommentSectionProps) {
   const [newComment, setNewComment] = useState('')
   const [activeTab, setActiveTab] = useState<'public' | 'internal'>('public')
 
+  /**
+   * Xử lý gửi bình luận mới
+   */
   const handleSubmit = () => {
     if (!newComment.trim()) return
     onAddComment(newComment, activeTab === 'internal')

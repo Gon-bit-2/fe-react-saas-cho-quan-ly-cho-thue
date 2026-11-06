@@ -5,13 +5,16 @@ import { cn } from '@/shared/lib/utils'
 
 export interface StatusBadgeProps extends React.ComponentProps<typeof Badge> {
   status: string
-  statusMap: Record<string, StatusVisual>
+  statusMap?: Record<string, StatusVisual>
+  configMap?: Record<string, StatusVisual>
   fallbackLabel?: string
   icon?: React.ReactNode
+  size?: 'sm' | 'default' | 'lg'
 }
 
-export function StatusBadge({ status, statusMap, fallbackLabel, icon, className, ...props }: StatusBadgeProps) {
-  const visual = getStatusVisual(statusMap, status, fallbackLabel)
+export function StatusBadge({ status, statusMap, configMap, fallbackLabel, icon, className, size, ...props }: StatusBadgeProps) {
+  const map = statusMap || configMap || {}
+  const visual = getStatusVisual(map, status, fallbackLabel)
 
   const toneClasses = {
     success: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none shadow-sm',
@@ -22,7 +25,7 @@ export function StatusBadge({ status, statusMap, fallbackLabel, icon, className,
   }
 
   return (
-    <Badge className={cn(toneClasses[visual.tone] || toneClasses.neutral, className)} {...props}>
+    <Badge className={cn(toneClasses[visual.tone] || toneClasses.neutral, size === 'sm' && 'text-[11px] px-2 py-0.5', className)} {...props}>
       {icon && <span className="mr-1 inline-flex items-center">{icon}</span>}
       {visual.label}
     </Badge>

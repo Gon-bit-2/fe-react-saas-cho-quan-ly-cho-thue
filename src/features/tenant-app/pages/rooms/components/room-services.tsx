@@ -18,7 +18,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useServices, useServiceAssignments, useAssignService, useUpdateServiceAssignment } from '@/shared/api/services'
 import { useAuth } from '@/shared/hooks/use-auth'
+import { formatCurrency } from '@/shared/lib/utils'
 
+/**
+ * Quản lý dịch vụ đang được gán cho một phòng cụ thể
+ * Cho phép thêm dịch vụ từ danh mục hệ thống hoặc gỡ dịch vụ khỏi phòng
+ */
 export function RoomServices({ roomId }: { roomId: number }) {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
@@ -47,6 +52,9 @@ export function RoomServices({ roomId }: { roomId: number }) {
   // Lọc ra các dịch vụ chưa được gán
   const unassignedServices = catalog.filter((s) => !assignments.some((a) => a.serviceId === s.id))
 
+  /**
+   * Xử lý gán dịch vụ đã chọn vào phòng với số lượng mặc định
+   */
   const handleAssign = () => {
     if (!selectedServiceId) {
       toast.error('Vui lòng chọn dịch vụ')
@@ -74,6 +82,9 @@ export function RoomServices({ roomId }: { roomId: number }) {
     )
   }
 
+  /**
+   * Xử lý gỡ dịch vụ khỏi phòng
+   */
   const handleRemove = (assignmentId: number) => {
     if (window.confirm('Bạn có chắc chắn muốn bỏ gán dịch vụ này?')) {
       updateAssignment.mutate(
@@ -124,7 +135,7 @@ export function RoomServices({ roomId }: { roomId: number }) {
                     ) : (
                       unassignedServices.map((service) => (
                         <SelectItem key={service.id} value={String(service.id)}>
-                          {service.name} ({new Intl.NumberFormat('vi-VN').format(service.defaultUnitPrice)}đ/
+                          {service.name} ({formatCurrency(service.defaultUnitPrice)}/
                           {service.unitLabel})
                         </SelectItem>
                       ))
@@ -176,8 +187,8 @@ export function RoomServices({ roomId }: { roomId: number }) {
                     <div className="font-medium text-slate-900">
                       {assignment.service?.name || 'Dịch vụ không xác định'}
                     </div>
-                    <div className="text-sm text-slate-500">
-                      {new Intl.NumberFormat('vi-VN').format(assignment.service?.defaultUnitPrice || 0)}đ /{' '}
+                    <div className="text-sm text-slate-500 tabular-nums">
+                      {formatCurrency(assignment.service?.defaultUnitPrice || 0)} /{' '}
                       {assignment.service?.unitLabel || 'tháng'} (SL: {assignment.quantity})
                     </div>
                   </div>

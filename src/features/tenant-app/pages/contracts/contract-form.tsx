@@ -13,6 +13,10 @@ import { useRenters, useUploadRenterImages } from '@/shared/api/renters'
 import { useCreateContract, useUpdateContract, useContract } from '@/shared/api/contracts'
 import type { ContractBillingCycle, CreateContractBody, RenterInfo, UpdateContractBody } from '@/types/contract'
 
+/**
+ * Trang tạo mới hoặc chỉnh sửa thông tin hợp đồng thuê (dạng bản nháp)
+ * Quản lý thông tin phòng, giá thuê, tiền cọc, thông tin pháp lý CCCD của khách thuê
+ */
 export default function ContractFormPage() {
   const navigate = useNavigate()
   const { id } = useParams()
@@ -164,6 +168,31 @@ export default function ContractFormPage() {
     setRenterInfo((prev) => ({ ...prev, [name]: value }))
   }
 
+  /**
+   * Thu hồi Object URL của ảnh mặt trước CCCD khi thay ảnh mới, xóa ảnh hoặc unmount
+   */
+  useEffect(() => {
+    return () => {
+      if (frontPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(frontPreview)
+      }
+    }
+  }, [frontPreview])
+
+  /**
+   * Thu hồi Object URL của ảnh mặt sau CCCD khi thay ảnh mới, xóa ảnh hoặc unmount
+   */
+  useEffect(() => {
+    return () => {
+      if (backPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(backPreview)
+      }
+    }
+  }, [backPreview])
+
+  /**
+   * Chọn file ảnh CCCD (mặt trước hoặc mặt sau) và khởi tạo URL xem trước tạm thời
+   */
   const handleFileSelect = (side: 'front' | 'back', file: File | null) => {
     if (!file) return
     const previewUrl = URL.createObjectURL(file)
@@ -176,6 +205,9 @@ export default function ContractFormPage() {
     }
   }
 
+  /**
+   * Xóa ảnh CCCD đã chọn (mặt trước hoặc mặt sau) và đặt lại trạng thái input file
+   */
   const handleRemoveFile = (side: 'front' | 'back') => {
     if (side === 'front') {
       setFrontFile(null)

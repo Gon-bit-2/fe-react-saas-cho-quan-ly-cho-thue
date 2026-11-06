@@ -22,9 +22,19 @@ interface TicketAssignmentModalProps {
   currentAssigneeId?: number | null
   currentScheduledAt?: string | null
   currentScheduledNote?: string | null
-  onUpdate: (data: { status?: TicketStatus; assigneeId?: number | null; scheduledAt?: string | null; scheduledNote?: string | null; note?: string }) => void
+  onUpdate: (data: {
+    status?: TicketStatus
+    assigneeId?: number | null
+    scheduledAt?: string | null
+    scheduledNote?: string | null
+    note?: string
+  }) => void
 }
 
+/**
+ * Modal phân công người phụ trách và cập nhật trạng thái/lịch hẹn xử lý ticket
+ * Cho phép chủ trọ chỉ định thợ bảo trì, hẹn ngày giờ xử lý và ghi chú nội bộ
+ */
 export function TicketAssignmentModal({
   isOpen,
   onClose,
@@ -64,7 +74,7 @@ export function TicketAssignmentModal({
   const assignableMembers = useMemo(() => {
     if (!members) return []
     const ASSIGNABLE_ROLES = ['LANDLORD', 'MANAGER', 'MAINTENANCE_STAFF']
-    return members.filter(m => m.status === 'ACTIVE' && ASSIGNABLE_ROLES.includes(m.roleId))
+    return members.filter((m) => m.status === 'ACTIVE' && ASSIGNABLE_ROLES.includes(m.roleId))
   }, [members])
 
   const handleSubmit = () => {
@@ -93,11 +103,11 @@ export function TicketAssignmentModal({
             <Label htmlFor="assignee">Người phụ trách</Label>
             <Select value={assigneeId} onValueChange={setAssigneeId}>
               <SelectTrigger id="assignee" disabled={isLoadingMembers}>
-                <SelectValue placeholder={isLoadingMembers ? "Đang tải danh sách..." : "Chọn người phụ trách"} />
+                <SelectValue placeholder={isLoadingMembers ? 'Đang tải danh sách...' : 'Chọn người phụ trách'} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="unassigned">Chưa phân công</SelectItem>
-                {assignableMembers.map(member => (
+                {assignableMembers.map((member) => (
                   <SelectItem key={member.id} value={String(member.userId)}>
                     {member.user?.fullName} ({member.role?.name || member.roleId})
                   </SelectItem>
@@ -142,7 +152,11 @@ export function TicketAssignmentModal({
               id="scheduledNote"
               value={scheduledNote}
               onChange={(e) => setScheduledNote(e.target.value)}
-              placeholder={status === 'RESOLVED' || status === 'CLOSED' ? "Ví dụ: Đã thay linh kiện mới..." : "Ví dụ: Nhớ mang theo thang, gọi trước khi đến..."}
+              placeholder={
+                status === 'RESOLVED' || status === 'CLOSED'
+                  ? 'Ví dụ: Đã thay linh kiện mới...'
+                  : 'Ví dụ: Nhớ mang theo thang, gọi trước khi đến...'
+              }
             />
           </div>
 

@@ -27,10 +27,23 @@ export interface Service {
 }
 
 export interface ServiceAssignment {
+  id: number
   serviceId: number
   service?: Service
   roomId?: number
+  room?: {
+    id: number
+    roomCode: string
+    title: string
+    propertyId?: number
+  }
   contractId?: number
+  contract?: {
+    id: number
+    contractCode: string
+    status: string
+    roomId?: number
+  }
   quantity: number
   assignedDate: string
   createdAt: string

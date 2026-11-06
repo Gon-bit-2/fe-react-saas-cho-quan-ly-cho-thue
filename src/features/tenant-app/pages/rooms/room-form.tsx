@@ -1,6 +1,5 @@
-
 import { useParams, useNavigate, useSearchParams } from 'react-router'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRoom, useProperties, useCreateRoom, useUpdateRoom, useUpdateRoomStatus, useFloors, useUploadRoomImages } from '@/shared/api/properties'
@@ -14,6 +13,7 @@ import { ArrowLeft, Save, Building2, MapPin, Loader2, ImageIcon } from 'lucide-r
 import { useRef } from 'react'
 import type { Property, CreateRoomDto, UpdateRoomDto, Floor } from '@/features/tenant-app/types'
 import { toast } from 'sonner'
+import { formatCurrency } from '@/shared/lib/utils'
 
 const roomFormSchema = z.object({
   propertyId: z.string().min(1, 'Vui lòng chọn tòa nhà'),
@@ -34,6 +34,10 @@ const roomFormSchema = z.object({
 type RoomFormInput = z.input<typeof roomFormSchema>
 type RoomFormValues = z.output<typeof roomFormSchema>
 
+/**
+ * Biểu mẫu tạo mới hoặc chỉnh sửa thông tin phòng trọ
+ * Bao gồm các thông số cơ sở, giá thuê, phí dịch vụ cơ bản và trạng thái phòng
+ */
 export function Component() {
   const { id } = useParams()
   const [searchParams] = useSearchParams()
@@ -54,7 +58,6 @@ export function Component() {
     register,
     handleSubmit,
     control,
-    watch,
     formState: { errors },
   } = useForm<RoomFormInput, unknown, RoomFormValues>({
     resolver: zodResolver(roomFormSchema),
@@ -90,13 +93,19 @@ export function Component() {
     } : undefined,
   })
 
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const selectedPropertyId = watch('propertyId')
+  // Theo dõi tòa nhà đang chọn để nạp danh sách tầng tương ứng
+  const selectedPropertyId = useWatch({ control, name: 'propertyId' })
+  const watchedBasePrice = useWatch({ control, name: 'basePrice' })
+  const watchedDepositAmount = useWatch({ control, name: 'depositAmount' })
+  const watchedElectricityPrice = useWatch({ control, name: 'electricityPrice' })
+  const watchedWaterPrice = useWatch({ control, name: 'waterPrice' })
+
   const { data: floorsData } = useFloors(selectedPropertyId)
   const floors = floorsData || []
 
-  // Using `values` prop in useForm replaces the need for useEffect and reset
-
+  /**
+   * Xử lý submit form tạo mới hoặc cập nhật thông tin phòng
+   */
   const onSubmit = async (data: RoomFormValues) => {
     try {
       const floorId = data.floorId && data.floorId !== 'none' ? Number(data.floorId) : undefined
@@ -147,6 +156,9 @@ export function Component() {
 
   const isSubmitting = createRoom.isPending || updateRoom.isPending || updateRoomStatus.isPending || uploadRoomImage.isPending
 
+  /**
+   * Xử lý tải ảnh đại diện khi chỉnh sửa phòng
+   */
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -381,28 +393,42 @@ export function Component() {
 
             <div className="grid grid-cols-1 gap-6 border-t border-slate-100 pt-4 md:grid-cols-2">
               <div className="space-y-2.5">
-                <Label htmlFor="basePrice" className="font-medium text-slate-700">
-                  Giá thuê (VND/tháng) <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="basePrice" className="font-medium text-slate-700">
+                    Giá thuê (VND/tháng) <span className="text-red-500">*</span>
+                  </Label>
+                  {Number(watchedBasePrice) > 0 && (
+                    <span className="text-xs font-semibold text-emerald-600 tabular-nums">
+                      {formatCurrency(Number(watchedBasePrice))}
+                    </span>
+                  )}
+                </div>
                 <Input
                   {...register('basePrice')}
                   id="basePrice"
                   type="number" min="0"
-                  className="border-slate-200 bg-slate-50 font-semibold text-emerald-700 focus-visible:ring-emerald-500"
+                  className="border-slate-200 bg-slate-50 font-semibold text-emerald-700 tabular-nums focus-visible:ring-emerald-500"
                 />
                 {errors.basePrice && (
                   <p className="mt-1 text-sm font-medium text-red-500">{errors.basePrice.message}</p>
                 )}
               </div>
               <div className="space-y-2.5">
-                <Label htmlFor="depositAmount" className="font-medium text-slate-700">
-                  Tiền cọc (VND) <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="depositAmount" className="font-medium text-slate-700">
+                    Tiền cọc (VND) <span className="text-red-500">*</span>
+                  </Label>
+                  {Number(watchedDepositAmount) > 0 && (
+                    <span className="text-xs font-semibold text-slate-700 tabular-nums">
+                      {formatCurrency(Number(watchedDepositAmount))}
+                    </span>
+                  )}
+                </div>
                 <Input
                   {...register('depositAmount')}
                   id="depositAmount"
                   type="number" min="0"
-                  className="border-slate-200 bg-slate-50 font-semibold focus-visible:ring-emerald-500"
+                  className="border-slate-200 bg-slate-50 font-semibold tabular-nums focus-visible:ring-emerald-500"
                 />
                 {errors.depositAmount && (
                   <p className="mt-1 text-sm font-medium text-red-500">{errors.depositAmount.message}</p>
@@ -412,28 +438,42 @@ export function Component() {
             
             <div className="grid grid-cols-1 gap-6 border-t border-slate-100 pt-4 md:grid-cols-2">
               <div className="space-y-2.5">
-                <Label htmlFor="electricityPrice" className="font-medium text-slate-700">
-                  Giá điện (VND/kWh)
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="electricityPrice" className="font-medium text-slate-700">
+                    Giá điện (VND/kWh)
+                  </Label>
+                  {Number(watchedElectricityPrice) > 0 && (
+                    <span className="text-xs font-semibold text-slate-600 tabular-nums">
+                      {formatCurrency(Number(watchedElectricityPrice))}/kWh
+                    </span>
+                  )}
+                </div>
                 <Input
                   {...register('electricityPrice')}
                   id="electricityPrice"
                   type="number" min="0"
-                  className="border-slate-200 bg-slate-50 focus-visible:ring-emerald-500"
+                  className="border-slate-200 bg-slate-50 tabular-nums focus-visible:ring-emerald-500"
                 />
                 {errors.electricityPrice && (
                   <p className="mt-1 text-sm font-medium text-red-500">{errors.electricityPrice.message}</p>
                 )}
               </div>
               <div className="space-y-2.5">
-                <Label htmlFor="waterPrice" className="font-medium text-slate-700">
-                  Giá nước (VND/khối)
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="waterPrice" className="font-medium text-slate-700">
+                    Giá nước (VND/khối)
+                  </Label>
+                  {Number(watchedWaterPrice) > 0 && (
+                    <span className="text-xs font-semibold text-slate-600 tabular-nums">
+                      {formatCurrency(Number(watchedWaterPrice))}/khối
+                    </span>
+                  )}
+                </div>
                 <Input
                   {...register('waterPrice')}
                   id="waterPrice"
                   type="number" min="0"
-                  className="border-slate-200 bg-slate-50 focus-visible:ring-emerald-500"
+                  className="border-slate-200 bg-slate-50 tabular-nums focus-visible:ring-emerald-500"
                 />
                 {errors.waterPrice && (
                   <p className="mt-1 text-sm font-medium text-red-500">{errors.waterPrice.message}</p>

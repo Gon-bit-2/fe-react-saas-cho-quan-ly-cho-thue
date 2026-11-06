@@ -1,311 +1,419 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getPayments } from '../api';
-import { PaymentStatus, PaymentMethod, type Payment, type PaymentListParams } from '../types';
+import { useState, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
+import { MetricCard } from '@/components/ui/metric-card'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { PAYMENT_STATUS_MAP, PAYMENT_METHOD_MAP } from '@/shared/constants/status-config'
+import { formatCurrency, formatDate } from '@/shared/lib/utils'
+import { useQuery } from '@tanstack/react-query'
+import { useProperties } from '@/shared/api/properties'
+import { getPayments } from '../api/index'
+import { PaymentStatus, PaymentMethod, type PaymentListParams } from '../types/index'
+import {
+  CreditCard,
+  CheckCircle2,
+  Clock,
+  Search,
+  Building2,
+  Receipt,
+  FileDown,
+  RefreshCw,
+  Copy,
+  ChevronLeft,
+  ChevronRight,
+  QrCode,
+  Banknote,
+  Wallet,
+  Eye,
+  Check,
+} from 'lucide-react'
 
+/**
+ * Trang quản lý và đối soát danh sách thanh toán từ người thuê
+ * Cung cấp bộ lọc theo bất động sản, trạng thái, phương thức và công cụ duyệt nhanh
+ */
 export function PaymentListPage() {
-  const navigate = useNavigate();
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate()
+  const { data: propertiesData } = useProperties()
+  const properties = propertiesData?.data || []
   const [filters, setFilters] = useState<PaymentListParams>({
     page: 1,
     limit: 10,
-  });
-  const [total, setTotal] = useState(0);
+  })
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
-  // Calculate stats from current page (approximate for demo since real backend lacks stats API yet)
-  const stats = {
-    pendingReview: payments.filter(p => p.status === PaymentStatus.PENDING).length,
-    processedToday: payments.filter(p => p.status === PaymentStatus.SUCCESS && new Date(p.updatedAt).toDateString() === new Date().toDateString()).length,
-    totalReconciled: payments.filter(p => p.status === PaymentStatus.SUCCESS).reduce((sum, p) => sum + Number(p.amount), 0)
-  };
+  /**
+   * Tải danh sách thanh toán từ server qua TanStack Query (tránh cascading render từ useEffect)
+   */
+  const {
+    data: paymentsResponse,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ['payments', filters],
+    queryFn: async () => getPayments(filters),
+  })
 
-  useEffect(() => {
-    const loadPayments = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getPayments(filters);
-        setPayments(response.data);
-        setTotal(response.meta.total);
-      } catch (error) {
-        console.error('Failed to load payments', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadPayments();
-  }, [filters]);
+  const payments = useMemo(() => paymentsResponse?.data || [], [paymentsResponse])
+  const total = paymentsResponse?.meta?.total || 0
 
-  const getMethodDisplay = (method: PaymentMethod) => {
+  /**
+   * Tính toán thống kê nhanh từ danh sách thanh toán
+   */
+  const stats = useMemo(() => {
+    const pendingCount = payments.filter((p) => p.status === PaymentStatus.PENDING).length
+    const successPayments = payments.filter((p) => p.status === PaymentStatus.SUCCESS)
+    const totalReconciled = successPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0)
+    const pendingAmount = payments
+      .filter((p) => p.status === PaymentStatus.PENDING)
+      .reduce((sum, p) => sum + Number(p.amount || 0), 0)
+
+    return {
+      pendingCount,
+      pendingAmount,
+      totalReconciled,
+      successCount: successPayments.length,
+    }
+  }, [payments])
+
+  /**
+   * Sao chép mã giao dịch vào clipboard
+   */
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(null), 1500)
+  }
+
+  /**
+   * Hiển thị biểu tượng và nhãn cho từng phương thức thanh toán
+   */
+  const renderMethodBadge = (method: PaymentMethod) => {
     switch (method) {
       case PaymentMethod.BANK_TRANSFER:
         return (
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center text-[10px] font-bold text-blue-800">QR</div>
-            <span className="text-slate-500">VietQR</span>
+          <div className="flex items-center gap-1.5 rounded-md border border-blue-100 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+            <QrCode className="h-3.5 w-3.5 text-blue-600" />
+            <span>Chuyển khoản / QR</span>
           </div>
-        );
+        )
       case PaymentMethod.CASH:
         return (
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-emerald-100 rounded flex items-center justify-center text-[10px] font-bold text-emerald-800">TM</div>
-            <span className="text-slate-500">Tiền mặt</span>
+          <div className="flex items-center gap-1.5 rounded-md border border-emerald-100 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
+            <Banknote className="h-3.5 w-3.5 text-emerald-600" />
+            <span>Tiền mặt</span>
           </div>
-        );
+        )
+      case PaymentMethod.WALLET:
+        return (
+          <div className="flex items-center gap-1.5 rounded-md border border-amber-100 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
+            <Wallet className="h-3.5 w-3.5 text-amber-600" />
+            <span>Ví điện tử</span>
+          </div>
+        )
       default:
         return (
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-slate-200 rounded flex items-center justify-center text-[10px] font-bold text-slate-700">Khác</div>
-            <span className="text-slate-500">Khác</span>
+          <div className="flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+            <CreditCard className="h-3.5 w-3.5" />
+            <span>{PAYMENT_METHOD_MAP[method]?.label || (typeof method === 'string' ? method : 'Khác')}</span>
           </div>
-        );
+        )
     }
-  };
-
-  const getStatusBadge = (status: PaymentStatus) => {
-    switch (status) {
-      case PaymentStatus.PENDING:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-medium border border-amber-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-            Chờ duyệt
-          </span>
-        );
-      case PaymentStatus.SUCCESS:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-medium border border-emerald-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            Đã duyệt
-          </span>
-        );
-      case PaymentStatus.FAILED:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-red-600 text-xs font-medium border border-red-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-            Từ chối
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
+  }
 
   return (
-    <div className="flex flex-col w-full h-full p-8 bg-slate-50 min-h-[calc(100vh-64px)] gap-6">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* Tiêu đề & Nút thao tác chính */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Đối Soát Thanh Toán</h1>
-          <p className="text-sm text-slate-500 mt-1">Kiểm tra và đối soát các khoản thanh toán với hóa đơn công nợ.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Đối Soát Thanh Toán</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Kiểm tra chứng từ, phê duyệt thanh toán và đối soát dòng tiền theo từng phòng trọ.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="flex items-center gap-2 bg-white shadow-sm">
-            <span className="material-symbols-outlined text-[20px]">download</span>
-            Xuất Báo Cáo
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5">
+            <RefreshCw className="h-4 w-4" />
+            Làm mới
           </Button>
-          <Button className="flex items-center gap-2 shadow-md bg-blue-600 hover:bg-blue-700">
-            <span className="material-symbols-outlined text-[20px]">sync</span>
-            Đồng Bộ Giao Dịch
-          </Button>
-        </div>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Stat Card 1 */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-4 relative overflow-hidden group">
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
-          <div className="flex items-center justify-between z-10">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Chờ Duyệt</span>
-            <span className="material-symbols-outlined text-amber-500">pending_actions</span>
-          </div>
-          <div className="flex flex-col gap-1 z-10">
-            <span className="text-3xl font-bold text-slate-900 tabular-nums">{stats.pendingReview}</span>
-            <span className="text-xs text-slate-500">Cần kiểm tra thủ công</span>
-          </div>
-        </div>
-
-        {/* Stat Card 2 */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-4 relative overflow-hidden group">
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-600/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
-          <div className="flex items-center justify-between z-10">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Xử Lý Hôm Nay</span>
-            <span className="material-symbols-outlined text-blue-600">fact_check</span>
-          </div>
-          <div className="flex flex-col gap-1 z-10">
-            <span className="text-3xl font-bold text-slate-900 tabular-nums">{stats.processedToday}</span>
-            <span className="text-xs text-emerald-600 flex items-center gap-1 font-medium">
-              <span className="material-symbols-outlined text-[14px]">trending_up</span>
-              +14% so với hôm qua
-            </span>
-          </div>
-        </div>
-
-        {/* Stat Card 3 */}
-        <div className="bg-blue-600 text-white p-6 rounded-xl shadow-md flex flex-col gap-4 relative overflow-hidden group">
-          <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700"></div>
-          <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
-          <div className="flex items-center justify-between z-10">
-            <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">Tổng Đã Đối Soát</span>
-            <span className="material-symbols-outlined text-white/90">account_balance_wallet</span>
-          </div>
-          <div className="flex flex-col gap-1 z-10">
-            <span className="text-3xl font-bold text-white tabular-nums">{stats.totalReconciled.toLocaleString()} ₫</span>
-            <span className="text-xs text-white/80">Kỳ thanh toán hiện tại</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Search & Filter Bar */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col lg:flex-row gap-4 items-center justify-between z-20">
-        <div className="flex-1 w-full flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-          <span className="material-symbols-outlined text-slate-400 text-[20px]">search</span>
-          <input 
-            className="bg-transparent border-none outline-none w-full text-sm text-slate-900 placeholder:text-slate-400" 
-            placeholder="Tìm theo mã GD, tên người thuê, mã hóa đơn..." 
-            type="text"
-            onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value || undefined, page: 1 }))}
-          />
-        </div>
-        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          {/* Filter Dropdown */}
-          <Select
-            onValueChange={(val) =>
-              setFilters((prev) => ({
-                ...prev,
-                status: val === 'all' ? undefined : (val as PaymentStatus),
-                page: 1,
-              }))
-            }
-          >
-            <SelectTrigger className="w-[160px] bg-slate-50 border-slate-200">
-              <SelectValue placeholder="Trạng thái: Tất cả" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả trạng thái</SelectItem>
-              <SelectItem value={PaymentStatus.PENDING}>Chờ duyệt</SelectItem>
-              <SelectItem value={PaymentStatus.SUCCESS}>Đã duyệt</SelectItem>
-              <SelectItem value={PaymentStatus.FAILED}>Từ chối</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Provider Filter */}
-          <Select
-            onValueChange={(val) =>
-              setFilters((prev) => ({
-                ...prev,
-                method: val === 'all' ? undefined : (val as PaymentMethod),
-                page: 1,
-              }))
-            }
-          >
-            <SelectTrigger className="w-[180px] bg-slate-50 border-slate-200">
-              <SelectValue placeholder="Phương thức: Tất cả" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả phương thức</SelectItem>
-              <SelectItem value={PaymentMethod.BANK_TRANSFER}>Chuyển khoản / VietQR</SelectItem>
-              <SelectItem value={PaymentMethod.CASH}>Tiền mặt</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Date Range */}
-          <Button variant="outline" className="flex items-center gap-2 bg-slate-50 border-slate-200 text-slate-600">
-            <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-            Tháng này
+          <Button variant="outline" size="sm" className="gap-1.5">
+            <FileDown className="h-4 w-4" />
+            Xuất Excel
           </Button>
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-1">
+      {/* Thống kê KPI tổng hợp */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <MetricCard
+          title="Chờ Phê Duyệt"
+          value={stats.pendingCount}
+          description={`Tổng tiền chờ: ${formatCurrency(stats.pendingAmount)}`}
+          icon={<Clock className="h-4 w-4" />}
+          tone="amber"
+        />
+        <MetricCard
+          title="Đã Khớp Thành Công"
+          value={stats.successCount}
+          description="Giao dịch hợp lệ kỳ này"
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          tone="emerald"
+        />
+        <MetricCard
+          title="Tổng Tiền Đã Thu"
+          value={formatCurrency(stats.totalReconciled)}
+          description="Đã hạch toán vào hóa đơn"
+          icon={<CreditCard className="h-4 w-4" />}
+          tone="blue"
+        />
+      </div>
+
+      {/* Thanh tìm kiếm & Bộ lọc nâng cao */}
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex flex-col items-center justify-between gap-3 md:flex-row">
+            <div className="relative w-full flex-1">
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                placeholder="Tìm mã giao dịch, tên người nộp, mã hóa đơn..."
+                className="w-full border-slate-200 bg-slate-50 pl-9 text-sm"
+                onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value || undefined, page: 1 }))}
+              />
+            </div>
+
+            <div className="flex w-full flex-wrap items-center gap-2.5 md:w-auto">
+              {/* Lọc theo Khu trọ */}
+              <Select
+                onValueChange={(val) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    propertyId: val === 'all' ? undefined : val,
+                    page: 1,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-[180px] border-slate-200 bg-slate-50 text-sm">
+                  <Building2 className="mr-1.5 h-4 w-4 text-slate-400" />
+                  <SelectValue placeholder="Tất cả khu trọ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả khu trọ</SelectItem>
+                  {properties.map((prop) => (
+                    <SelectItem key={prop.id} value={String(prop.id)}>
+                      {prop.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Lọc theo Trạng thái */}
+              <Select
+                onValueChange={(val) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    status: val === 'all' ? undefined : (val as PaymentStatus),
+                    page: 1,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-[160px] border-slate-200 bg-slate-50 text-sm">
+                  <SelectValue placeholder="Trạng thái: Tất cả" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value={PaymentStatus.PENDING}>Chờ duyệt</SelectItem>
+                  <SelectItem value={PaymentStatus.SUCCESS}>Đã duyệt</SelectItem>
+                  <SelectItem value={PaymentStatus.FAILED}>Từ chối</SelectItem>
+                  <SelectItem value={PaymentStatus.CANCELED}>Đã hủy</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Lọc theo Phương thức */}
+              <Select
+                onValueChange={(val) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    method: val === 'all' ? undefined : (val as PaymentMethod),
+                    page: 1,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-[170px] border-slate-200 bg-slate-50 text-sm">
+                  <SelectValue placeholder="Phương thức: Tất cả" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả phương thức</SelectItem>
+                  <SelectItem value={PaymentMethod.BANK_TRANSFER}>Chuyển khoản / QR</SelectItem>
+                  <SelectItem value={PaymentMethod.CASH}>Tiền mặt</SelectItem>
+                  <SelectItem value={PaymentMethod.WALLET}>Ví điện tử</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Bảng danh sách giao dịch */}
+      <Card className="overflow-hidden border-slate-200 shadow-sm">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-50">
+            <TableHeader className="bg-slate-50/80">
               <TableRow>
-                <TableHead className="font-semibold text-slate-500 uppercase whitespace-nowrap">Mã Giao Dịch</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase whitespace-nowrap">Mã Hóa Đơn</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase whitespace-nowrap">Người Thuê / Phòng</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase text-right whitespace-nowrap">Số Tiền (VNĐ)</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase whitespace-nowrap">Phương Thức</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase whitespace-nowrap">Thời Gian</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase whitespace-nowrap">Trạng Thái</TableHead>
-                <TableHead className="font-semibold text-slate-500 uppercase text-right whitespace-nowrap">Thao Tác</TableHead>
+                <TableHead className="w-[180px]">Mã Giao Dịch</TableHead>
+                <TableHead className="w-[140px]">Mã Hóa Đơn</TableHead>
+                <TableHead>Người Thuê / Phòng</TableHead>
+                <TableHead className="text-right">Số Tiền</TableHead>
+                <TableHead>Phương Thức</TableHead>
+                <TableHead>Thời Gian</TableHead>
+                <TableHead>Trạng Thái</TableHead>
+                <TableHead className="w-[120px] text-right">Thao Tác</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="divide-y divide-slate-100">
+            <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-slate-500">Đang tải dữ liệu...</TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <Skeleton className="h-5 w-28" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-5 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-28" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-8 w-16" />
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : payments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-slate-500">Không có giao dịch nào</TableCell>
+                  <TableCell colSpan={8} className="p-0">
+                    <EmptyState
+                      icon={CreditCard}
+                      title="Chưa có giao dịch thanh toán"
+                      description="Hiện chưa có lịch sử thanh toán nào phù hợp với bộ lọc tìm kiếm của bạn."
+                    />
+                  </TableCell>
                 </TableRow>
               ) : (
                 payments.map((payment) => (
-                  <TableRow 
-                    key={payment.id} 
-                    className={`group hover:bg-slate-50/80 transition-colors ${payment.status === PaymentStatus.FAILED ? 'bg-red-50/30' : ''}`}
-                  >
-                    <TableCell className="font-medium text-slate-900 tabular-nums">
-                      <div className="flex items-center gap-2">
-                        {payment.transactionCode || `TXN-${payment.id.toString().padStart(6, '0')}`}
-                        <span className="material-symbols-outlined text-[16px] text-slate-400 cursor-pointer hover:text-primary transition-colors" title="Copy">content_copy</span>
+                  <TableRow key={payment.id} className="transition-colors hover:bg-slate-50/80">
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-xs font-semibold text-slate-900">
+                          {payment.transactionCode || `TXN-${payment.id.toString().padStart(6, '0')}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            copyToClipboard(
+                              payment.transactionCode || `TXN-${payment.id.toString().padStart(6, '0')}`,
+                              String(payment.id),
+                            )
+                          }
+                          className="rounded p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                          title="Sao chép mã"
+                        >
+                          {copiedId === String(payment.id) ? (
+                            <Check className="h-3.5 w-3.5 text-emerald-600" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
+                          )}
+                        </button>
                       </div>
                     </TableCell>
+
                     <TableCell>
                       {payment.invoice ? (
-                        <Link to={`/hoa-don/${payment.invoice.id}`} className="text-primary hover:underline font-medium tabular-nums">
+                        <Link
+                          to={`/hoa-don/${payment.invoice.id}`}
+                          className="inline-flex items-center gap-1 font-mono text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          <Receipt className="h-3 w-3" />
                           {payment.invoice.invoiceCode}
                         </Link>
                       ) : (
-                        <span className="text-slate-400 italic text-sm">Không xác định</span>
+                        <span className="text-xs text-slate-400 italic">Không xác định</span>
                       )}
                     </TableCell>
+
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-medium text-slate-900">{payment.payer?.fullName || 'Khách vãng lai'}</span>
+                        <span className="text-sm font-medium text-slate-900">
+                          {payment.payer?.fullName || 'Khách vãng lai'}
+                        </span>
                         <span className="text-xs text-slate-500">{payment.room?.title || 'Không rõ phòng'}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-bold text-slate-900 tabular-nums">
-                      {payment.amount.toLocaleString()}
+
+                    <TableCell className="text-right">
+                      <span className="font-mono font-bold text-slate-900 tabular-nums">
+                        {formatCurrency(payment.amount)}
+                      </span>
                     </TableCell>
+
+                    <TableCell>{renderMethodBadge(payment.method)}</TableCell>
+
                     <TableCell>
-                      {getMethodDisplay(payment.method)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col tabular-nums">
-                        <span className="text-sm text-slate-900">
-                          {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString('vi-VN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {payment.paidAt ? new Date(payment.paidAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}
+                      <div className="flex flex-col font-mono text-xs text-slate-600 tabular-nums">
+                        <span>{payment.paidAt ? formatDate(payment.paidAt) : '-'}</span>
+                        <span className="text-[11px] text-slate-400">
+                          {payment.paidAt
+                            ? new Date(payment.paidAt).toLocaleTimeString('vi-VN', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })
+                            : ''}
                         </span>
                       </div>
                     </TableCell>
+
                     <TableCell>
-                      {getStatusBadge(payment.status)}
+                      <StatusBadge status={payment.status} configMap={PAYMENT_STATUS_MAP} size="sm" />
                     </TableCell>
+
                     <TableCell className="text-right">
                       {payment.status === PaymentStatus.PENDING ? (
-                        <Button 
+                        <Button
+                          size="sm"
                           onClick={() => navigate(`/thanh-toan/${payment.id}/duyet`)}
-                          className="bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all h-8 px-3 text-xs"
+                          className="h-8 gap-1 bg-amber-600 px-3 text-xs text-white hover:bg-amber-700"
                         >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
                           Duyệt
                         </Button>
                       ) : (
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => navigate(`/thanh-toan/${payment.id}`)}
-                          className="text-slate-500 hover:text-primary opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all h-8 px-3 text-xs"
+                          className="h-8 gap-1 px-2.5 text-xs text-slate-600 hover:text-slate-900"
                         >
-                          Xem chi tiết
+                          <Eye className="h-3.5 w-3.5" />
+                          Chi tiết
                         </Button>
                       )}
                     </TableCell>
@@ -316,35 +424,37 @@ export function PaymentListPage() {
           </Table>
         </div>
 
-        {/* Pagination */}
-        <div className="px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-between mt-auto">
-          <span className="text-sm text-slate-500">
-            Hiển thị {payments.length > 0 ? (filters.page! - 1) * filters.limit! + 1 : 0} đến {Math.min(filters.page! * filters.limit!, total)} trong số {total} mục
+        {/* Phân trang */}
+        <div className="flex items-center justify-between border-t border-slate-200 bg-white px-6 py-4">
+          <span className="text-xs text-slate-500">
+            Hiển thị {payments.length > 0 ? (filters.page! - 1) * filters.limit! + 1 : 0} đến{' '}
+            {Math.min(filters.page! * filters.limit!, total)} trong số {total} giao dịch
           </span>
-          <div className="flex items-center gap-1">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="w-8 h-8 text-slate-500"
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 text-slate-600"
               disabled={filters.page === 1}
               onClick={() => setFilters((prev) => ({ ...prev, page: prev.page! - 1 }))}
             >
-              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+              <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button size="sm" className="w-8 h-8 p-0">{filters.page}</Button>
-            {total > filters.page! * filters.limit! && (
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="w-8 h-8 text-slate-500"
-                onClick={() => setFilters((prev) => ({ ...prev, page: prev.page! + 1 }))}
-              >
-                <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-              </Button>
-            )}
+            <span className="rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+              Trang {filters.page}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 text-slate-600"
+              disabled={total <= filters.page! * filters.limit!}
+              onClick={() => setFilters((prev) => ({ ...prev, page: prev.page! + 1 }))}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
-  );
+  )
 }

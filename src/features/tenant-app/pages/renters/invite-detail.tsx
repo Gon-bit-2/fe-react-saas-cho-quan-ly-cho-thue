@@ -7,6 +7,10 @@ import { INVITE_STATUS_MAP } from '@/shared/constants/status-config'
 
 import { useRenterInvitation } from '@/shared/api/renters'
 
+/**
+ * Trang chi tiết lời mời tham gia hệ thống của người thuê
+ * Cho phép xem tình trạng lời mời, phòng phân công và gửi lại/hủy lời mời
+ */
 export default function RenterInviteDetailPage() {
   const { id } = useParams()
   const { data: invite, isLoading } = useRenterInvitation(id || '')

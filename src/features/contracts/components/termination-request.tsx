@@ -51,8 +51,12 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
   )
 
   // Lấy tổng công nợ
-  const { data: debtsResponse } = useInvoicesControllerListDebts({ contractId }, { query: { enabled: !!contractId && isLandlord } })
+  const { data: debtsResponse } = useInvoicesControllerListDebts(
+    { contractId },
+    { query: { enabled: !!contractId && isLandlord } },
+  )
   const outstandingDebt = (debtsResponse as unknown as { totalRemainingAmount: number })?.totalRemainingAmount || 0
+  const refundAmount = Math.max(0, (depositAmount || 0) - outstandingDebt)
 
   // Giả lập trạng thái quy trình thanh lý
   const steps = [
@@ -130,7 +134,7 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
                 className="min-h-[100px]"
               />
             </div>
-            
+
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">
                 Ngày dự kiến dọn đi (Báo trước theo hợp đồng)
@@ -279,12 +283,14 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
                 </div>
                 <div className="flex items-center justify-between border-b border-dashed border-slate-200 pb-2">
                   <span className="text-slate-500">Hóa đơn chưa thanh toán</span>
-                  <span className="font-medium text-red-600">- 0 ₫</span>
+                  <span className="font-medium text-red-600">
+                    - {new Intl.NumberFormat('vi-VN').format(outstandingDebt)} ₫
+                  </span>
                 </div>
                 <div className="flex items-center justify-between pt-2">
                   <span className="font-semibold text-slate-900">Tiền cọc hoàn lại</span>
                   <span className="text-lg font-bold text-emerald-600">
-                    {new Intl.NumberFormat('vi-VN').format(depositAmount || 0)} ₫
+                    {new Intl.NumberFormat('vi-VN').format(refundAmount)} ₫
                   </span>
                 </div>
 
@@ -301,7 +307,7 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
         </div>
       )}
 
-      <LiquidationModal 
+      <LiquidationModal
         isOpen={isCompleteModalOpen}
         onClose={() => setIsCompleteModalOpen(false)}
         onComplete={async (data) => {
@@ -312,10 +318,6 @@ export function TerminationRequest({ contractId, isLandlord, depositAmount = 0 }
                 actualMoveOutDate: data.actualMoveOutDate,
                 completionNote: 'Đã thanh lý qua chức năng Quyết toán',
                 acknowledgeOutstandingDebt: data.acknowledgeDebt,
-                electricityFee: data.electricityFee,
-                waterFee: data.waterFee,
-                damageFee: data.damageFee,
-                penaltyFee: data.penaltyFee,
               })
               setIsCompleteModalOpen(false)
               queryClient.invalidateQueries({ queryKey: ['/terminations/active', contractId] })

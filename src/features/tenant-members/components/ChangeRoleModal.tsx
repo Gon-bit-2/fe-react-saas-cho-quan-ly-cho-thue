@@ -32,6 +32,9 @@ interface ChangeRoleModalProps {
   onOpenChange: (open: boolean) => void
 }
 
+/**
+ * Modal thay đổi vai trò (quyền hạn) của nhân sự trong tổ chức
+ */
 export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({ member, open, onOpenChange }) => {
   const queryClient = useQueryClient()
 

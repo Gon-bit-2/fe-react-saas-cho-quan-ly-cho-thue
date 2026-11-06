@@ -2,9 +2,11 @@ import { useDashboardSummary, useRevenueTrend, useRecentActivity } from '@/share
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { 
   Building2, 
-  Receipt,
-  Ticket,
-  Wallet
+  Receipt, 
+  Ticket, 
+  Wallet,
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react'
 import {
   LineChart,
@@ -15,170 +17,201 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-
 import { Badge } from '@/components/ui/badge'
+import { formatCurrency, formatDate } from '@/shared/lib/utils'
 
-function formatVND(value: number) {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    maximumFractionDigits: 0
-  }).format(value)
-}
-
-function formatDate(isoString: string) {
-  return new Date(isoString).toLocaleDateString('vi-VN')
-}
-
+/**
+ * Trang Dashboard Tổng quan cho Chủ trọ / Người quản lý vận hành.
+ * Hiển thị các chỉ số kinh doanh chính (Doanh thu, Tỷ lệ lấp đầy, Nợ, Sự cố) và biểu đồ xu hướng.
+ */
 export function Component() {
   const { data: summary, isLoading: loadingSummary } = useDashboardSummary()
   const { data: revenueTrend, isLoading: loadingTrend } = useRevenueTrend()
   const { data: recentActivity, isLoading: loadingActivity } = useRecentActivity(5)
 
-  const typeMap: Record<string, string> = {
-    INVOICE: 'Hóa đơn',
-    PAYMENT: 'Thanh toán',
-    TICKET: 'Sự cố',
+  const typeMap: Record<string, { label: string; tone: string }> = {
+    INVOICE: { label: 'Hóa đơn', tone: 'bg-blue-50 text-blue-700 border-blue-200' },
+    PAYMENT: { label: 'Thanh toán', tone: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    TICKET: { label: 'Sự cố', tone: 'bg-amber-50 text-amber-700 border-amber-200' },
   }
 
   if (loadingSummary) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+      <div className="flex items-center justify-center min-h-[300px]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <span className="text-sm text-slate-500 font-medium">Đang tải dữ liệu tổng quan...</span>
+        </div>
       </div>
     )
   }
 
+  const totalRooms = summary?.totalRooms || 0
+  const availableRooms = summary?.availableRooms || 0
+  const occupancyRate = totalRooms > 0 ? Math.round(((totalRooms - availableRooms) / totalRooms) * 100) : 0
+
   return (
-    <div className="flex flex-col gap-6 relative">
-      {/* Decorative Top Background */}
-      <div className="absolute inset-x-0 top-0 h-64 bg-surface-container-high -mt-8 -mx-8 overflow-hidden rounded-b-[40px]">
-        <svg className="absolute inset-0 w-full h-full text-surface-container/50 mix-blend-overlay" preserveAspectRatio="none" viewBox="0 0 100 100">
-          <path d="M0,0 L100,0 L100,100 Q50,0 0,100 Z" fill="currentColor"></path>
-        </svg>
+    <div className="space-y-6">
+      {/* Header section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Tổng quan hoạt động</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Theo dõi các chỉ số tài chính, tỷ lệ lấp đầy phòng và các sự kiện vận hành quan trọng
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1.5 py-1 px-3">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            Hệ thống ổn định
+          </Badge>
+        </div>
       </div>
 
-      <div className="relative z-10 flex flex-col gap-2 mb-2">
-        <h1 className="font-headline-lg text-headline-lg text-on-surface">Tổng quan hoạt động</h1>
-        <p className="font-body-md text-on-surface-variant">Theo dõi các chỉ số quan trọng và tình hình kinh doanh của hệ thống</p>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="relative z-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-surface-container-lowest border-none shadow-md hover:shadow-lg transition-shadow overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-4 -mt-4 group-hover:scale-110 transition-transform"></div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
-            <CardTitle className="font-label-md text-on-surface-variant uppercase tracking-wider">Tổng doanh thu</CardTitle>
-            <div className="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
+      {/* Summary Cards Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Doanh thu */}
+        <Card className="border border-slate-200 bg-white shadow-sm hover:border-slate-300 transition-colors">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Tổng doanh thu
+            </CardTitle>
+            <div className="h-9 w-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
               <Wallet className="h-5 w-5" />
             </div>
           </CardHeader>
-          <CardContent className="relative">
-            <div className="font-display text-[32px] font-bold text-primary">
-              {formatVND(summary?.totalRevenue || 0)}
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 tabular-nums">
+              {formatCurrency(summary?.totalRevenue || 0)}
             </div>
-            <p className="font-label-sm text-status-info mt-1">Doanh thu tháng này</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-surface-container-lowest border-none shadow-md hover:shadow-lg transition-shadow overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-error/5 rounded-bl-full -mr-4 -mt-4 group-hover:scale-110 transition-transform"></div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
-            <CardTitle className="font-label-md text-on-surface-variant uppercase tracking-wider">Hóa đơn chưa thu</CardTitle>
-            <div className="w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-on-error-container">
-              <Receipt className="h-5 w-5" />
+            <div className="flex items-center gap-1 mt-2 text-xs text-emerald-600 font-medium">
+              <TrendingUp className="h-3.5 w-3.5" />
+              <span>Ghi nhận trong tháng này</span>
             </div>
-          </CardHeader>
-          <CardContent className="relative">
-            <div className="font-display text-[32px] font-bold text-error">
-              {summary?.unpaidInvoices || 0}
-            </div>
-            <p className="font-label-sm text-on-surface-variant mt-1">Cần theo dõi thu hồi nợ</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-surface-container-lowest border-none shadow-md hover:shadow-lg transition-shadow overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-tertiary/5 rounded-bl-full -mr-4 -mt-4 group-hover:scale-110 transition-transform"></div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
-            <CardTitle className="font-label-md text-on-surface-variant uppercase tracking-wider">Tỷ lệ lấp đầy</CardTitle>
-            <div className="w-10 h-10 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary">
-              <Building2 className="h-5 w-5" />
+        {/* Hóa đơn chưa thu */}
+        <Card className="border border-slate-200 bg-white shadow-sm hover:border-slate-300 transition-colors">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Hóa đơn chưa thu
+            </CardTitle>
+            <div className="h-9 w-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+              <Receipt className="h-5 w-5" />
             </div>
           </CardHeader>
-          <CardContent className="relative">
-            <div className="font-display text-[32px] font-bold text-on-surface">
-              {summary?.totalRooms ? Math.round(((summary.totalRooms - summary.availableRooms) / summary.totalRooms) * 100) : 0}%
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-600 tabular-nums">
+              {summary?.unpaidInvoices || 0}
             </div>
-            <p className="font-label-sm text-on-surface-variant mt-1">
-              {summary?.availableRooms} phòng trống / {summary?.totalRooms} tổng phòng
+            <p className="text-xs text-slate-500 mt-2">
+              Cần theo dõi và nhắc thu tiền
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-surface-container-lowest border-none shadow-md hover:shadow-lg transition-shadow overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-status-warning/5 rounded-bl-full -mr-4 -mt-4 group-hover:scale-110 transition-transform"></div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
-            <CardTitle className="font-label-md text-on-surface-variant uppercase tracking-wider">Sự cố (Tickets)</CardTitle>
-            <div className="w-10 h-10 rounded-full bg-status-warning/20 flex items-center justify-center text-status-warning">
+        {/* Tỷ lệ lấp đầy */}
+        <Card className="border border-slate-200 bg-white shadow-sm hover:border-slate-300 transition-colors">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Tỷ lệ lấp đầy
+            </CardTitle>
+            <div className="h-9 w-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+              <Building2 className="h-5 w-5" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 tabular-nums">
+              {occupancyRate}%
+            </div>
+            <p className="text-xs text-slate-500 mt-2 tabular-nums">
+              {availableRooms} phòng trống / {totalRooms} tổng số phòng
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Sự cố / Tickets */}
+        <Card className="border border-slate-200 bg-white shadow-sm hover:border-slate-300 transition-colors">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Sự cố cần xử lý
+            </CardTitle>
+            <div className="h-9 w-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center border border-red-100">
               <Ticket className="h-5 w-5" />
             </div>
           </CardHeader>
-          <CardContent className="relative">
-            <div className="font-display text-[32px] font-bold text-status-warning">
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600 tabular-nums">
               {summary?.openTickets || 0}
             </div>
-            <p className="font-label-sm text-on-surface-variant mt-1">Sự cố đang chờ xử lý</p>
+            <p className="text-xs text-slate-500 mt-2">
+              Sự cố và phản ánh của khách
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="relative z-10 grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+      {/* Main Charts & Activity Section */}
+      <div className="grid gap-6 lg:grid-cols-7">
         {/* Revenue Trend Chart */}
-        <Card className="col-span-4 bg-surface-container-lowest border-surface-variant/50 shadow-sm rounded-2xl">
-          <CardHeader className="border-b border-surface-variant/30 bg-surface-container-low/30 rounded-t-2xl pb-4">
-            <CardTitle className="font-headline-sm text-on-surface">Biểu đồ doanh thu</CardTitle>
-            <CardDescription className="font-body-md text-on-surface-variant">
-              Xu hướng doanh thu 30 ngày gần đây
-            </CardDescription>
+        <Card className="lg:col-span-4 border border-slate-200 bg-white shadow-sm">
+          <CardHeader className="border-b border-slate-100 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold text-slate-900">
+                  Biểu đồ xu hướng doanh thu
+                </CardTitle>
+                <CardDescription className="text-xs text-slate-500 mt-0.5">
+                  Dòng tiền thực thu trong 30 ngày gần đây
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             {loadingTrend ? (
-              <div className="h-[350px] flex items-center justify-center">
-                <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+              <div className="h-[320px] flex items-center justify-center">
+                <div className="h-6 w-6 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
               </div>
             ) : (
-              <div className="h-[350px] w-full">
+              <div className="h-[320px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={revenueTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-outline-variant)" />
+                  <LineChart data={revenueTrend || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                     <XAxis 
                       dataKey="date" 
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(value) => new Date(value).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
-                      fontSize={12}
-                      tick={{ fill: 'var(--color-on-surface-variant)' }}
+                      tickFormatter={(value) => formatDate(value)}
+                      fontSize={11}
+                      tick={{ fill: '#64748B' }}
                     />
                     <YAxis 
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(value) => `${value / 1000000}M`}
-                      fontSize={12}
-                      tick={{ fill: 'var(--color-on-surface-variant)' }}
-                      width={60}
+                      tickFormatter={(value) => `${(value / 1000000).toFixed(0)}tr`}
+                      fontSize={11}
+                      tick={{ fill: '#64748B' }}
+                      width={45}
                     />
                     <Tooltip 
-                      formatter={(value) => [formatVND(Number(value ?? 0)), 'Doanh thu']}
-                      labelFormatter={(label) => formatDate(String(label ?? ''))}
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: 'var(--color-surface-container-lowest)' }}
+                      formatter={(value) => [formatCurrency(Number(value ?? 0)), 'Doanh thu']}
+                      labelFormatter={(label) => `Ngày: ${formatDate(String(label ?? ''))}`}
+                      contentStyle={{
+                        borderRadius: '8px',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)',
+                        backgroundColor: '#FFFFFF',
+                        fontSize: '12px'
+                      }}
                     />
                     <Line 
                       type="monotone" 
                       dataKey="revenue" 
-                      stroke="var(--color-primary)" 
-                      strokeWidth={3} 
-                      dot={{ r: 4, fill: 'var(--color-primary)', strokeWidth: 0 }}
-                      activeDot={{ r: 6, fill: 'var(--color-primary)' }}
+                      stroke="#2563EB" 
+                      strokeWidth={2.5} 
+                      dot={{ r: 3, fill: '#2563EB', strokeWidth: 0 }}
+                      activeDot={{ r: 5, fill: '#1D4ED8' }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -188,43 +221,54 @@ export function Component() {
         </Card>
 
         {/* Recent Activity */}
-        <Card className="col-span-3 bg-surface-container-lowest border-surface-variant/50 shadow-sm rounded-2xl flex flex-col">
-          <CardHeader className="border-b border-surface-variant/30 bg-surface-container-low/30 rounded-t-2xl pb-4">
-            <CardTitle className="font-headline-sm text-on-surface">Hoạt động gần đây</CardTitle>
-            <CardDescription className="font-body-md text-on-surface-variant">
-              Các sự kiện mới nhất trong hệ thống
+        <Card className="lg:col-span-3 border border-slate-200 bg-white shadow-sm flex flex-col">
+          <CardHeader className="border-b border-slate-100 pb-4">
+            <CardTitle className="text-base font-semibold text-slate-900">
+              Hoạt động gần đây
+            </CardTitle>
+            <CardDescription className="text-xs text-slate-500 mt-0.5">
+              Nhật ký cập nhật hệ thống và giao dịch mới nhất
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6 flex-1">
+          <CardContent className="p-4 sm:p-6 flex-1">
             {loadingActivity ? (
-              <div className="h-full min-h-[300px] flex items-center justify-center">
-                <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+              <div className="h-full min-h-[250px] flex items-center justify-center">
+                <div className="h-6 w-6 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+              </div>
+            ) : !recentActivity || recentActivity.length === 0 ? (
+              <div className="h-full min-h-[250px] flex flex-col items-center justify-center text-center p-6">
+                <AlertCircle className="h-8 w-8 text-slate-300 mb-2" />
+                <p className="text-sm font-medium text-slate-600">Chưa có hoạt động nào</p>
+                <p className="text-xs text-slate-400 mt-1">Các thao tác của khách và nhân viên sẽ xuất hiện tại đây.</p>
               </div>
             ) : (
-              <div className="relative space-y-6 before:absolute before:inset-y-2 before:left-1.5 before:w-px before:bg-surface-variant">
-                {recentActivity?.map((activity) => (
-                  <div key={activity.id} className="relative flex items-start gap-4 pl-6 group">
-                    <div className="absolute left-0 top-1.5 w-3 h-3 rounded-full bg-surface border-2 border-primary group-hover:bg-primary transition-colors z-10" />
-                    <div className="flex-1 flex flex-col gap-1">
-                      <div className="flex justify-between items-start">
-                        <p className="font-label-md text-on-surface">
-                          {activity.title}
+              <div className="relative space-y-4 before:absolute before:inset-y-1 before:left-2 before:w-0.5 before:bg-slate-200">
+                {recentActivity.map((activity) => {
+                  const typeInfo = typeMap[activity.type] || { label: activity.type, tone: 'bg-slate-50 text-slate-700 border-slate-200' }
+                  return (
+                    <div key={activity.id} className="relative flex items-start gap-3 pl-6 group">
+                      <div className="absolute left-1 top-1.5 h-2.5 w-2.5 rounded-full bg-white border-2 border-blue-600 group-hover:bg-blue-600 transition-colors z-10" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <p className="text-sm font-medium text-slate-900 truncate">
+                            {activity.title}
+                          </p>
+                          <span className="text-xs text-slate-400 whitespace-nowrap tabular-nums">
+                            {formatDate(activity.createdAt)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">
+                          {activity.description}
                         </p>
-                        <span className="font-label-sm text-on-surface-variant whitespace-nowrap ml-2">
-                          {new Date(activity.createdAt).toLocaleDateString('vi-VN')}
-                        </span>
-                      </div>
-                      <p className="font-body-md text-on-surface-variant line-clamp-2">
-                        {activity.description}
-                      </p>
-                      <div className="mt-1">
-                        <Badge variant="outline" className="font-label-sm text-[10px] uppercase bg-surface-container text-on-surface-variant border-none">
-                          {typeMap[activity.type] || activity.type}
-                        </Badge>
+                        <div className="mt-1.5">
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${typeInfo.tone}`}>
+                            {typeInfo.label}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </CardContent>

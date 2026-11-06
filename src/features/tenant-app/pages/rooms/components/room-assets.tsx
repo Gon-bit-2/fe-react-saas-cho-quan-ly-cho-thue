@@ -12,7 +12,13 @@ import { toast } from 'sonner'
 import { useAssetCategories, useRoomAssets, useCreateRoomAsset, useDeleteRoomAsset } from '@/shared/api/assets'
 import type { AssetCondition } from '@/types/asset'
 import { useAuth } from '@/shared/hooks/use-auth'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { ASSET_CONDITION_MAP } from '@/shared/constants/status-config'
 
+/**
+ * Quản lý danh sách tài sản, nội thất và trang thiết bị gắn liền với phòng
+ * Cung cấp chức năng thêm mới tài sản theo danh mục và xóa bỏ tài sản
+ */
 export function RoomAssets({ roomId }: { roomId: number }) {
   const { selectedMembership } = useAuth()
   const tenantId = String(selectedMembership?.tenantId || '')
@@ -34,6 +40,9 @@ export function RoomAssets({ roomId }: { roomId: number }) {
   const categories = categoriesData?.data || []
   const assets = assetsData?.data || []
 
+  /**
+   * Xử lý thêm mới tài sản vào phòng
+   */
   const handleAddAsset = () => {
     if (!categoryId || !name.trim() || !quantity) {
       toast.error('Vui lòng điền đầy đủ tên, danh mục và số lượng')
@@ -63,6 +72,9 @@ export function RoomAssets({ roomId }: { roomId: number }) {
     )
   }
 
+  /**
+   * Xử lý xóa tài sản khỏi phòng
+   */
   const handleDeleteAsset = (assetId: number) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa tài sản này khỏi phòng?')) {
       deleteAsset.mutate(assetId, {
@@ -182,18 +194,17 @@ export function RoomAssets({ roomId }: { roomId: number }) {
                     <Package className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="font-medium text-slate-900">{asset.name}</div>
-                    <div className="text-sm text-slate-500">
-                      SL: {asset.quantity} • Tình trạng:{' '}
-                      {asset.condition === 'NEW'
-                        ? 'Mới'
-                        : asset.condition === 'GOOD'
-                          ? 'Tốt'
-                          : asset.condition === 'NORMAL'
-                            ? 'Bình thường'
-                            : asset.condition === 'DAMAGED'
-                              ? 'Hư hỏng'
-                              : 'Mất'}
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-slate-900">{asset.name}</span>
+                      <StatusBadge
+                        status={asset.condition}
+                        statusMap={ASSET_CONDITION_MAP}
+                        fallbackLabel={asset.condition}
+                      />
+                    </div>
+                    <div className="text-xs text-slate-500 tabular-nums mt-0.5">
+                      Số lượng: <span className="font-medium text-slate-700">{asset.quantity}</span>
+                      {asset.description && ` • ${asset.description}`}
                     </div>
                   </div>
                 </div>

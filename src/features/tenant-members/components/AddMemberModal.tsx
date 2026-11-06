@@ -30,6 +30,10 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
+/**
+ * Modal thêm nhân viên mới vào tổ chức/khu trọ
+ * Nhân viên mới sẽ được phân quyền và gửi thông tin kích hoạt qua email
+ */
 export const AddMemberModal: React.FC = () => {
   const [open, setOpen] = React.useState(false)
   const queryClient = useQueryClient()

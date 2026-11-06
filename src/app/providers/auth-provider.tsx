@@ -145,6 +145,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [setState],
   )
 
+  /** Làm mới dữ liệu hồ sơ người dùng trên toàn ứng dụng sau khi chỉnh sửa */
+  const refreshProfile = useCallback(async () => {
+    const profileResponse = await apiClient.get<UserProfile>('/auth/profile')
+    const userProfile = profileResponse.data
+    setProfile(userProfile)
+
+    const savedTenantId = getSelectedTenantId()
+    if (savedTenantId) {
+      const membership = findActiveMembership(userProfile, savedTenantId)
+      setSelectedMembership(membership)
+    }
+  }, [])
+
   /** Đăng xuất */
   const logout = useCallback(async () => {
     try {
@@ -219,6 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       selectedMembership,
       establishSession,
+      refreshProfile,
       logout,
       selectTenant,
       hasSystemRole,
@@ -230,6 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       selectedMembership,
       establishSession,
+      refreshProfile,
       logout,
       selectTenant,
       hasSystemRole,

@@ -17,6 +17,7 @@ export interface ContractMember {
   fullName?: string | null
   phone?: string | null
   identityCard?: string | null
+  avatarUrl?: string | null
   role: string
   createdAt: string
   user?: {
@@ -24,6 +25,7 @@ export interface ContractMember {
     fullName: string
     email: string
     phone?: string | null
+    avatarUrl?: string | null
   } | null
 }
 

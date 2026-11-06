@@ -152,6 +152,8 @@ export interface SessionContextValue {
 
   /** Thiết lập session sau khi login/google thành công */
   establishSession: (tokenPair: TokenPair, profile: UserProfile) => void
+  /** Làm mới thông tin profile của người dùng hiện tại từ server */
+  refreshProfile: () => Promise<void>
   /** Đăng xuất: gọi API, xóa session, clear query cache */
   logout: () => Promise<void>
   /** Chọn tenant: validate ACTIVE, cancel requests, clear cache */

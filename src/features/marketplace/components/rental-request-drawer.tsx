@@ -1,7 +1,20 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { Calendar, Users, Send, AlertTriangle, MapPin } from 'lucide-react'
 import { useCreateRentalRequest, useMarketplaceRoom } from '@/shared/api/marketplace'
 import { toast } from 'sonner'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Separator } from '@/components/ui/separator'
 
 interface RentalRequestDrawerProps {
   isOpen: boolean
@@ -9,21 +22,31 @@ interface RentalRequestDrawerProps {
   roomId: number
 }
 
+/**
+ * Drawer gửi yêu cầu thuê phòng (ActionDrawer theo DESIGN.md).
+ * Cho phép khách thuê đặt ngày chuyển vào, số lượng người và lời nhắn gửi đến chủ nhà.
+ */
 export function RentalRequestDrawer({ isOpen, onClose, roomId }: RentalRequestDrawerProps) {
   const { data: room } = useMarketplaceRoom(roomId)
   const { mutate, isPending } = useCreateRentalRequest()
   const navigate = useNavigate()
-  
+
   const [expectedStartDate, setExpectedStartDate] = useState('')
   const [occupants, setOccupants] = useState<number>(1)
   const [message, setMessage] = useState('')
   const [hasActiveRequest, setHasActiveRequest] = useState(false)
-  
-  if (!isOpen) return null
 
+  const today = new Date().toISOString().split('T')[0]
+  const maxDate = new Date()
+  maxDate.setDate(maxDate.getDate() + 30)
+  const maxDateString = maxDate.toISOString().split('T')[0]
+
+  /**
+   * Xử lý nộp biểu mẫu yêu cầu thuê
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!expectedStartDate) {
       toast.error('Vui lòng chọn ngày dự kiến chuyển vào')
       return
@@ -37,17 +60,18 @@ export function RentalRequestDrawer({ isOpen, onClose, roomId }: RentalRequestDr
     const finalMessage = `Số người ở dự kiến: ${occupants} người.\nLời nhắn: ${message || 'Không có'}`
 
     mutate(
-      { 
-        roomId, 
-        body: { 
-          expectedStartDate, // YYYY-MM-DD
+      {
+        roomId,
+        body: {
+          expectedStartDate,
           message: finalMessage,
-          // Bỏ trường appointmentId theo thiết kế mới, giải quyết lỗi 400
-        } 
+        },
       },
       {
         onSuccess: () => {
-          toast.success('Gửi yêu cầu thuê phòng thành công')
+          toast.success('Gửi yêu cầu thuê phòng thành công', {
+            description: 'Chủ nhà sẽ nhận được thông báo để duyệt yêu cầu thuê của bạn.',
+          })
           onClose()
           navigate('/tai-khoan/yeu-cau-thue')
         },
@@ -55,140 +79,134 @@ export function RentalRequestDrawer({ isOpen, onClose, roomId }: RentalRequestDr
           const error = err as import('axios').AxiosError<{ message: string }>
           if (error?.response?.status === 409) {
             setHasActiveRequest(true)
+            toast.warning('Bạn đã có yêu cầu thuê đang chờ xử lý cho phòng này')
           } else {
-            toast.error(error?.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại')
+            toast.error(error?.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại sau.')
           }
-        }
+        },
       }
     )
   }
 
-  // Get current date string in YYYY-MM-DD format for min attribute
-  const today = new Date().toISOString().split('T')[0]
-  const maxDate = new Date()
-  maxDate.setDate(maxDate.getDate() + 10)
-  const maxDateString = maxDate.toISOString().split('T')[0]
+  const formattedPrice = room?.basePrice
+    ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(room.basePrice)
+    : '---'
 
   return (
-    <div className="fixed inset-0 z-[100] flex justify-end">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
-      />
-      
-      {/* Drawer */}
-      <div className="relative w-full max-w-[480px] bg-surface h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-        <div className="px-6 py-4 border-b border-surface-border flex items-center justify-between">
-          <h2 className="font-headline-sm text-text-main">Gửi yêu cầu thuê phòng</h2>
-          <button 
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors"
-          >
-            <span className="material-symbols-outlined text-[20px]">close</span>
-          </button>
-        </div>
-        
-        <div className="p-6 flex-1 overflow-y-auto">
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-white">
+        <SheetHeader className="p-6 border-b border-slate-100">
+          <SheetTitle className="flex items-center gap-2 text-lg font-bold text-slate-900">
+            <Send className="size-5 text-primary" />
+            Gửi yêu cầu thuê phòng
+          </SheetTitle>
+          <SheetDescription className="text-xs text-slate-500">
+            Gửi thông tin chuyển vào và số lượng người ở để chủ trọ chuẩn bị hợp đồng.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="p-6 flex-1 overflow-y-auto space-y-6">
           {/* Card Preview Phòng */}
-          <div className="bg-surface-container-lowest p-4 rounded-xl border border-surface-border mb-6 flex gap-4">
-            <img 
-              src={room?.images?.[0]?.url || 'https://placehold.co/100'} 
-              alt={room?.title || 'Phòng trọ'} 
-              className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
+          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 flex gap-3.5 items-center">
+            <img
+              src={room?.images?.[0]?.url || 'https://placehold.co/100'}
+              alt={room?.title || 'Phòng trọ'}
+              className="size-16 rounded-lg object-cover flex-shrink-0"
             />
-            <div className="flex flex-col justify-center">
-              <h3 className="font-label-md text-text-main line-clamp-1">{room?.title || 'Đang tải...'}</h3>
-              <p className="font-body-sm text-on-surface-variant flex items-center gap-1 mt-1 line-clamp-1">
-                <span className="material-symbols-outlined text-[16px]">location_on</span>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-heading font-semibold text-sm text-slate-900 line-clamp-1">
+                {room?.title || 'Đang tải thông tin...'}
+              </h4>
+              <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 flex items-center gap-1">
+                <MapPin className="size-3 text-slate-400" />
                 {room?.property?.addressDetail || 'Đang tải...'}
               </p>
-              <p className="font-label-md text-primary mt-2">
-                {room?.basePrice ? new Intl.NumberFormat('vi-VN').format(room.basePrice) : '---'} đ/tháng
-              </p>
+              <span className="text-xs font-bold text-primary block mt-1">{formattedPrice}/tháng</span>
             </div>
           </div>
 
           {/* Cảnh báo đã có yêu cầu */}
           {hasActiveRequest && (
-            <div className="bg-[#fff4e5] text-[#d97706] p-4 rounded-xl mb-6 flex items-start gap-3 border border-[#ffedd5]">
-              <span className="material-symbols-outlined text-[20px]">error</span>
-              <p className="font-body-md">Bạn đã có một yêu cầu đang hoạt động cho phòng này.</p>
-            </div>
+            <Alert variant="destructive" className="rounded-xl">
+              <AlertTriangle className="size-4" />
+              <AlertDescription className="text-xs">
+                Bạn đang có một yêu cầu thuê chưa hoàn tất cho phòng này. Vui lòng kiểm tra lại trong mục Yêu cầu thuê cá nhân.
+              </AlertDescription>
+            </Alert>
           )}
 
-          <form id="rental-form" onSubmit={handleSubmit} className="space-y-6">
-            
+          <form id="rental-form" onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="font-label-md text-on-surface mb-2 block">
-                Ngày dự kiến chuyển vào <span className="text-status-overdue">*</span>
+              <label className="text-sm font-medium text-slate-900 mb-1.5 flex items-center gap-1.5">
+                <Calendar className="size-4 text-primary" />
+                Ngày dự kiến chuyển vào <span className="text-destructive">*</span>
               </label>
-              <input 
-                type="date" 
-                className="w-full h-11 px-3 bg-surface-container-lowest border border-surface-border focus:border-primary rounded-lg font-body-md text-on-surface outline-none transition-colors"
+              <Input
+                type="date"
+                className="h-10 rounded-xl"
                 value={expectedStartDate}
-                onChange={e => setExpectedStartDate(e.target.value)}
+                onChange={(e) => setExpectedStartDate(e.target.value)}
                 required
                 min={today}
                 max={maxDateString}
               />
             </div>
-            
+
             <div>
-              <label className="font-label-md text-on-surface mb-2 block">
-                Số người ở <span className="text-status-overdue">*</span>
+              <label className="text-sm font-medium text-slate-900 mb-1.5 flex items-center gap-1.5">
+                <Users className="size-4 text-primary" />
+                Số người ở dự kiến <span className="text-destructive">*</span>
               </label>
               <div className="relative">
-                <input 
-                  type="number" 
-                  className="w-full h-11 px-3 pr-16 bg-surface-container-lowest border border-surface-border focus:border-primary rounded-lg font-body-md text-on-surface outline-none transition-colors"
+                <Input
+                  type="number"
+                  className="h-10 rounded-xl pr-14"
                   value={occupants}
-                  onChange={e => setOccupants(Number(e.target.value))}
+                  onChange={(e) => setOccupants(Number(e.target.value))}
                   min={1}
+                  max={room?.maxOccupants || 10}
                   required
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 font-body-md text-on-surface-variant pointer-events-none">
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">
                   người
                 </span>
               </div>
+              {room?.maxOccupants && (
+                <p className="text-[11px] text-slate-400 mt-1">Sức chứa tối đa phòng này: {room.maxOccupants} người</p>
+              )}
             </div>
-            
+
+            <Separator />
+
             <div>
-              <label className="font-label-md text-on-surface mb-2 block">
-                Lời nhắn cho chủ trọ
+              <label className="text-sm font-medium text-slate-900 mb-1.5 block">
+                Lời nhắn gửi chủ trọ (Không bắt buộc)
               </label>
-              <textarea 
-                className="w-full p-3 bg-surface-container-lowest border border-surface-border focus:border-primary rounded-lg font-body-md text-on-surface outline-none transition-colors min-h-[120px] resize-none"
-                placeholder="Xin chào, tôi quan tâm đến phòng này và muốn..."
+              <Textarea
+                placeholder="Ví dụ: Xin chào, tôi hiện là sinh viên/nhân viên văn phòng, dự kiến thuê dài hạn..."
+                className="min-h-[100px] resize-none rounded-xl"
                 value={message}
-                onChange={e => setMessage(e.target.value)}
-                maxLength={2000}
+                onChange={(e) => setMessage(e.target.value)}
+                maxLength={1000}
               />
             </div>
           </form>
         </div>
-        
-        <div className="p-6 border-t border-surface-border bg-surface">
-          <div className="flex gap-4">
-            <button 
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-2.5 bg-surface-container-lowest border border-surface-border text-on-surface font-label-md rounded-lg hover:bg-surface-container-low transition-colors"
-            >
-              Hủy
-            </button>
-            <button 
-              type="submit"
-              form="rental-form"
-              disabled={isPending || hasActiveRequest}
-              className="flex-1 py-2.5 bg-primary text-on-primary font-label-md rounded-lg shadow-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {isPending && <span className="w-4 h-4 rounded-full border-2 border-on-primary/30 border-t-on-primary animate-spin" />}
-              Gửi yêu cầu thuê
-            </button>
-          </div>
+
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-3">
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1 rounded-xl">
+            Hủy
+          </Button>
+          <Button
+            type="submit"
+            form="rental-form"
+            disabled={isPending || hasActiveRequest}
+            className="flex-1 rounded-xl font-medium"
+          >
+            {isPending ? 'Đang gửi...' : 'Gửi yêu cầu thuê'}
+          </Button>
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   )
 }
